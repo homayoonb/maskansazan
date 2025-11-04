@@ -1,0 +1,192 @@
+/* ====== تنظیمات پایه و RTL ====== */
+:root{
+    --bg: #f7f9fc;
+    --card: #ffffff;
+    --muted: #6c757d;
+    --primary: #2563eb;
+    --success: #16a34a;
+    --info: #0ea5e9;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --text: #212529;
+    --glass: rgba(255,255,255,0.6);
+    --radius: 12px;
+    --shadow: 0 6px 20px rgba(18, 38, 63, 0.08);
+    font-size: 16px;
+}
+
+/* عمومی */
+html,body{
+    height:100%;
+    margin:0;
+    padding:0;
+    direction: rtl;               /* مهم: جهت راست‌به‌‌چپ */
+    font-family: "Vazirmatn", "IRANSans", "Tahoma", "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+}
+
+/* کانتینر واکنش‌گرا اگر نیاز داری */
+.container-fluid{
+    padding-left: 18px;
+    padding-right: 18px;
+}
+
+/* نوار بالایی */
+.navbar{
+    background: transparent;
+    padding: 0.6rem 0;
+}
+.navbar .nav-link{
+    color: var(--text);
+    opacity: .9;
+    font-weight: 600;
+}
+.navbar .nav-link.active{
+    color: var(--primary);
+}
+.navbar .badge{
+    font-size: 0.7rem;
+    vertical-align: middle;
+}
+
+/* هدر خوش‌آمدگویی */
+.welcome-header{
+    background: linear-gradient(90deg, rgba(37,99,235,0.08), rgba(14,165,233,0.04));
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow);
+}
+.welcome-header h2{
+    margin:0;
+    font-size: 1.6rem;
+    font-weight:700;
+}
+.welcome-header p{
+    margin:6px 0 0;
+    color:var(--muted);
+}
+
+/* Badge تقویم */
+.profile-badge{
+    background: rgba(255,255,255,0.9);
+    padding: 8px 12px;
+    border-radius: 999px;
+    box-shadow: 0 3px 10px rgba(2,6,23,0.04);
+    display:inline-flex;
+    gap:8px;
+    align-items:center;
+    font-weight:600;
+}
+
+/* کارت‌های آمار */
+.row { display:flex; flex-wrap:wrap; gap:18px; }
+.col-xl-3, .col-md-6, .col-lg-6 { box-sizing:border-box; }
+.col-xl-3{ flex: 1 1 calc(25% - 18px); min-width:220px; }
+.col-lg-6{ flex: 1 1 calc(50% - 18px); min-width:300px; }
+.col-md-6{ flex: 1 1 calc(50% - 18px); min-width:220px; }
+
+.card{
+    background: var(--card);
+    border: none;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.card .card-body{ padding: 18px; }
+
+.stat-card .text-xs{ font-size:0.75rem; color:var(--muted); font-weight:700; margin-bottom:6px; }
+.stat-card .h5{ font-size:1.25rem; font-weight:800; }
+
+.icon-circle{
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    font-size:1.2rem;
+}
+
+/* رنگ‌بندی کارت‌ها */
+.stat-card.primary .icon-circle{ background: var(--primary); }
+.stat-card.success .icon-circle{ background: var(--success); }
+.stat-card.info .icon-circle{ background: var(--info); }
+.stat-card.warning .icon-circle{ background: var(--warning); }
+
+/* جدول اطلاعات کاربری */
+.table{ width:100%; border-collapse:collapse; }
+.table th{
+    background:transparent;
+    text-align:left;
+    vertical-align:middle;
+    font-weight:700;
+    color:var(--muted);
+    width:30%;
+}
+.table td{
+    vertical-align:middle;
+    font-weight:600;
+}
+
+/* دکمه و آیکون ویرایش */
+.btn{
+    display:inline-flex;
+    align-items:center;
+    gap:.5rem;
+    padding:.45rem .9rem;
+    border-radius:10px;
+    border:none;
+    cursor:pointer;
+}
+.btn-primary{
+    background:var(--primary);
+    color:#fff;
+    box-shadow: 0 6px 18px rgba(37,99,235,0.12);
+}
+
+/* لیست فعالیت‌ها */
+.activity-list{ margin-top:8px; }
+.activity-item{ padding:12px; border-radius:8px; background:linear-gradient(180deg, rgba(0,0,0,0.01), transparent); }
+.activity-item + .activity-item{ margin-top:10px; }
+.activity-item strong{ display:block; font-weight:800; }
+.activity-item .small{ color:var(--muted); }
+
+/* آیکون‌های بیوتسترپ (bi) - اگر از آیکون استفاده می‌کنی */
+.bi{ font-size:1.05rem; vertical-align:middle; }
+
+/* ریسپانسیو */
+@media (max-width: 1000px){
+    .col-xl-3{ flex: 1 1 calc(50% - 18px); }
+}
+@media (max-width: 600px){
+    .col-xl-3, .col-lg-6, .col-md-6{ flex: 1 1 100%; }
+    .welcome-header{ text-align:center; }
+    .text-md-left{ text-align:center !important; }
+}
+
+/* سبک‌های کمکی */
+.text-muted{ color:var(--muted) !important; }
+.small{ font-size:0.85rem; }
+.mt-3{ margin-top:1rem; }
+.mb-4{ margin-bottom:1.25rem; }
+
+/* افکت hover کوچک برای کارت‌ها */
+.card:hover{ transform: translateY(-4px); transition: transform .18s ease; }
+
+/* فرم‌ها (اگر دکمه و ورودی لازم شد) */
+input.form-control{
+    width:100%;
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid #e6eef8;
+    background:#fff;
+    box-shadow:none;
+    font-size:0.95rem;
+    box-sizing:border-box;
+}

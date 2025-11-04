@@ -1,0 +1,30 @@
+{
+  "name": "yekan-fontface",
+  "title": "yekan farsi font",
+  "version": "1.0.3",
+  "description": "yekan fontface",
+  "keywords": [
+    "typeface",
+    "font",
+    "font family",
+    "persian",
+    "farsi",
+    "yekan"
+  ],
+  "author": "Mahdi Zarrinkolah <mz.goldenhat@gmail.com>",
+  "main": "index.css",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "license": "SEE LICENSE IN license.txt",
+  "repository": {
+    "type": "gitlab",
+    "url": "git+https://gitlab.com/GoldenHat/farsi-typeface/tree/master/packages/Yekan-Font-master.git"
+  },
+  "style": "./index.css",
+  "bugs": {
+    "url": "https://gitlab.com/GoldenHat/farsi-typeface/tree/master/packages/Yekan-Font-master/issues"
+  },
+  "homepage": "https://gitlab.com/GoldenHat/farsi-typeface/tree/master/packages/Yekan-Font-master#readme",
+  "devDependencies": {}
+}
