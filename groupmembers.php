@@ -1,13 +1,16 @@
 <?php
-session_start();
 include "config/Database.php";
 
+session_start();
+
 $error = "";
-// اگر قبلا لاگین شده
-if (!isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === false) {
-    header('Location: index.php');
+
+// بررسی لاگین
+if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
+    header('Location: dashboard.php');
     exit();
 }
+
 // اتصال به دیتابیس
 $database = new Database();
 $db = $database->connect();
@@ -15,55 +18,32 @@ if (!$db) {
     die("Connection to database failed.");
 }
 
-
-
 // پردازش فرم
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    // دریافت و پاکسازی ورودی‌ها
-    $national_code = isset($_POST['national_code']) ? trim($_POST['national_code']) : '';
-    $id_number   = isset($_POST['id_number']) ? trim($_POST['id_number']) : '';
+    $national_code = trim($_POST['national_code'] ?? '');
+    $id_number = trim($_POST['id_number'] ?? '');
 
-    if ($national_code === '' ||$id_number === '') {
-        $error = "Please provide both National Code and Row Number.<br />";
+    if ($national_code === '' || $id_number === '') {
+        $error = "لطفا کد ملی و شماره شناسنامه را وارد کنید.";
     } else {
-
-        // اگر ستون row_number0 در دیتابیس عددی است، مطمئن شو مقدار عددی است
-        // $row_number0 = (int)$row_number0;
-
-        // آماده‌سازی کوئری امن
-        $stmt = $db->prepare(/** @lang text */ "SELECT * FROM maskansazan.project_members WHERE national_code = ? and birth_certificate=? LIMIT 1");
-        if (!$stmt) {
-            die("Prepare failed: " . $db->error);
-        }
+        $stmt = $db->prepare("SELECT * FROM maskansazan.project_members WHERE national_code = ? AND birth_certificate=? LIMIT 1");
+        if (!$stmt) die("Prepare failed: " . $db->error);
 
         $stmt->bind_param("ss", $national_code, $id_number);
-        if (!$stmt->execute()) {
-            die("Execute failed: " . $stmt->error);
-        }
+        if (!$stmt->execute()) die("Execute failed: " . $stmt->error);
 
         $result = $stmt->get_result();
-        if (!$result) {
-            die("Get result failed: " . $db->error);
-        }
-
-        if ($result->num_rows === 1) {
+        if ($result && $result->num_rows === 1) {
             $row = $result->fetch_assoc();
-
             $stored_code = $row['national_code'];
             $isValid = false;
 
-            // بررسی هش یا متن ساده
+            // بررسی bcrypt یا متن ساده
             if (preg_match('/^\$2[ayb]\$\d{2}\$[\.\/A-Za-z0-9]{53}$/', $stored_code)) {
-                // هش bcrypt
-                if (password_verify($national_code, $stored_code)) {
-                    $isValid = true;
-                }
+                if (password_verify($national_code, $stored_code)) $isValid = true;
             } else {
-                // متن ساده
-                if ($national_code === $stored_code) {
-                    $isValid = true;
-                }
+                if ($national_code === $stored_code) $isValid = true;
             }
 
             if ($isValid) {
@@ -71,23 +51,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $_SESSION['full_name'] = $row['first_name'] . " " . $row['last_name'];
                 $_SESSION['main_member'] = $row['main_member'];
                 $_SESSION['NationalCode'] = $national_code;
-                $_SESSION['declared_share']=$row['declared_share'];
-                $_SESSION['share']=$row['share'];
-                $_SESSION['phone']=$row['phone'];
+                $_SESSION['declared_share'] = $row['declared_share'];
+                $_SESSION['share'] = $row['share'];
+                $_SESSION['phone'] = $row['phone'];
+
                 header('Location: dashboard.php');
                 exit();
             } else {
-                $error = "Invalid National Code.<br />";
+                $error = "کد ملی نامعتبر است.";
             }
-
         } else {
-            $error = "Invalid National Code or Row Number.<br />";
+            $error = "کد ملی یا شماره شناسنامه اشتباه است.";
         }
 
         $stmt->close();
     }
 }
 ?>
+
 
 
 <!DOCTYPE html>
