@@ -20,9 +20,9 @@ $uploadDir = "uploads/" . $fullName . "/";
 if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
 
 $userDocs = [
-        "BirthCertificate" => $uploadDir . "BirthCertificate.pdf",
-        "NationalCard" => $uploadDir . "NationalCard.pdf",
-        "PaymentReceipt" => $uploadDir . "PaymentReceipt.pdf"
+        "BirthCertificate" => $uploadDir . "BirthCertificate.jpg",
+        "NationalCard" => $uploadDir . "NationalCard.jpg",
+        "PaymentReceipt" => $uploadDir . "PaymentReceipt.jpg"
 ];
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_GET["action"]) && $_GET["action"] === "upload") {
@@ -30,17 +30,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_GET["action"]) && $_GET["ac
     $file = $_FILES["fileToUpload"] ?? null;
 
     if ($file && $file["error"] === 0) {
-        $allowedTypes = ['application/pdf'];
-        $maxSize = 5 * 1024 * 1024;
+        $allowedTypes = ['application/jpg'];
+//        $maxSize = 5 * 1024 * 1024;
 
-        if (!in_array($file['type'], $allowedTypes)) {
-            $message = "فقط فایل PDF مجاز است.";
-            $messageType = "danger";
-        } elseif ($file['size'] > $maxSize) {
-            $message = "حجم فایل نباید بیشتر از ۵ مگابایت باشد.";
-            $messageType = "danger";
-        } else {
-            $target = $uploadDir . basename($docType . ".pdf");
+            $target = $uploadDir . basename($docType . ".jpg");
             if (move_uploaded_file($file["tmp_name"], $target)) {
                 $message = "فایل با موفقیت آپلود شد.";
                 $messageType = "success";
@@ -49,7 +42,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_GET["action"]) && $_GET["ac
                 $messageType = "danger";
             }
         }
-    }
 }
 
 if (isset($_GET["action"]) && $_GET["action"] === "delete" && isset($_GET["file"])) {
