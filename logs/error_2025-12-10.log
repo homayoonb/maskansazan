@@ -1,0 +1,80 @@
+[2025-12-10 11:15:01] خطای دیتابیس: خطا در آماده‌سازی کوئری: Unknown column 'user_agent' in 'field list' - IP: 178.131.26.89
+[2025-12-10 11:16:41] خطای دیتابیس: خطا در آماده‌سازی کوئری: Column count doesn't match value count at row 1 - IP: 178.131.26.89
+[2025-12-10 11:21:01] اتصال به دیتابیس موفق: maskanhb_maskansazan - IP: 178.131.26.89
+[2025-12-10 11:21:01] جدول members از قبل وجود دارد. - IP: 178.131.26.89
+[2025-12-10 11:21:01] ستون‌های جدول: id, first_name, last_name, national_id, birth_certificate_number, father_name, birth_date, birth_date_fa, mobile, phone, address, national_card_image, birth_certificate_image, check1_image, check2_image, check3_image, registration_date, ip_address, status, created_at, updated_at - IP: 178.131.26.89
+[2025-12-10 11:21:01] کوئری INSERT: INSERT INTO members (
+                first_name, 
+                last_name, 
+                national_id, 
+                birth_certificate_number, 
+                father_name, 
+                birth_date_fa, 
+                mobile, 
+                phone, 
+                address,
+                national_card_image, 
+                birth_certificate_image,
+                check1_image, 
+                check2_image, 
+                check3_image,
+                ip_address, 
+                user_agent,
+                status,
+                registration_date
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW()) - IP: 178.131.26.89
+[2025-12-10 11:21:01] خطای دیتابیس: خطا در آماده‌سازی کوئری INSERT: Unknown column 'user_agent' in 'field list' - IP: 178.131.26.89
+[2025-12-10 11:25:15] اتصال به دیتابیس موفق: maskanhb_maskansazan - IP: 178.131.26.89
+[2025-12-10 11:25:15] جدول members از قبل وجود دارد. - IP: 178.131.26.89
+[2025-12-10 11:25:15] ستون‌های جدول موجود: id, first_name, last_name, national_id, birth_certificate_number, father_name, birth_date, birth_date_fa, mobile, phone, address, national_card_image, birth_certificate_image, check1_image, check2_image, check3_image, registration_date, ip_address, status, created_at, updated_at - IP: 178.131.26.89
+[2025-12-10 11:25:15] کوئری INSERT نهایی: INSERT INTO members (first_name, last_name, national_id, birth_certificate_number, father_name, birth_date_fa, mobile, phone, address, national_card_image, birth_certificate_image, check1_image, check2_image, check3_image, registration_date, status, ip_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) - IP: 178.131.26.89
+[2025-12-10 11:25:15] ثبت نام موفق - کد پیگیری: 8 - شماره ملی: 0061846899 - IP: 178.131.26.89
+[2025-12-10 11:30:05] خطای عمومی: متد درخواست باید POST باشد. - IP: 178.131.26.89
+[2025-12-10 11:32:25] اتصال به دیتابیس موفق: maskanhb_maskansazan - IP: 178.131.26.89
+[2025-12-10 11:32:25] جدول members از قبل وجود دارد. - IP: 178.131.26.89
+[2025-12-10 11:32:25] ستون‌های جدول: id, first_name, last_name, national_id, birth_certificate_number, father_name, birth_date, birth_date_fa, mobile, phone, address, national_card_image, birth_certificate_image, check1_image, check2_image, check3_image, registration_date, ip_address, status, created_at, updated_at - IP: 178.131.26.89
+[2025-12-10 11:32:25] کوئری INSERT: INSERT INTO members (first_name, last_name, national_id, birth_certificate_number, father_name, birth_date_fa, mobile, phone, address, national_card_image, birth_certificate_image, check1_image, check2_image, check3_image, registration_date, ip_address, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) - IP: 178.131.26.89
+[2025-12-10 11:32:25] تعداد پارامترها: 17 - IP: 178.131.26.89
+[2025-12-10 11:32:25] نوع پارامترها: sssssssssssssssss - IP: 178.131.26.89
+[2025-12-10 11:32:25] ثبت نام موفق - کد پیگیری: 9 - شماره ملی: 0018270107 - IP: 178.131.26.89
+[2025-12-10 12:06:20] اتصال به دیتابیس موفق: maskanhb_maskansazan - IP: 178.131.26.89
+[2025-12-10 12:06:20] جدول members از قبل وجود دارد. - IP: 178.131.26.89
+[2025-12-10 12:06:20] خطای دیتابیس: شماره ملی وارد شده قبلاً ثبت شده است. - IP: 178.131.26.89
+[2025-12-10 12:07:03] اتصال به دیتابیس موفق: maskanhb_maskansazan - IP: 178.131.26.89
+[2025-12-10 12:07:03] جدول members از قبل وجود دارد. - IP: 178.131.26.89
+[2025-12-10 12:07:03] کوئری INSERT: INSERT INTO members (
+                first_name, 
+                last_name, 
+                national_id, 
+                birth_certificate_number, 
+                father_name, 
+                birth_date_fa, 
+                mobile, 
+                phone, 
+                address,
+                national_card_image, 
+                birth_certificate_image,
+                check1_image, 
+                check2_image, 
+                check3_image,
+                ip_address, 
+                user_agent,
+                status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) - IP: 178.131.26.89
+[2025-12-10 12:07:03] خطای دیتابیس: خطا در آماده‌سازی کوئری INSERT: Unknown column 'user_agent' in 'field list' - IP: 178.131.26.89
+[2025-12-10 12:12:42] اتصال به دیتابیس موفق: maskanhb_maskansazan - IP: 178.131.26.89
+[2025-12-10 12:12:42] ستون‌های جدول: id, first_name, last_name, national_id, birth_certificate_number, father_name, birth_date, birth_date_fa, mobile, phone, address, national_card_image, birth_certificate_image, check1_image, check2_image, check3_image, registration_date, ip_address, status, created_at, updated_at - IP: 178.131.26.89
+[2025-12-10 12:12:42] کوئری INSERT نهایی: INSERT INTO members (first_name, last_name, national_id, birth_certificate_number, father_name, birth_date_fa, mobile, phone, address, national_card_image, birth_certificate_image, check1_image, check2_image, check3_image, status, registration_date, ip_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) - IP: 178.131.26.89
+[2025-12-10 12:12:42] تعداد مقادیر: 17 - IP: 178.131.26.89
+[2025-12-10 12:12:42] ثبت نام موفق - کد پیگیری: 10 - شماره ملی: 0060168420 - IP: 178.131.26.89
+[2025-12-10 12:20:01] اتصال به دیتابیس موفق: maskanhb_maskansazan - IP: 178.131.26.89
+[2025-12-10 12:20:01] خطای دیتابیس: شماره ملی وارد شده قبلاً ثبت شده است. - IP: 178.131.26.89
+[2025-12-10 12:20:36] اتصال به دیتابیس موفق: maskanhb_maskansazan - IP: 178.131.26.89
+[2025-12-10 12:20:36] خطای دیتابیس: شماره ملی وارد شده قبلاً ثبت شده است. - IP: 178.131.26.89
+[2025-12-10 12:21:36] اتصال به دیتابیس موفق: maskanhb_maskansazan - IP: 178.131.26.89
+[2025-12-10 12:21:36] کوئری INSERT: INSERT INTO members (first_name, last_name, national_id, birth_certificate_number, father_name, birth_date_fa, mobile, phone, address, national_card_image, birth_certificate_image, check1_image, check2_image, check3_image, status, registration_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) - IP: 178.131.26.89
+[2025-12-10 12:21:36] ثبت نام موفق - کد پیگیری: 11 - شماره ملی: 4621836994 - IP: 178.131.26.89
+[2025-12-10 12:25:09] اتصال به دیتابیس موفق: maskanhb_maskansazan - IP: 178.131.26.89
+[2025-12-10 12:25:09] کوئری INSERT: INSERT INTO members (first_name, last_name, national_id, birth_certificate_number, father_name, birth_date_fa, mobile, phone, address, national_card_image, birth_certificate_image, check1_image, check2_image, check3_image, status, registration_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) - IP: 178.131.26.89
+[2025-12-10 12:25:09] ثبت نام موفق - کد پیگیری: 12 - شماره ملی: 0054569109 - IP: 178.131.26.89
+[2025-12-10 12:28:42] خطای عمومی: متد درخواست باید POST باشد. - IP: 178.131.26.89

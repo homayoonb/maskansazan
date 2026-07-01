@@ -1,0 +1,25 @@
+[13-Dec-2025 18:22:44 Asia/Tehran] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/maskanhb/public_html/dashboardAdmin.php:262
+Stack trace:
+#0 /home/maskanhb/public_html/dashboardAdmin.php(366): QueryBuilder->getCheques()
+#1 {main}
+  thrown in /home/maskanhb/public_html/dashboardAdmin.php on line 262
+[13-Dec-2025 18:23:07 Asia/Tehran] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/maskanhb/public_html/dashboardAdmin.php:262
+Stack trace:
+#0 /home/maskanhb/public_html/dashboardAdmin.php(366): QueryBuilder->getCheques()
+#1 {main}
+  thrown in /home/maskanhb/public_html/dashboardAdmin.php on line 262
+[13-Dec-2025 18:23:08 Asia/Tehran] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/maskanhb/public_html/dashboardAdmin.php:262
+Stack trace:
+#0 /home/maskanhb/public_html/dashboardAdmin.php(366): QueryBuilder->getCheques()
+#1 {main}
+  thrown in /home/maskanhb/public_html/dashboardAdmin.php on line 262
+[13-Dec-2025 18:23:08 Asia/Tehran] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/maskanhb/public_html/dashboardAdmin.php:262
+Stack trace:
+#0 /home/maskanhb/public_html/dashboardAdmin.php(366): QueryBuilder->getCheques()
+#1 {main}
+  thrown in /home/maskanhb/public_html/dashboardAdmin.php on line 262
+[13-Dec-2025 18:35:17 Asia/Tehran] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/maskanhb/public_html/dashboardAdmin.php:262
+Stack trace:
+#0 /home/maskanhb/public_html/dashboardAdmin.php(366): QueryBuilder->getCheques()
+#1 {main}
+  thrown in /home/maskanhb/public_html/dashboardAdmin.php on line 262

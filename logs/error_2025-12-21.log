@@ -1,0 +1,20 @@
+[2025-12-21 09:53:02] اتصال به دیتابیس موفق: maskanhb_maskansazan - IP: 213.139.73.96
+[2025-12-21 09:53:02] کوئری INSERT: INSERT INTO members (first_name, last_name, national_id, birth_certificate_number, father_name, birth_date_fa, mobile, phone, address, national_card_image, birth_certificate_image, check1_image, check2_image, check3_image, status, registration_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) - IP: 213.139.73.96
+[2025-12-21 09:53:02] ثبت نام موفق - کد پیگیری: 15 - شماره ملی: 0018270107 - IP: 213.139.73.96
+[2025-12-21 10:12:12] شروع پردازش ثبت نام - IP: 213.139.73.96 - IP: 213.139.73.96
+[2025-12-21 10:12:13] داده‌های فرم دریافت شد - کدملی: 0060168420 - IP: 213.139.73.96
+[2025-12-21 10:12:13] فایل کارت ملی آپلود شد: national_card_image_1766299333_bddecda1.jpg - IP: 213.139.73.96
+[2025-12-21 10:12:13] فایل شناسنامه آپلود شد: birth_certificate_image_1766299333_49e965be.jpg - IP: 213.139.73.96
+[2025-12-21 10:12:13] فایل چک شماره ۱ آپلود شد: check1_image_1766299333_5466562b.pdf - IP: 213.139.73.96
+[2025-12-21 10:12:13] فایل چک شماره ۲ آپلود شد: check2_image_1766299333_19d87587.jpg - IP: 213.139.73.96
+[2025-12-21 10:12:13] فایل چک شماره ۳ آپلود شد: check3_image_1766299333_a385abd7.jpg - IP: 213.139.73.96
+[2025-12-21 10:12:13] اتصال به دیتابیس موفق: maskanhb_maskansazan - IP: 213.139.73.96
+[2025-12-21 10:12:13] خطای دیتابیس: خطا در آماده‌سازی کوئری بررسی: Unknown column 'national_id' in 'where clause' - IP: 213.139.73.96
+[2025-12-21 19:35:44] خطای عمومی: فرم به درستی ارسال نشده است. - IP: 178.131.26.134
+[2025-12-21 19:35:58] خطای عمومی: فرم به درستی ارسال نشده است. - IP: 178.131.26.134
+[2025-12-21 19:36:10] خطای عمومی: فرم به درستی ارسال نشده است. - IP: 178.131.26.134
+[2025-12-21 19:38:14] خطای عمومی: فرم به درستی ارسال نشده است. - IP: 178.131.26.134
+[2025-12-21 19:42:58] خطای عمومی: فرم به درستی ارسال نشده است. - IP: 178.131.26.134
+[2025-12-21 19:46:23] اتصال به دیتابیس موفق: maskanhb_maskansazan - IP: 178.131.26.134
+[2025-12-21 19:46:23] کوئری INSERT: INSERT INTO members (first_name, last_name, national_id, birth_certificate_number, father_name, birth_date_fa, mobile, phone, address, national_card_image, birth_certificate_image, check1_image, check2_image, check3_image, status, registration_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) - IP: 178.131.26.134
+[2025-12-21 19:46:23] ثبت نام موفق - کد پیگیری: 20 - شماره ملی: 0070646767 - IP: 178.131.26.134

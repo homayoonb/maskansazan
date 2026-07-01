@@ -1,0 +1,313 @@
+[2025-12-21 10:21:46] شروع ثبت نام - کدملی: 0060168420
+[2025-12-21 10:21:46] فایل آپلود شد: کارت ملی -> national_card_image_1766299906_226119a7.jpg
+[2025-12-21 10:21:46] فایل آپلود شد: شناسنامه -> birth_certificate_image_1766299906_37c7af35.jpg
+[2025-12-21 10:21:46] فایل آپلود شد: چک شماره ۱ -> check1_image_1766299906_742d0444.pdf
+[2025-12-21 10:21:46] فایل آپلود شد: چک شماره ۲ -> check2_image_1766299906_a1017253.jpg
+[2025-12-21 10:21:46] فایل آپلود شد: چک شماره ۳ -> check3_image_1766299906_911ab985.jpg
+[2025-12-21 10:21:46] اتصال به دیتابیس موفق
+[2025-12-21 10:21:46] ❌ خطا: شماره ملی وارد شده قبلاً در پروژه‌ها ثبت شده است.
+[2025-12-21 10:23:04] شروع ثبت نام - کدملی: 0060168420
+[2025-12-21 10:23:04] فایل آپلود شد: کارت ملی -> national_card_image_1766299984_8015b821.jpg
+[2025-12-21 10:23:04] فایل آپلود شد: شناسنامه -> birth_certificate_image_1766299984_63aed440.jpg
+[2025-12-21 10:23:04] فایل آپلود شد: چک شماره ۱ -> check1_image_1766299984_39919045.pdf
+[2025-12-21 10:23:04] فایل آپلود شد: چک شماره ۲ -> check2_image_1766299984_6f2905a7.jpg
+[2025-12-21 10:23:04] فایل آپلود شد: چک شماره ۳ -> check3_image_1766299984_4e274358.jpg
+[2025-12-21 10:23:04] اتصال به دیتابیس موفق
+[2025-12-21 10:23:04] ❌ خطا: شماره ملی وارد شده قبلاً در پروژه‌ها ثبت شده است.
+[2025-12-21 10:23:51] شروع ثبت نام - کدملی: 0061846899
+[2025-12-21 10:23:51] فایل آپلود شد: کارت ملی -> national_card_image_1766300031_bb035068.jpg
+[2025-12-21 10:23:51] فایل آپلود شد: شناسنامه -> birth_certificate_image_1766300031_b2062d41.jpg
+[2025-12-21 10:23:51] فایل آپلود شد: چک شماره ۱ -> check1_image_1766300031_3b14c5c0.pdf
+[2025-12-21 10:23:51] فایل آپلود شد: چک شماره ۲ -> check2_image_1766300031_cfa92cdb.jpg
+[2025-12-21 10:23:51] فایل آپلود شد: چک شماره ۳ -> check3_image_1766300031_00855200.jpg
+[2025-12-21 10:23:51] اتصال به دیتابیس موفق
+[2025-12-21 10:23:51] ❌ خطا: شماره ملی وارد شده قبلاً در پروژه‌ها ثبت شده است.
+[2025-12-21 10:29:10] شروع ثبت نام - کدملی: 0061846899 - پروژه: 8
+[2025-12-21 10:29:10] فایل آپلود شد: کارت ملی -> national_card_image_1766300350_a538178b.jpg
+[2025-12-21 10:29:10] فایل آپلود شد: شناسنامه -> birth_certificate_image_1766300350_8b8c8cf2.jpg
+[2025-12-21 10:29:10] فایل آپلود شد: چک شماره ۱ -> check1_image_1766300350_5c597007.pdf
+[2025-12-21 10:29:10] فایل آپلود شد: چک شماره ۲ -> check2_image_1766300350_d33dd782.jpg
+[2025-12-21 10:29:10] فایل آپلود شد: چک شماره ۳ -> check3_image_1766300350_f9d8e107.jpg
+[2025-12-21 10:29:10] اتصال به دیتابیس موفق
+[2025-12-21 10:29:10] کوئری INSERT: INSERT INTO members (
+                    first_name, 
+                    last_name, 
+                    national_id, 
+                    birth_certificate_number, 
+                    father_name,
+                    birth_date_fa,
+                    mobile,
+                    phone,
+                    address,
+                    postal_code,
+                    project_id,
+                    national_card_image,
+                    birth_certificate_image,
+                    check1_image,
+                    check2_image,
+                    check3_image,
+                    ip_address,
+                    status
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+[2025-12-21 10:29:10] ❌ خطا: خطا در آماده‌سازی کوئری: Unknown column 'postal_code' in 'field list'
+[2025-12-21 10:29:54] شروع ثبت نام - کدملی: 0061846899 - پروژه: 8
+[2025-12-21 10:29:54] فایل آپلود شد: کارت ملی -> national_card_image_1766300394_c3ec14f4.jpg
+[2025-12-21 10:29:54] فایل آپلود شد: شناسنامه -> birth_certificate_image_1766300394_9afc8a04.jpg
+[2025-12-21 10:29:54] فایل آپلود شد: چک شماره ۱ -> check1_image_1766300394_152370f6.pdf
+[2025-12-21 10:29:54] فایل آپلود شد: چک شماره ۲ -> check2_image_1766300394_5a578d4e.jpg
+[2025-12-21 10:29:54] فایل آپلود شد: چک شماره ۳ -> check3_image_1766300394_a72e3db9.jpg
+[2025-12-21 10:29:54] اتصال به دیتابیس موفق
+[2025-12-21 10:29:54] کوئری INSERT: INSERT INTO members (
+                    first_name, 
+                    last_name, 
+                    national_id, 
+                    birth_certificate_number, 
+                    father_name,
+                    birth_date_fa,
+                    mobile,
+                    phone,
+                    address,
+                    postal_code,
+                    project_id,
+                    national_card_image,
+                    birth_certificate_image,
+                    check1_image,
+                    check2_image,
+                    check3_image,
+                    ip_address,
+                    status
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+[2025-12-21 10:29:54] ❌ خطا: خطا در آماده‌سازی کوئری: Unknown column 'postal_code' in 'field list'
+[2025-12-21 10:40:41] شروع ثبت نام - کدملی: 0061846899 - پروژه: 8
+[2025-12-21 10:40:41] فایل آپلود شد: کارت ملی -> national_card_image_1766301041_c0464cfe.jpg
+[2025-12-21 10:40:41] فایل آپلود شد: شناسنامه -> birth_certificate_image_1766301041_114c94f2.jpg
+[2025-12-21 10:40:41] فایل آپلود شد: چک شماره ۱ -> check1_image_1766301041_ea0e3f92.pdf
+[2025-12-21 10:40:41] فایل آپلود شد: چک شماره ۲ -> check2_image_1766301041_543fe42f.jpg
+[2025-12-21 10:40:41] فایل آپلود شد: چک شماره ۳ -> check3_image_1766301041_13259083.jpg
+[2025-12-21 10:40:41] اتصال به دیتابیس موفق
+[2025-12-21 10:40:41] ستون‌های جدول members: id, first_name, last_name, national_id, birth_certificate_number, father_name, birth_date, birth_date_fa, mobile, phone, address, postal_code, national_card_image, birth_certificate_image, check1_image, check2_image, check3_image, registration_date, ip_address, status, created_at, updated_at, project_id
+[2025-12-21 10:40:41] کوئری INSERT نهایی: INSERT INTO members (first_name, last_name, national_id, birth_certificate_number, father_name, mobile, address, project_id, national_card_image, birth_certificate_image, check1_image, check2_image, check3_image, ip_address, status, birth_date_fa, phone, postal_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+[2025-12-21 10:40:41] مقادیر: ["همایون","شجریان","0061846899","1658","محمد","09126574857","جنت آباد جنوبی","8","national_card_image_1766301041_c0464cfe.jpg","birth_certificate_image_1766301041_114c94f2.jpg","check1_image_1766301041_ea0e3f92.pdf","check2_image_1766301041_543fe42f.jpg","check3_image_1766301041_13259083.jpg","213.139.73.96","pending","1398\/07\/12","02188667788","8763547362"]
+[2025-12-21 10:40:41] ✅ ثبت نام موفق در جدول members - ID: 16 - پروژه: 8
+[2025-12-21 10:44:28] شروع ثبت نام - کدملی: 0321663195 - پروژه: 8
+[2025-12-21 10:44:28] فایل آپلود شد: کارت ملی -> national_card_image_1766301268_b810de2b.jpg
+[2025-12-21 10:44:28] فایل آپلود شد: شناسنامه -> birth_certificate_image_1766301268_f536b8dc.jpg
+[2025-12-21 10:44:28] فایل آپلود شد: چک شماره ۱ -> check1_image_1766301268_9a0fc2a0.jpg
+[2025-12-21 10:44:28] فایل آپلود شد: چک شماره ۲ -> check2_image_1766301268_997c7d27.jpeg
+[2025-12-21 10:44:28] فایل آپلود شد: چک شماره ۳ -> check3_image_1766301268_60ff7c55.jpg
+[2025-12-21 10:44:28] اتصال به دیتابیس موفق
+[2025-12-21 10:44:28] ستون‌های جدول members: id, first_name, last_name, national_id, birth_certificate_number, father_name, birth_date, birth_date_fa, mobile, phone, address, postal_code, national_card_image, birth_certificate_image, check1_image, check2_image, check3_image, registration_date, ip_address, status, created_at, updated_at, project_id
+[2025-12-21 10:44:28] کوئری INSERT نهایی: INSERT INTO members (first_name, last_name, national_id, birth_certificate_number, father_name, mobile, address, project_id, national_card_image, birth_certificate_image, check1_image, check2_image, check3_image, ip_address, status, birth_date_fa, phone, postal_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+[2025-12-21 10:44:28] مقادیر: ["علی","محمدی","0321663195","0019107358","محمد","09123457679","137 Teaticket Hwy","8","national_card_image_1766301268_b810de2b.jpg","birth_certificate_image_1766301268_f536b8dc.jpg","check1_image_1766301268_9a0fc2a0.jpg","check2_image_1766301268_997c7d27.jpeg","check3_image_1766301268_60ff7c55.jpg","213.139.73.96","pending","1390\/10\/14","02177564758","7654345687"]
+[2025-12-21 10:44:28] ✅ ثبت نام موفق در جدول members - ID: 17 - پروژه: 8
+[2025-12-21 10:50:10] شروع ثبت نام - کدملی: 0019107358 - پروژه: 8
+[2025-12-21 10:50:10] فایل آپلود شد: کارت ملی -> national_card_image_1766301610_362a8c3c.jpg
+[2025-12-21 10:50:10] فایل آپلود شد: شناسنامه -> birth_certificate_image_1766301610_4c3105d4.jpg
+[2025-12-21 10:50:10] فایل آپلود شد: چک شماره ۱ -> check1_image_1766301610_7f302b12.jpg
+[2025-12-21 10:50:10] فایل آپلود شد: چک شماره ۲ -> check2_image_1766301610_cd03fc77.jpeg
+[2025-12-21 10:50:10] فایل آپلود شد: چک شماره ۳ -> check3_image_1766301610_d3f37030.jpg
+[2025-12-21 10:50:10] اتصال به دیتابیس موفق
+[2025-12-21 10:50:11] ستون‌های جدول members: id, first_name, last_name, national_id, birth_certificate_number, father_name, birth_date, birth_date_fa, mobile, phone, address, postal_code, national_card_image, birth_certificate_image, check1_image, check2_image, check3_image, registration_date, ip_address, status, created_at, updated_at, project_id
+[2025-12-21 10:50:11] کوئری INSERT نهایی: INSERT INTO members (first_name, last_name, national_id, birth_certificate_number, father_name, mobile, address, project_id, national_card_image, birth_certificate_image, check1_image, check2_image, check3_image, ip_address, status, birth_date_fa, phone, postal_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+[2025-12-21 10:50:11] مقادیر: ["محسن","مرداد","0019107358","874625","محمد","09123457679","جنت آباد جنوبی","8","national_card_image_1766301610_362a8c3c.jpg","birth_certificate_image_1766301610_4c3105d4.jpg","check1_image_1766301610_7f302b12.jpg","check2_image_1766301610_cd03fc77.jpeg","check3_image_1766301610_d3f37030.jpg","213.139.73.96","pending","1400\/08\/11","02144972802","6543234567"]
+[2025-12-21 10:50:11] ✅ ثبت نام موفق در جدول members - ID: 18 - پروژه: 8
+[2025-12-21 11:45:57] شروع ثبت نام - کدملی: 0321663195 - پروژه: 8
+[2025-12-21 11:45:57] فایل آپلود شد: کارت ملی -> national_card_image_1766304957_99761a43.jpeg
+[2025-12-21 11:45:57] فایل آپلود شد: شناسنامه -> birth_certificate_image_1766304957_643dcd4c.jpeg
+[2025-12-21 11:45:57] فایل آپلود شد: چک شماره ۱ -> check1_image_1766304957_28362820.jpg
+[2025-12-21 11:45:57] فایل آپلود شد: چک شماره ۲ -> check2_image_1766304957_dd65e0f5.jpeg
+[2025-12-21 11:45:57] فایل آپلود شد: چک شماره ۳ -> check3_image_1766304957_89505643.jpg
+[2025-12-21 11:45:57] اتصال به دیتابیس موفق
+[2025-12-21 11:45:57] ستون‌های جدول members: id, first_name, last_name, national_id, birth_certificate_number, father_name, birth_date, birth_date_fa, mobile, phone, address, postal_code, national_card_image, birth_certificate_image, check1_image, check2_image, check3_image, registration_date, ip_address, status, created_at, updated_at, project_id
+[2025-12-21 11:45:57] ❌ خطا: شماره ملی وارد شده قبلاً در سیستم ثبت نام ثبت شده است.
+[2025-12-21 11:47:03] شروع ثبت نام - کدملی: 0070646767 - پروژه: 8
+[2025-12-21 11:47:03] فایل آپلود شد: کارت ملی -> national_card_image_1766305023_b734a376.jpeg
+[2025-12-21 11:47:03] فایل آپلود شد: شناسنامه -> birth_certificate_image_1766305023_bf2a704c.jpeg
+[2025-12-21 11:47:03] فایل آپلود شد: چک شماره ۱ -> check1_image_1766305023_29f5bef3.jpg
+[2025-12-21 11:47:03] فایل آپلود شد: چک شماره ۲ -> check2_image_1766305023_9e74f0b6.jpeg
+[2025-12-21 11:47:03] فایل آپلود شد: چک شماره ۳ -> check3_image_1766305023_f2bdc17c.jpg
+[2025-12-21 11:47:03] اتصال به دیتابیس موفق
+[2025-12-21 11:47:03] ستون‌های جدول members: id, first_name, last_name, national_id, birth_certificate_number, father_name, birth_date, birth_date_fa, mobile, phone, address, postal_code, national_card_image, birth_certificate_image, check1_image, check2_image, check3_image, registration_date, ip_address, status, created_at, updated_at, project_id
+[2025-12-21 11:47:03] کوئری INSERT نهایی: INSERT INTO members (first_name, last_name, national_id, birth_certificate_number, father_name, mobile, address, project_id, national_card_image, birth_certificate_image, check1_image, check2_image, check3_image, ip_address, status, birth_date_fa, phone, postal_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+[2025-12-21 11:47:03] مقادیر: ["محمد","علیزاده","0070646767","684736","محسن","09126453648","بولوار پیروزی","8","national_card_image_1766305023_b734a376.jpeg","birth_certificate_image_1766305023_bf2a704c.jpeg","check1_image_1766305023_29f5bef3.jpg","check2_image_1766305023_9e74f0b6.jpeg","check3_image_1766305023_f2bdc17c.jpg","194.146.93.157","pending","1396\/05\/09","021775635","5432235321"]
+[2025-12-21 11:47:03] ✅ ثبت نام موفق در جدول members - ID: 19 - پروژه: 8
+[2025-12-21 12:34:21] شروع ثبت نام - کدملی:  - پروژه: 
+[2025-12-21 12:34:59] شروع ثبت نام - کدملی:  - پروژه: 
+[2025-12-21 12:38:13] شروع ثبت نام - کدملی:  - پروژه: 
+[2025-12-21 17:11:24] شروع پردازش ثبت نام - IP: 194.146.93.37
+[2025-12-21 17:14:07] شروع پردازش ثبت نام - IP: 194.146.93.37
+[2025-12-21 17:26:36] POST data received: Array
+(
+)
+
+[2025-12-21 17:26:36] FILES data received: Array
+(
+)
+
+[2025-12-21 17:26:36] شروع پردازش ثبت نام - IP: 194.146.93.37
+[2025-12-21 17:26:36] === شروع دریافت داده‌های فرم ===
+[2025-12-21 17:26:36] === داده‌های دریافت شده ===
+[2025-12-21 17:26:36] form_data['first_name'] = ''
+[2025-12-21 17:26:36] form_data['last_name'] = ''
+[2025-12-21 17:26:36] form_data['national_id'] = ''
+[2025-12-21 17:26:36] form_data['birth_certificate_number'] = ''
+[2025-12-21 17:26:36] form_data['father_name'] = ''
+[2025-12-21 17:26:36] form_data['birth_date_fa'] = ''
+[2025-12-21 17:26:36] form_data['mobile'] = ''
+[2025-12-21 17:26:36] form_data['phone'] = ''
+[2025-12-21 17:26:36] form_data['address'] = ''
+[2025-12-21 17:26:36] form_data['postalCode'] = ''
+[2025-12-21 17:26:36] form_data['project_id'] = ''
+[2025-12-21 17:26:36] form_data['not_robot'] = 'off'
+[2025-12-21 17:26:36] form_data['confirm_info'] = 'off'
+[2025-12-21 17:26:36] ERROR: No POST data received!
+[2025-12-21 17:26:36] Missing required field: first_name
+[2025-12-21 17:26:36] Missing required field: last_name
+[2025-12-21 17:26:36] Missing required field: national_id
+[2025-12-21 17:26:36] Missing required field: birth_certificate_number
+[2025-12-21 17:26:36] Missing required field: father_name
+[2025-12-21 17:26:36] Missing required field: mobile
+[2025-12-21 17:26:36] Missing required field: address
+[2025-12-21 17:26:36] Missing required field: project_id_reg
+[2025-12-21 17:26:36] Checkbox not_robot is not checked
+[2025-12-21 17:26:36] Checkbox confirm_info is not checked
+[2025-12-21 17:27:44] POST data received: Array
+(
+)
+
+[2025-12-21 17:27:44] FILES data received: Array
+(
+)
+
+[2025-12-21 17:27:44] شروع پردازش ثبت نام - IP: 194.146.93.37
+[2025-12-21 17:27:44] === شروع دریافت داده‌های فرم ===
+[2025-12-21 17:27:44] === داده‌های دریافت شده ===
+[2025-12-21 17:27:44] form_data['first_name'] = ''
+[2025-12-21 17:27:44] form_data['last_name'] = ''
+[2025-12-21 17:27:44] form_data['national_id'] = ''
+[2025-12-21 17:27:44] form_data['birth_certificate_number'] = ''
+[2025-12-21 17:27:44] form_data['father_name'] = ''
+[2025-12-21 17:27:44] form_data['birth_date_fa'] = ''
+[2025-12-21 17:27:44] form_data['mobile'] = ''
+[2025-12-21 17:27:44] form_data['phone'] = ''
+[2025-12-21 17:27:44] form_data['address'] = ''
+[2025-12-21 17:27:44] form_data['postalCode'] = ''
+[2025-12-21 17:27:44] form_data['project_id'] = ''
+[2025-12-21 17:27:44] form_data['not_robot'] = 'off'
+[2025-12-21 17:27:44] form_data['confirm_info'] = 'off'
+[2025-12-21 17:27:44] ERROR: No POST data received!
+[2025-12-21 17:27:44] Missing required field: first_name
+[2025-12-21 17:27:44] Missing required field: last_name
+[2025-12-21 17:27:44] Missing required field: national_id
+[2025-12-21 17:27:44] Missing required field: birth_certificate_number
+[2025-12-21 17:27:44] Missing required field: father_name
+[2025-12-21 17:27:44] Missing required field: mobile
+[2025-12-21 17:27:44] Missing required field: address
+[2025-12-21 17:27:44] Missing required field: project_id_reg
+[2025-12-21 17:27:44] Checkbox not_robot is not checked
+[2025-12-21 17:27:44] Checkbox confirm_info is not checked
+[2025-12-21 17:28:29] POST data received: Array
+(
+)
+
+[2025-12-21 17:28:29] FILES data received: Array
+(
+)
+
+[2025-12-21 17:28:29] شروع پردازش ثبت نام - IP: 194.146.93.37
+[2025-12-21 17:28:29] === شروع دریافت داده‌های فرم ===
+[2025-12-21 17:28:29] === داده‌های دریافت شده ===
+[2025-12-21 17:28:29] form_data['first_name'] = ''
+[2025-12-21 17:28:29] form_data['last_name'] = ''
+[2025-12-21 17:28:29] form_data['national_id'] = ''
+[2025-12-21 17:28:29] form_data['birth_certificate_number'] = ''
+[2025-12-21 17:28:29] form_data['father_name'] = ''
+[2025-12-21 17:28:29] form_data['birth_date_fa'] = ''
+[2025-12-21 17:28:29] form_data['mobile'] = ''
+[2025-12-21 17:28:29] form_data['phone'] = ''
+[2025-12-21 17:28:29] form_data['address'] = ''
+[2025-12-21 17:28:29] form_data['postalCode'] = ''
+[2025-12-21 17:28:29] form_data['project_id'] = ''
+[2025-12-21 17:28:29] form_data['not_robot'] = 'off'
+[2025-12-21 17:28:29] form_data['confirm_info'] = 'off'
+[2025-12-21 17:28:29] ERROR: No POST data received!
+[2025-12-21 17:28:29] Missing required field: first_name
+[2025-12-21 17:28:29] Missing required field: last_name
+[2025-12-21 17:28:29] Missing required field: national_id
+[2025-12-21 17:28:29] Missing required field: birth_certificate_number
+[2025-12-21 17:28:29] Missing required field: father_name
+[2025-12-21 17:28:29] Missing required field: mobile
+[2025-12-21 17:28:29] Missing required field: address
+[2025-12-21 17:28:29] Missing required field: project_id_reg
+[2025-12-21 17:28:29] Checkbox not_robot is not checked
+[2025-12-21 17:28:29] Checkbox confirm_info is not checked
+[2025-12-21 17:29:04] POST data received: Array
+(
+)
+
+[2025-12-21 17:29:04] FILES data received: Array
+(
+)
+
+[2025-12-21 17:29:04] شروع پردازش ثبت نام - IP: 194.146.93.37
+[2025-12-21 17:29:04] === شروع دریافت داده‌های فرم ===
+[2025-12-21 17:29:04] === داده‌های دریافت شده ===
+[2025-12-21 17:29:04] form_data['first_name'] = ''
+[2025-12-21 17:29:04] form_data['last_name'] = ''
+[2025-12-21 17:29:04] form_data['national_id'] = ''
+[2025-12-21 17:29:04] form_data['birth_certificate_number'] = ''
+[2025-12-21 17:29:04] form_data['father_name'] = ''
+[2025-12-21 17:29:04] form_data['birth_date_fa'] = ''
+[2025-12-21 17:29:04] form_data['mobile'] = ''
+[2025-12-21 17:29:04] form_data['phone'] = ''
+[2025-12-21 17:29:04] form_data['address'] = ''
+[2025-12-21 17:29:04] form_data['postalCode'] = ''
+[2025-12-21 17:29:04] form_data['project_id'] = ''
+[2025-12-21 17:29:04] form_data['not_robot'] = 'off'
+[2025-12-21 17:29:04] form_data['confirm_info'] = 'off'
+[2025-12-21 17:29:04] ERROR: No POST data received!
+[2025-12-21 17:29:04] Missing required field: first_name
+[2025-12-21 17:29:04] Missing required field: last_name
+[2025-12-21 17:29:04] Missing required field: national_id
+[2025-12-21 17:29:04] Missing required field: birth_certificate_number
+[2025-12-21 17:29:04] Missing required field: father_name
+[2025-12-21 17:29:04] Missing required field: mobile
+[2025-12-21 17:29:04] Missing required field: address
+[2025-12-21 17:29:04] Missing required field: project_id_reg
+[2025-12-21 17:29:04] Checkbox not_robot is not checked
+[2025-12-21 17:29:04] Checkbox confirm_info is not checked
+[2025-12-21 17:31:14] POST data received: Array
+(
+)
+
+[2025-12-21 17:31:14] FILES data received: Array
+(
+)
+
+[2025-12-21 17:31:14] شروع پردازش ثبت نام - IP: 194.146.93.37
+[2025-12-21 17:31:14] === شروع دریافت داده‌های فرم ===
+[2025-12-21 17:31:14] === داده‌های دریافت شده ===
+[2025-12-21 17:31:14] form_data['first_name'] = ''
+[2025-12-21 17:31:14] form_data['last_name'] = ''
+[2025-12-21 17:31:14] form_data['national_id'] = ''
+[2025-12-21 17:31:14] form_data['birth_certificate_number'] = ''
+[2025-12-21 17:31:14] form_data['father_name'] = ''
+[2025-12-21 17:31:14] form_data['birth_date_fa'] = ''
+[2025-12-21 17:31:14] form_data['mobile'] = ''
+[2025-12-21 17:31:14] form_data['phone'] = ''
+[2025-12-21 17:31:14] form_data['address'] = ''
+[2025-12-21 17:31:14] form_data['postalCode'] = ''
+[2025-12-21 17:31:14] form_data['project_id'] = ''
+[2025-12-21 17:31:14] form_data['not_robot'] = 'off'
+[2025-12-21 17:31:14] form_data['confirm_info'] = 'off'
+[2025-12-21 17:31:14] ERROR: No POST data received!
+[2025-12-21 17:31:14] Missing required field: first_name
+[2025-12-21 17:31:14] Missing required field: last_name
+[2025-12-21 17:31:14] Missing required field: national_id
+[2025-12-21 17:31:14] Missing required field: birth_certificate_number
+[2025-12-21 17:31:14] Missing required field: father_name
+[2025-12-21 17:31:14] Missing required field: mobile
+[2025-12-21 17:31:14] Missing required field: address
+[2025-12-21 17:31:14] Missing required field: project_id_reg
+[2025-12-21 17:31:14] Checkbox not_robot is not checked
+[2025-12-21 17:31:14] Checkbox confirm_info is not checked

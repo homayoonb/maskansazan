@@ -1,0 +1,25 @@
+2025-12-01 16:24:55 - update_document.php called
+POST data: Array
+(
+    [doc_id] => 2
+    [status] => verified
+    [csrf_token] => b099bc8f234008f797ee58239891d750d5b41cca0cc55a8e1871fb8a82966060
+)
+
+Updating doc_id: 2 to status: verified
+Prepare failed: Unknown column 'status' in 'field list'
+2025-12-01 16:27:19 - update_document.php called
+POST data: Array
+(
+    [doc_id] => 2
+    [status] => verified
+    [csrf_token] => b099bc8f234008f797ee58239891d750d5b41cca0cc55a8e1871fb8a82966060
+)
+
+Updating doc_id: 2 to status: verified
+Prepare failed: Unknown column 'updated_at' in 'field list'
+2025-12-01 16:27:50 - update_document.php called
+POST data: Array
+(
+)
+

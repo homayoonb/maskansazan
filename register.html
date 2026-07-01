@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ثبت نام عضو جدید</title>
+
+    <!-- آیکون‌های Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* استایل کلی */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Tahoma', 'Segoe UI', sans-serif;
+            background-color: #f5f8fa;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* دکمه بازگشت */
+        .back-button-container {
+            margin-bottom: 20px;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .back-button:hover {
+            background: linear-gradient(135deg, #2980b9, #1c6ea4);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #3498db;
+        }
+
+        /* استایل بخش‌ها */
+        .section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-right: 5px solid #3498db;
+        }
+
+        .section h3 {
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        /* استایل فرم */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #34495e;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        .required::after {
+            content: " *";
+            color: #e74c3c;
+        }
+
+        input[type="text"],
+        input[type="tel"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Tahoma', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="tel"]:focus,
+        input[type="number"]:focus,
+        textarea:focus,
+        select:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        /* استایل مخصوص تاریخ */
+        .date-container {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .date-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .date-field {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .date-preview {
+            background: #f1f8ff;
+            border: 2px dashed #3498db;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .date-preview .label {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        /* استایل select boxes */
+        select {
+            background: white url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill="%23333" d="M5 7l5 5 5-5z"/></svg>') no-repeat left 15px center;
+            background-size: 15px;
+            padding-right: 15px;
+            padding-left: 40px;
+            cursor: pointer;
+        }
+
+        /* استایل فایل */
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+            cursor: pointer;
+        }
+
+        input[type="file"]:hover {
+            border-color: #3498db;
+            background: #f1f8ff;
+        }
+
+        /* استایل جدید: من ربات نیستم */
+        .not-robot-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 25px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            transition: all 0.3s;
+        }
+
+        .not-robot-container.verified {
+            background: #f1f8ff;
+            border-color: #3498db;
+        }
+
+        .not-robot-container.error {
+            background: #ffeaea;
+            border-color: #e74c3c;
+        }
+
+        .robot-checkbox {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            accent-color: #3498db;
+        }
+
+        .robot-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .robot-label i {
+            font-size: 1.5rem;
+            color: #7f8c8d;
+        }
+
+        .not-robot-container.verified i {
+            color: #3498db;
+        }
+
+        .robot-message {
+            margin-top: 8px;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+
+        /* استایل checkbox */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f1f8ff;
+            border-radius: 8px;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        /* استایل دکمه‌های ارسال و بازگشت پایین */
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .submit-btn {
+            flex: 2;
+            background: linear-gradient(135deg, #27ae60, #219653);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-width: 250px;
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(135deg, #219653, #1e7d46);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .submit-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .back-btn-bottom {
+            flex: 1;
+            background: linear-gradient(135deg, #7f8c8d, #95a5a6);
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-width: 200px;
+            text-decoration: none;
+        }
+
+        .back-btn-bottom:hover {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(127, 140, 141, 0.3);
+        }
+
+        /* استایل پیام‌ها */
+        .error {
+            color: #e74c3c;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .success {
+            color: #27ae60;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .loading {
+            color: #3498db;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        /* استایل توضیحات */
+        .note {
+            color: #7f8c8d;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        /* استایل موبایل */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .section {
+                padding: 15px;
+            }
+
+            .date-row {
+                flex-direction: column;
+            }
+
+            .date-field {
+                min-width: 100%;
+            }
+
+            .not-robot-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .submit-btn,
+            .back-btn-bottom {
+                width: 100%;
+                min-width: 100%;
+            }
+        }
+
+        /* استایل شمارنده کاراکتر */
+        .char-counter {
+            text-align: left;
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        /* استایل آیکون‌ها */
+        .input-icon {
+            position: relative;
+        }
+
+        .input-icon i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7f8c8d;
+        }
+
+        .input-icon input {
+            padding-left: 45px;
+        }
+
+        /* استایل راهنما */
+        .help-text {
+            background: #e8f4fc;
+            border-right: 4px solid #3498db;
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        /* هدر فرم */
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .form-title {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+<!-- دکمه بازگشت بالا -->
+<div class="back-button-container">
+    <a href="index.php" class="back-button">
+        <i class="fas fa-arrow-right"></i>
+        بازگشت
+    </a>
+</div>
+
+<div class="container">
+    <!-- هدر فرم -->
+    <div class="form-header">
+        <h2 class="form-title">
+            <i class="fas fa-user-plus"></i>
+            فرم ثبت نام عضو جدید
+        </h2>
+    </div>
+
+    <form id="registrationForm" action="process_register.php" method="POST" enctype="multipart/form-data">
+
+        <!-- بخش مشخصات فردی -->
+        <div class="section">
+            <h3><i class="fas fa-id-card"></i> مشخصات فردی</h3>
+
+            <!-- نام و نام خانوادگی -->
+            <div class="form-group">
+                <label for="first_name" class="required">نام:</label>
+                <input type="text" id="first_name" name="first_name" required>
+                <div class="error" id="first_name_error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="last_name" class="required">نام خانوادگی:</label>
+                <input type="text" id="last_name" name="last_name" required>
+                <div class="error" id="last_name_error"></div>
+            </div>
+
+            <!-- شماره ملی -->
+            <div class="form-group">
+                <label for="national_id" class="required">شماره ملی (۱۰ رقم):</label>
+                <input type="text" id="national_id" name="national_id"
+                       pattern="\d{10}"
+                       maxlength="10"
+                       placeholder="مثال: ۰۰۷۸۶۱۰۶۴۱"
+                       required>
+                <div class="loading" id="national_id_loading">در حال بررسی...</div>
+                <div class="success" id="national_id_success">✓ شماره ملی معتبر است</div>
+                <div class="error" id="national_id_error"></div>
+                <div class="note">شماره ملی باید ۱۰ رقم باشد و از الگوی صحیح پیروی کند</div>
+            </div>
+
+            <!-- شماره شناسنامه و نام پدر -->
+            <div class="form-group">
+                <label for="birth_certificate_number" class="required">شماره شناسنامه:</label>
+                <input type="text" id="birth_certificate_number" name="birth_certificate_number" required>
+            </div>
+
+            <div class="form-group">
+                <label for="father_name" class="required">نام پدر:</label>
+                <input type="text" id="father_name" name="father_name" required>
+            </div>
+
+            <!-- تاریخ تولد (تقویم فارسی) -->
+            <div class="form-group">
+                <label class="required">تاریخ تولد (شمسی):</label>
+                <div class="help-text">
+                    <strong>راهنما:</strong> لطفاً تاریخ تولد خود را به درستی انتخاب کنید.
+                </div>
+
+                <div class="date-container">
+                    <div class="date-row">
+                        <div class="date-field">
+                            <label for="birth_year">سال:</label>
+                            <select id="birth_year" name="birth_year" required>
+                                <option value="">انتخاب سال</option>
+                                <!-- سال‌ها با JavaScript پر می‌شود -->
+                            </select>
+                        </div>
+
+                        <div class="date-field">
+                            <label for="birth_month">ماه:</label>
+                            <select id="birth_month" name="birth_month" required>
+                                <option value="">انتخاب ماه</option>
+                                <option value="01">فروردین (۱)</option>
+                                <option value="02">اردیبهشت (۲)</option>
+                                <option value="03">خرداد (۳)</option>
+                                <option value="04">تیر (۴)</option>
+                                <option value="05">مرداد (۵)</option>
+                                <option value="06">شهریور (۶)</option>
+                                <option value="07">مهر (۷)</option>
+                                <option value="08">آبان (۸)</option>
+                                <option value="09">آذر (۹)</option>
+                                <option value="10">دی (۱۰)</option>
+                                <option value="11">بهمن (۱۱)</option>
+                                <option value="12">اسفند (۱۲)</option>
+                            </select>
+                        </div>
+
+                        <div class="date-field">
+                            <label for="birth_day">روز:</label>
+                            <select id="birth_day" name="birth_day" required>
+                                <option value="">انتخاب روز</option>
+                                <!-- روزها با JavaScript پر می‌شود -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="date-preview">
+                        <div class="label">تاریخ انتخابی:</div>
+                        <div id="selected_date">--- / -- / --</div>
+                    </div>
+                </div>
+
+                <input type="hidden" id="birth_date_fa" name="birth_date_fa">
+                <input type="hidden" id="birth_date" name="birth_date">
+
+            </div>
+
+            <!-- تلفن‌ها -->
+            <div class="form-group">
+                <label for="mobile" class="required">تلفن همراه:</label>
+                <input type="tel" id="mobile" name="mobile"
+                       pattern="09\d{9}"
+                       placeholder="مثال: ۰۹۱۲۳۴۵۶۷۸۹"
+                       required>
+                <div class="error" id="mobile_error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">تلفن ثابت:</label>
+                <input type="tel" id="phone" name="phone"
+                       pattern="\d{8,11}"
+                       placeholder="مثال: ۰۲۱۸۸۵۵۶۶۷۷">
+            </div>
+
+            <!-- آدرس -->
+            <div class="form-group">
+                <label for="address" class="required">آدرس کامل:</label>
+                <textarea id="address" name="address" rows="4" required></textarea>
+            </div>
+
+            <!-- بخش "من ربات نیستم" - جایگزین کپچا -->
+            <div class="form-group">
+                <label class="required">تأیید هویت:</label>
+                <div class="not-robot-container" id="notRobotContainer">
+                    <input type="checkbox" id="not_robot" name="not_robot" class="robot-checkbox" required>
+                    <label for="not_robot" class="robot-label">
+                        <i class="fas fa-robot"></i>
+                        من ربات نیستم
+                    </label>
+                </div>
+                <div class="note" id="robotNote">لطفاً برای تأیید اینکه ربات نیستید، این گزینه را انتخاب کنید.</div>
+                <div class="error" id="robot_error" style="display: none;">لطفاً تأیید کنید که ربات نیستید.</div>
+            </div>
+
+            <!-- تایید اطلاعات -->
+            <div class="checkbox-container">
+                <input type="checkbox" id="confirm_info" name="confirm_info" required>
+                <label for="confirm_info">
+                    <strong><i class="fas fa-check-circle"></i> تایید اطلاعات</strong><br>
+                    من تمام اطلاعات فوق را تأیید می‌کنم و مسئولیت صحت آن‌ها را می‌پذیرم.
+                </label>
+            </div>
+        </div>
+
+        <!-- بخش مدارک -->
+        <div class="section">
+            <h3><i class="fas fa-file-upload"></i> بارگذاری مدارک</h3>
+            <div class="note" style="margin-bottom: 20px; color: #e74c3c;">
+                <strong>توجه:</strong> تمامی فایل‌ها باید تصویر (JPG, PNG) یا PDF باشند و حجم هر فایل حداکثر ۲۰۰ کیلوبایت باشد.
+            </div>
+
+            <!-- کارت ملی و شناسنامه -->
+            <div class="form-group">
+                <label for="national_card_image" class="required">تصویر کارت ملی:</label>
+                <input type="file" id="national_card_image" name="national_card_image"
+                       accept=".jpg,.jpeg,.png,.pdf"
+                       required>
+                <div class="note">عکس واضح از هر دو طرف کارت ملی (JPG, PNG, PDF)</div>
+            </div>
+
+            <div class="form-group">
+                <label for="birth_certificate_image" class="required">تصویر شناسنامه:</label>
+                <input type="file" id="birth_certificate_image" name="birth_certificate_image"
+                       accept=".jpg,.jpeg,.png,.pdf"
+                       required>
+                <div class="note">صفحه اول و دوم شناسنامه (JPG, PNG, PDF)</div>
+            </div>
+
+            <!-- چک‌ها -->
+            <h4 style="color: #2c3e50; margin-top: 30px; margin-bottom: 15px;">
+                <i class="fas fa-money-check-alt"></i> تصاویر چک‌ها:
+            </h4>
+
+            <div class="form-group">
+                <label for="check1_image" class="required">چک شماره ۱:</label>
+                <div class="note" style="background: #f1f8ff; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+                    <strong>مبلغ:</strong> ۴,۰۰۰,۰۰۰,۰۰۰ ریال (چهار میلیارد ریال)<br>
+                    <strong>تاریخ:</strong> ۱۴۰۴/۱۰/۰۵
+                </div>
+                <input type="file" id="check1_image" name="check1_image" accept=".jpg,.jpeg,.png,.pdf" required>
+                <div class="note">تصویر چک شماره ۱ (JPG, PNG, PDF)</div>
+            </div>
+
+            <div class="form-group">
+                <label for="check2_image" class="required">چک شماره ۲:</label>
+                <div class="note" style="background: #f1f8ff; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+                    <strong>مبلغ:</strong> ۲,۵۰۰,۰۰۰,۰۰۰ ریال (دو میلیارد و پانصد میلیون ریال)<br>
+                    <strong>تاریخ:</strong> ۱۴۰۴/۱۱/۰۵
+                </div>
+                <input type="file" id="check2_image" name="check2_image" accept=".jpg,.jpeg,.png,.pdf" required>
+                <div class="note">تصویر چک شماره ۲ (JPG, PNG, PDF)</div>
+            </div>
+
+            <div class="form-group">
+                <label for="check3_image" class="required">چک شماره ۳:</label>
+                <div class="note" style="background: #f1f8ff; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+                    <strong>مبلغ:</strong> ۲,۵۰۰,۰۰۰,۰۰۰ ریال (دو میلیارد و پانصد میلیون ریال)<br>
+                    <strong>تاریخ:</strong> ۱۴۰۴/۱۲/۰۵
+                </div>
+                <input type="file" id="check3_image" name="check3_image" accept=".jpg,.jpeg,.png,.pdf" required>
+                <div class="note">تصویر چک شماره ۳ (JPG, PNG, PDF)</div>
+            </div>
+        </div>
+
+        <!-- دکمه‌های ارسال و بازگشت -->
+        <div class="form-actions">
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <i class="fas fa-paper-plane"></i> ثبت اطلاعات و ارسال مدارک
+            </button>
+
+            <a href="index.php" class="back-btn-bottom">
+                <i class="fas fa-arrow-right"></i> بازگشت
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+    // تابع بازگشت به صفحه قبل
+    function goBack() {
+        if (document.referrer && document.referrer !== window.location.href) {
+            window.history.back();
+        } else {
+            // اگر صفحه مرجع وجود ندارد، به صفحه اصلی هدایت کن
+            window.location.href = 'Index.php';
+        }
+    }
+
+    // وقتی صفحه کاملاً لود شد
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Page loaded successfully');
+
+        // تنظیمات اولیه
+        const currentPersianYear = 1404; // سال شمسی جاری
+
+        // ۱. پر کردن سال‌ها (از ۱۳۰۰ تا ۱۴۰۴) - بدون محدودیت سن
+        const yearSelect = document.getElementById('birth_year');
+
+        if (yearSelect) {
+            // پاک کردن گزینه‌های موجود (اگر وجود دارند)
+            yearSelect.innerHTML = '<option value="">انتخاب سال</option>';
+
+            // سال‌ها از ۱۳۰۰ تا ۱۴۰۴ - بدون محدودیت سن
+            for (let year = currentPersianYear; year >= 1300; year--) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelect.appendChild(option);
+            }
+        }
+
+        // ۲. پر کردن روزها (۱ تا ۳۱)
+        const daySelect = document.getElementById('birth_day');
+        if (daySelect) {
+            daySelect.innerHTML = '<option value="">انتخاب روز</option>';
+            for (let day = 1; day <= 31; day++) {
+                const option = document.createElement('option');
+                option.value = day.toString().padStart(2, '0');
+                option.textContent = day;
+                daySelect.appendChild(option);
+            }
+        }
+
+        // ۳. شمارنده کاراکتر آدرس
+        const addressTextarea = document.getElementById('address');
+        const addressCounter = document.getElementById('address_counter');
+
+        if (addressTextarea && addressCounter) {
+            addressTextarea.addEventListener('input', function() {
+                addressCounter.textContent = this.value.length;
+            });
+        }
+
+        // ۴. نمایش تاریخ انتخابی
+        function updateSelectedDate() {
+            const year = document.getElementById('birth_year')?.value;
+            const month = document.getElementById('birth_month')?.value;
+            const day = document.getElementById('birth_day')?.value;
+            const selectedDateElement = document.getElementById('selected_date');
+
+            if (year && month && day && selectedDateElement) {
+                const monthNames = {
+                    '01': 'فروردین', '02': 'اردیبهشت', '03': 'خرداد',
+                    '04': 'تیر', '05': 'مرداد', '06': 'شهریور',
+                    '07': 'مهر', '08': 'آبان', '09': 'آذر',
+                    '10': 'دی', '11': 'بهمن', '12': 'اسفند'
+                };
+
+                const displayDate = `${year}/${month}/${day}`;
+                const displayDateFa = `${day} ${monthNames[month]} ${year}`;
+
+                selectedDateElement.textContent = displayDateFa;
+
+                // ذخیره در فیلدهای مخفی
+                const birthDateFa = document.getElementById('birth_date_fa');
+                const birthDate = document.getElementById('birth_date');
+
+                if (birthDateFa) birthDateFa.value = displayDate;
+
+                if (birthDate) {
+                    // تبدیل به میلادی (تقریبی)
+                    const gregorianYear = parseInt(year) - 621;
+                    birthDate.value = `${gregorianYear}-${month}-${day}`;
+                }
+            } else if (selectedDateElement) {
+                selectedDateElement.textContent = '--- / -- / --';
+            }
+        }
+
+        // ۵. رویداد تغییر برای تاریخ - با بررسی وجود المنت
+        const birthYear = document.getElementById('birth_year');
+        const birthMonth = document.getElementById('birth_month');
+        const birthDay = document.getElementById('birth_day');
+
+        if (birthYear) birthYear.addEventListener('change', updateSelectedDate);
+        if (birthMonth) birthMonth.addEventListener('change', updateSelectedDate);
+        if (birthDay) birthDay.addEventListener('change', updateSelectedDate);
+
+        // ۶. اعتبارسنجی شماره ملی
+        const nationalIdInput = document.getElementById('national_id');
+        if (nationalIdInput) {
+            nationalIdInput.addEventListener('blur', function() {
+                validateNationalId(this.value);
+            });
+        }
+
+        // ۷. اعتبارسنجی موبایل
+        const mobileInput = document.getElementById('mobile');
+        if (mobileInput) {
+            mobileInput.addEventListener('blur', function() {
+                validateMobile(this.value);
+            });
+        }
+
+        // ۸. اعتبارسنجی فایل‌ها (با پشتیبانی از PDF و 200KB)
+        const fileInputs = document.querySelectorAll('input[type="file"]');
+        fileInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                validateFile(this);
+            });
+        });
+
+        // ۹. مدیریت بخش "من ربات نیستم"
+        const notRobotCheckbox = document.getElementById('not_robot');
+        const notRobotContainer = document.getElementById('notRobotContainer');
+        const robotNote = document.getElementById('robotNote');
+        
+        if (notRobotCheckbox && notRobotContainer) {
+            notRobotCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    notRobotContainer.classList.add('verified');
+                    notRobotContainer.classList.remove('error');
+                    robotNote.textContent = '✓ تأیید شد. شما ربات نیستید.';
+                    robotNote.style.color = '#27ae60';
+                    
+                    // تغییر آیکون
+                    const icon = notRobotContainer.querySelector('i');
+                    if (icon) {
+                        icon.className = 'fas fa-user-check';
+                        icon.style.color = '#27ae60';
+                    }
+                } else {
+                    notRobotContainer.classList.remove('verified');
+                    notRobotContainer.classList.remove('error');
+                    robotNote.textContent = 'لطفاً برای تأیید اینکه ربات نیستید، این گزینه را انتخاب کنید.';
+                    robotNote.style.color = '#7f8c8d';
+                    
+                    // بازگرداندن آیکون
+                    const icon = notRobotContainer.querySelector('i');
+                    if (icon) {
+                        icon.className = 'fas fa-robot';
+                        icon.style.color = '#7f8c8d';
+                    }
+                }
+            });
+        }
+
+        // ۱۰. اعتبارسنجی فرم هنگام ارسال
+        const registrationForm = document.getElementById('registrationForm');
+        if (registrationForm) {
+            registrationForm.addEventListener('submit', function(e) {
+                if (!validateForm()) {
+                    e.preventDefault();
+                }
+            });
+        }
+    });
+
+    // ==================== توابع اعتبارسنجی ====================
+
+    // تابع اعتبارسنجی شماره ملی ایرانی
+    function isValidIranianNationalId(input) {
+        if (!/^\d{10}$/.test(input)) return false;
+
+        // بررسی الگوهای غیرمجاز
+        const invalidPatterns = [
+            '0000000000', '1111111111', '2222222222', '3333333333',
+            '4444444444', '5555555555', '6666666666', '7777777777',
+            '8888888888', '9999999999'
+        ];
+
+        if (invalidPatterns.includes(input)) return false;
+
+        // بررسی صحت کد ملی
+        const check = parseInt(input[9]);
+        let sum = 0;
+
+        for (let i = 0; i < 9; i++) {
+            sum += parseInt(input[i]) * (10 - i);
+        }
+
+        const remainder = sum % 11;
+
+        if (remainder < 2) {
+            return check === remainder;
+        } else {
+            return check === (11 - remainder);
+        }
+    }
+
+    // اعتبارسنجی شماره ملی
+    function validateNationalId(nationalId) {
+        const loadingEl = document.getElementById('national_id_loading');
+        const successEl = document.getElementById('national_id_success');
+        const errorEl = document.getElementById('national_id_error');
+
+        // پنهان کردن پیام‌های قبلی
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (successEl) successEl.style.display = 'none';
+        if (errorEl) errorEl.style.display = 'none';
+
+        if (!nationalId) return;
+
+        if (!/^\d{10}$/.test(nationalId)) {
+            showError('national_id_error', 'شماره ملی باید دقیقاً ۱۰ رقم باشد.');
+            return;
+        }
+
+        if (!isValidIranianNationalId(nationalId)) {
+            showError('national_id_error', 'شماره ملی وارد شده معتبر نیست.');
+            return;
+        }
+
+        // نمایش در حال بررسی
+        if (loadingEl) loadingEl.style.display = 'block';
+
+        // شبیه‌سازی بررسی تکراری بودن
+        setTimeout(() => {
+            if (loadingEl) loadingEl.style.display = 'none';
+            if (successEl) successEl.style.display = 'block';
+        }, 800);
+    }
+
+    // اعتبارسنجی موبایل
+    function validateMobile(mobile) {
+        const errorEl = document.getElementById('mobile_error');
+
+        if (!mobile) {
+            if (errorEl) errorEl.style.display = 'none';
+            return;
+        }
+
+        if (!/^09\d{9}$/.test(mobile)) {
+            showError('mobile_error', 'شماره همراه معتبر نیست. فرمت صحیح: ۰۹۱۲۳۴۵۶۷۸۹');
+        } else if (errorEl) {
+            errorEl.style.display = 'none';
+        }
+    }
+
+    // اعتبارسنجی فایل (با پشتیبانی از PDF و 200KB)
+    function validateFile(fileInput) {
+        const file = fileInput.files[0];
+
+        if (!file) return true;
+
+        // بررسی نوع فایل
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.pdf'];
+        
+        // بررسی پسوند فایل
+        const fileName = file.name.toLowerCase();
+        const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+        
+        if (!allowedTypes.includes(file.type) && !hasValidExtension) {
+            alert(`فایل "${file.name}" معتبر نیست. فقط فایل‌های JPG, PNG, PDF مجاز هستند.`);
+            fileInput.value = '';
+            return false;
+        }
+
+        // بررسی حجم فایل (۲۰۰KB)
+        const maxSize = 200 * 1024; // 200KB
+        if (file.size > maxSize) {
+            alert(`حجم فایل "${file.name}" بیش از ۲۰۰ کیلوبایت است. (حجم فعلی: ${Math.round(file.size/1024)}KB)`);
+            fileInput.value = '';
+            return false;
+        }
+
+        return true;
+    }
+
+    // اعتبارسنجی تاریخ تولد (بدون محدودیت سن)
+    function validateBirthDate() {
+        const year = parseInt(document.getElementById('birth_year')?.value || 0);
+        const month = parseInt(document.getElementById('birth_month')?.value || 0);
+        const day = parseInt(document.getElementById('birth_day')?.value || 0);
+        const errorEl = document.getElementById('birth_date_error');
+
+        // بررسی پر بودن همه فیلدها
+        if (!year || !month || !day) {
+            if (errorEl) errorEl.style.display = 'none';
+            return false;
+        }
+
+        // بررسی روزهای ماه
+        const daysInMonth = [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29];
+        if (day > daysInMonth[month - 1]) {
+            showError('birth_date_error', `ماه ${month} حداکثر ${daysInMonth[month - 1]} روز دارد.`);
+            return false;
+        }
+
+        // بررسی تاریخ معقول (حداکثر ۱۵۰ سال)
+        const currentYear = 1404;
+        if (year < 1250) { // قبل از ۱۲۵۰ شمسی
+            showError('birth_date_error', 'سال تولد باید معتبر باشد.');
+            return false;
+        }
+
+        if (errorEl) errorEl.style.display = 'none';
+        return true;
+    }
+
+    // اعتبارسنجی "من ربات نیستم"
+    function validateNotRobot() {
+        const notRobotCheckbox = document.getElementById('not_robot');
+        const notRobotContainer = document.getElementById('notRobotContainer');
+        const robotError = document.getElementById('robot_error');
+
+        if (!notRobotCheckbox?.checked) {
+            // نمایش خطا
+            if (notRobotContainer) {
+                notRobotContainer.classList.add('error');
+            }
+            if (robotError) {
+                robotError.style.display = 'block';
+            }
+            return false;
+        } else {
+            // پاک کردن خطا
+            if (notRobotContainer) {
+                notRobotContainer.classList.remove('error');
+            }
+            if (robotError) {
+                robotError.style.display = 'none';
+            }
+            return true;
+        }
+    }
+
+    // اعتبارسنجی نهایی فرم
+    function validateForm() {
+        let isValid = true;
+
+        // اعتبارسنجی نام و نام خانوادگی
+        const firstName = document.getElementById('first_name')?.value.trim() || '';
+        const lastName = document.getElementById('last_name')?.value.trim() || '';
+
+        if (!firstName) {
+            showError('first_name_error', 'لطفاً نام خود را وارد کنید.');
+            isValid = false;
+        }
+
+        if (!lastName) {
+            showError('last_name_error', 'لطفاً نام خانوادگی خود را وارد کنید.');
+            isValid = false;
+        }
+
+        // اعتبارسنجی شماره ملی
+        const nationalId = document.getElementById('national_id')?.value || '';
+        if (!isValidIranianNationalId(nationalId)) {
+            showError('national_id_error', 'شماره ملی معتبر نیست.');
+            isValid = false;
+        }
+
+        // اعتبارسنجی تاریخ تولد
+        if (!validateBirthDate()) {
+            isValid = false;
+        }
+
+        // اعتبارسنجی موبایل
+        const mobile = document.getElementById('mobile')?.value || '';
+        if (!/^09\d{9}$/.test(mobile)) {
+            showError('mobile_error', 'شماره همراه معتبر نیست.');
+            isValid = false;
+        }
+
+        // اعتبارسنجی آدرس
+        const address = document.getElementById('address')?.value.trim() || '';
+        if (!address || address.length < 10) {
+            alert('لطفاً آدرس کامل خود را وارد کنید (حداقل ۱۰ کاراکتر).');
+            isValid = false;
+        }
+
+        // اعتبارسنجی "من ربات نیستم"
+        if (!validateNotRobot()) {
+            isValid = false;
+        }
+
+        // اعتبارسنجی تایید اطلاعات
+        const confirmInfo = document.getElementById('confirm_info')?.checked || false;
+        if (!confirmInfo) {
+            alert('لطفاً تایید اطلاعات را انجام دهید.');
+            isValid = false;
+        }
+
+        // اعتبارسنجی فایل‌ها
+        const requiredFiles = [
+            'national_card_image',
+            'birth_certificate_image',
+            'check1_image',
+            'check2_image',
+            'check3_image'
+        ];
+
+        for (const fileId of requiredFiles) {
+            const fileInput = document.getElementById(fileId);
+            if (!fileInput?.files?.[0]) {
+                alert(`لطفاً فایل ${getFileLabel(fileId)} را انتخاب کنید.`);
+                isValid = false;
+                break;
+            }
+        }
+
+        // فعال/غیرفعال کردن دکمه ارسال
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+            submitBtn.disabled = !isValid;
+            submitBtn.innerHTML = isValid
+                ? '<i class="fas fa-paper-plane"></i> ثبت اطلاعات و ارسال مدارک'
+                : '<i class="fas fa-exclamation-triangle"></i> لطفاً خطاها را برطرف کنید';
+        }
+
+        if (!isValid) {
+            // اسکرول به اولین خطا
+            const firstError = document.querySelector('.error[style*="display: block"]');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        return isValid;
+    }
+
+    // تابع کمکی برای نمایش خطا
+    function showError(elementId, message) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.textContent = message;
+            element.style.display = 'block';
+        }
+    }
+
+    // تابع کمکی برای نام فایل
+    function getFileLabel(fileId) {
+        const labels = {
+            'national_card_image': 'کارت ملی',
+            'birth_certificate_image': 'شناسنامه',
+            'check1_image': 'چک شماره ۱',
+            'check2_image': 'چک شماره ۲',
+            'check3_image': 'چک شماره ۳'
+        };
+
+        return labels[fileId] || fileId;
+    }
+</script>
+</body>
+</html>

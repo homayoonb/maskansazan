@@ -1,0 +1,80 @@
+[06-Dec-2025 18:33:42 Asia/Tehran] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/usr/share/fonts/truetype/freefont/FreeSans.ttf) is not within the allowed path(s): (/home/:/usr/lib/php:/usr/local/lib/php:/tmp) in /home/maskanhb/public_html/captcha/captcha.php on line 70
+[06-Dec-2025 18:37:47 Asia/Tehran] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/usr/share/fonts/truetype/freefont/FreeSans.ttf) is not within the allowed path(s): (/home/:/usr/lib/php:/usr/local/lib/php:/tmp) in /home/maskanhb/public_html/captcha/captcha.php on line 70
+[07-Dec-2025 18:29:32 Asia/Tehran] CAPTCHA generated: exPPj3 - Session: 71d1f2d9c48e43fd96a47be039f4afd0
+[07-Dec-2025 18:29:55 Asia/Tehran] CAPTCHA generated: 8dPZsC - Session: a9bfa2ce96d92c46e1fc6e766cfe7898
+[08-Dec-2025 18:59:05 Asia/Tehran] PHP Warning:  Undefined array key "captcha_code" in /home/maskanhb/public_html/captcha/check_captcha.php on line 107
+[09-Dec-2025 08:02:50 Asia/Tehran] PHP Warning:  imagettftext(): Could not find/open font in /home/maskanhb/public_html/captcha/captcha.php on line 73
+[09-Dec-2025 08:03:02 Asia/Tehran] PHP Warning:  imagettftext(): Could not find/open font in /home/maskanhb/public_html/captcha/captcha.php on line 73
+[09-Dec-2025 10:06:11 Asia/Tehran] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/usr/share/fonts/truetype/freefont/FreeSans.ttf) is not within the allowed path(s): (/home/:/usr/lib/php:/usr/local/lib/php:/tmp) in /home/maskanhb/public_html/captcha/captcha.php on line 70
+[09-Dec-2025 10:06:43 Asia/Tehran] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/usr/share/fonts/truetype/freefont/FreeSans.ttf) is not within the allowed path(s): (/home/:/usr/lib/php:/usr/local/lib/php:/tmp) in /home/maskanhb/public_html/captcha/captcha.php on line 70
+[09-Dec-2025 10:06:58 Asia/Tehran] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/usr/share/fonts/truetype/freefont/FreeSans.ttf) is not within the allowed path(s): (/home/:/usr/lib/php:/usr/local/lib/php:/tmp) in /home/maskanhb/public_html/captcha/captcha.php on line 70
+[09-Dec-2025 10:06:59 Asia/Tehran] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/usr/share/fonts/truetype/freefont/FreeSans.ttf) is not within the allowed path(s): (/home/:/usr/lib/php:/usr/local/lib/php:/tmp) in /home/maskanhb/public_html/captcha/captcha.php on line 70
+[09-Dec-2025 10:07:51 Asia/Tehran] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/usr/share/fonts/truetype/freefont/FreeSans.ttf) is not within the allowed path(s): (/home/:/usr/lib/php:/usr/local/lib/php:/tmp) in /home/maskanhb/public_html/captcha/captcha.php on line 70
+[09-Dec-2025 10:10:00 Asia/Tehran] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/usr/share/fonts/truetype/freefont/FreeSans.ttf) is not within the allowed path(s): (/home/:/usr/lib/php:/usr/local/lib/php:/tmp) in /home/maskanhb/public_html/captcha/captcha.php on line 70
+[09-Dec-2025 10:10:25 Asia/Tehran] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/usr/share/fonts/truetype/freefont/FreeSans.ttf) is not within the allowed path(s): (/home/:/usr/lib/php:/usr/local/lib/php:/tmp) in /home/maskanhb/public_html/captcha/captcha.php on line 70
+[09-Dec-2025 10:35:34 Asia/Tehran] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/usr/share/fonts/truetype/freefont/FreeSans.ttf) is not within the allowed path(s): (/home/:/usr/lib/php:/usr/local/lib/php:/tmp) in /home/maskanhb/public_html/captcha/captcha.php on line 70
+[09-Dec-2025 10:36:35 Asia/Tehran] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/usr/share/fonts/truetype/freefont/FreeSans.ttf) is not within the allowed path(s): (/home/:/usr/lib/php:/usr/local/lib/php:/tmp) in /home/maskanhb/public_html/captcha/captcha.php on line 70
+[09-Dec-2025 10:43:44 Asia/Tehran] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/usr/share/fonts/truetype/freefont/FreeSans.ttf) is not within the allowed path(s): (/home/:/usr/lib/php:/usr/local/lib/php:/tmp) in /home/maskanhb/public_html/captcha/captcha.php on line 70
+[09-Dec-2025 10:43:48 Asia/Tehran] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/usr/share/fonts/truetype/freefont/FreeSans.ttf) is not within the allowed path(s): (/home/:/usr/lib/php:/usr/local/lib/php:/tmp) in /home/maskanhb/public_html/captcha/captcha.php on line 70
+[09-Dec-2025 10:49:17 Asia/Tehran] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/usr/share/fonts/truetype/freefont/FreeSans.ttf) is not within the allowed path(s): (/home/:/usr/lib/php:/usr/local/lib/php:/tmp) in /home/maskanhb/public_html/captcha/captcha.php on line 70
+[09-Dec-2025 11:06:57 Asia/Tehran] PHP Warning:  imagettftext(): Could not find/open font in /home/maskanhb/public_html/captcha/captcha.php on line 44
+[09-Dec-2025 11:07:01 Asia/Tehran] PHP Warning:  imagettftext(): Could not find/open font in /home/maskanhb/public_html/captcha/captcha.php on line 44
+[09-Dec-2025 11:07:39 Asia/Tehran] PHP Warning:  imagettftext(): Could not find/open font in /home/maskanhb/public_html/captcha/captcha.php on line 44
+[09-Dec-2025 11:07:42 Asia/Tehran] PHP Warning:  imagettftext(): Could not find/open font in /home/maskanhb/public_html/captcha/captcha.php on line 44
+[09-Dec-2025 11:09:24 Asia/Tehran] CAPTCHA Generated: gm7phk | Session ID: 96c6916e064e8d6263fbbf59d241c995
+[09-Dec-2025 11:11:11 Asia/Tehran] CAPTCHA Generated: 8sptsh | Session ID: ebc109af9e6780cd78c37ec9d89faa43
+[09-Dec-2025 11:11:13 Asia/Tehran] CAPTCHA Generated: 5kjbxv | Session ID: eb93bff1eca98457798b7adf83329966
+[09-Dec-2025 11:18:55 Asia/Tehran] CAPTCHA Generated: knaru5 | Session ID: cbe683b5ef23b0b945ce5ae51d069124
+[09-Dec-2025 11:19:31 Asia/Tehran] PHP Warning:  session_start(): open(/home/maskanhb/public_html/captcha/sessions/sess_4aca831acbdb34522a7c57d8dd644695, O_RDWR) failed: No such file or directory (2) in /home/maskanhb/public_html/captcha/captcha.php on line 13
+[09-Dec-2025 11:19:31 Asia/Tehran] PHP Warning:  session_start(): Failed to read session data: files (path: /home/maskanhb/public_html/captcha/sessions) in /home/maskanhb/public_html/captcha/captcha.php on line 13
+[09-Dec-2025 11:23:07 Asia/Tehran] PHP Warning:  session_start(): open(/home/maskanhb/public_html/captcha/sessions/sess_4aca831acbdb34522a7c57d8dd644695, O_RDWR) failed: No such file or directory (2) in /home/maskanhb/public_html/captcha/captcha.php on line 13
+[09-Dec-2025 11:23:07 Asia/Tehran] PHP Warning:  session_start(): Failed to read session data: files (path: /home/maskanhb/public_html/captcha/sessions) in /home/maskanhb/public_html/captcha/captcha.php on line 13
+[09-Dec-2025 11:25:48 Asia/Tehran] PHP Warning:  session_start(): open(/home/maskanhb/public_html/captcha/sessions/sess_4aca831acbdb34522a7c57d8dd644695, O_RDWR) failed: No such file or directory (2) in /home/maskanhb/public_html/captcha/captcha.php on line 13
+[09-Dec-2025 11:25:48 Asia/Tehran] PHP Warning:  session_start(): Failed to read session data: files (path: /home/maskanhb/public_html/captcha/sessions) in /home/maskanhb/public_html/captcha/captcha.php on line 13
+[09-Dec-2025 11:25:51 Asia/Tehran] PHP Warning:  session_start(): open(/home/maskanhb/public_html/captcha/sessions/sess_4aca831acbdb34522a7c57d8dd644695, O_RDWR) failed: No such file or directory (2) in /home/maskanhb/public_html/captcha/captcha.php on line 13
+[09-Dec-2025 11:25:51 Asia/Tehran] PHP Warning:  session_start(): Failed to read session data: files (path: /home/maskanhb/public_html/captcha/sessions) in /home/maskanhb/public_html/captcha/captcha.php on line 13
+[09-Dec-2025 12:10:30 Asia/Tehran] PHP Warning:  require_once(captcha/config_session.php): Failed to open stream: No such file or directory in /home/maskanhb/public_html/captcha/captcha.php on line 3
+[09-Dec-2025 12:10:30 Asia/Tehran] PHP Fatal error:  Uncaught Error: Failed opening required 'captcha/config_session.php' (include_path='.:/opt/cpanel/ea-php80/root/usr/share/pear') in /home/maskanhb/public_html/captcha/captcha.php:3
+Stack trace:
+#0 {main}
+  thrown in /home/maskanhb/public_html/captcha/captcha.php on line 3
+[09-Dec-2025 12:10:37 Asia/Tehran] PHP Warning:  require_once(captcha/config_session.php): Failed to open stream: No such file or directory in /home/maskanhb/public_html/captcha/captcha.php on line 3
+[09-Dec-2025 12:10:37 Asia/Tehran] PHP Fatal error:  Uncaught Error: Failed opening required 'captcha/config_session.php' (include_path='.:/opt/cpanel/ea-php80/root/usr/share/pear') in /home/maskanhb/public_html/captcha/captcha.php:3
+Stack trace:
+#0 {main}
+  thrown in /home/maskanhb/public_html/captcha/captcha.php on line 3
+[09-Dec-2025 12:11:19 Asia/Tehran] PHP Warning:  require_once(captcha/config_session.php): Failed to open stream: No such file or directory in /home/maskanhb/public_html/captcha/captcha.php on line 3
+[09-Dec-2025 12:11:19 Asia/Tehran] PHP Fatal error:  Uncaught Error: Failed opening required 'captcha/config_session.php' (include_path='.:/opt/cpanel/ea-php80/root/usr/share/pear') in /home/maskanhb/public_html/captcha/captcha.php:3
+Stack trace:
+#0 {main}
+  thrown in /home/maskanhb/public_html/captcha/captcha.php on line 3
+[09-Dec-2025 12:12:21 Asia/Tehran] PHP Warning:  require_once(captcha/config_session.php): Failed to open stream: No such file or directory in /home/maskanhb/public_html/captcha/captcha.php on line 3
+[09-Dec-2025 12:12:21 Asia/Tehran] PHP Fatal error:  Uncaught Error: Failed opening required 'captcha/config_session.php' (include_path='.:/opt/cpanel/ea-php80/root/usr/share/pear') in /home/maskanhb/public_html/captcha/captcha.php:3
+Stack trace:
+#0 {main}
+  thrown in /home/maskanhb/public_html/captcha/captcha.php on line 3
+[09-Dec-2025 12:12:31 Asia/Tehran] PHP Warning:  require_once(captcha/config_session.php): Failed to open stream: No such file or directory in /home/maskanhb/public_html/captcha/captcha.php on line 3
+[09-Dec-2025 12:12:31 Asia/Tehran] PHP Fatal error:  Uncaught Error: Failed opening required 'captcha/config_session.php' (include_path='.:/opt/cpanel/ea-php80/root/usr/share/pear') in /home/maskanhb/public_html/captcha/captcha.php:3
+Stack trace:
+#0 {main}
+  thrown in /home/maskanhb/public_html/captcha/captcha.php on line 3
+[09-Dec-2025 12:13:05 Asia/Tehran] PHP Warning:  require_once(captcha/config_session.php): Failed to open stream: No such file or directory in /home/maskanhb/public_html/captcha/captcha.php on line 3
+[09-Dec-2025 12:13:05 Asia/Tehran] PHP Fatal error:  Uncaught Error: Failed opening required 'captcha/config_session.php' (include_path='.:/opt/cpanel/ea-php80/root/usr/share/pear') in /home/maskanhb/public_html/captcha/captcha.php:3
+Stack trace:
+#0 {main}
+  thrown in /home/maskanhb/public_html/captcha/captcha.php on line 3
+[09-Dec-2025 15:59:16 Asia/Tehran] PHP Warning:  require_once(captcha/config_session.php): Failed to open stream: No such file or directory in /home/maskanhb/public_html/captcha/captcha.php on line 3
+[09-Dec-2025 15:59:16 Asia/Tehran] PHP Fatal error:  Uncaught Error: Failed opening required 'captcha/config_session.php' (include_path='.:/opt/cpanel/ea-php80/root/usr/share/pear') in /home/maskanhb/public_html/captcha/captcha.php:3
+Stack trace:
+#0 {main}
+  thrown in /home/maskanhb/public_html/captcha/captcha.php on line 3
+[10-Dec-2025 12:29:52 Asia/Tehran] PHP Warning:  require_once(captcha/config_session.php): Failed to open stream: No such file or directory in /home/maskanhb/public_html/captcha/captcha.php on line 3
+[10-Dec-2025 12:29:52 Asia/Tehran] PHP Fatal error:  Uncaught Error: Failed opening required 'captcha/config_session.php' (include_path='.:/opt/cpanel/ea-php80/root/usr/share/pear') in /home/maskanhb/public_html/captcha/captcha.php:3
+Stack trace:
+#0 {main}
+  thrown in /home/maskanhb/public_html/captcha/captcha.php on line 3
+[15-Dec-2025 19:47:13 Asia/Tehran] PHP Warning:  require_once(captcha/config_session.php): Failed to open stream: No such file or directory in /home/maskanhb/public_html/captcha/captcha.php on line 3
+[15-Dec-2025 19:47:13 Asia/Tehran] PHP Fatal error:  Uncaught Error: Failed opening required 'captcha/config_session.php' (include_path='.:/opt/cpanel/ea-php80/root/usr/share/pear') in /home/maskanhb/public_html/captcha/captcha.php:3
+Stack trace:
+#0 {main}
+  thrown in /home/maskanhb/public_html/captcha/captcha.php on line 3

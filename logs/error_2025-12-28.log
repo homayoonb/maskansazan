@@ -1,0 +1,3 @@
+[2025-12-28 13:23:35] اتصال به دیتابیس موفق: maskanhb_maskansazan - IP: 178.131.26.250
+[2025-12-28 13:23:35] کوئری INSERT: INSERT INTO members (first_name, last_name, national_id, birth_certificate_number, father_name, birth_date_fa, mobile, phone, address, check1_number, check1_date, check1_amount, check1_bank, check2_number, check2_date, check2_amount, check2_bank, check3_number, check3_date, check3_amount, check3_bank, national_card_image, birth_certificate_image, check1_image, check2_image, check3_image, status, registration_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) - IP: 178.131.26.250
+[2025-12-28 13:23:35] ثبت نام موفق - کد پیگیری: 25 - شماره ملی: 0019107358 - IP: 178.131.26.250

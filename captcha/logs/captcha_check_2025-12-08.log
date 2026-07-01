@@ -1,0 +1,19 @@
+[2025-12-08 18:53:18] درخواست شروع شد - IP: 178.131.26.141 - Session: c96bf6e2e5ad00d25a01c09aeb948d1c - Data: {"method":"POST","post_data":{"captcha":"V49KD"}}
+[2025-12-08 18:53:18] ورودی دریافت شد - IP: 178.131.26.141 - Session: c96bf6e2e5ad00d25a01c09aeb948d1c - Data: {"input_length":5,"input_preview":"V49KD"}
+[2025-12-08 18:53:18] کپچا در سشن یافت نشد - IP: 178.131.26.141 - Session: c96bf6e2e5ad00d25a01c09aeb948d1c - Data: {"session_keys":[]}
+[2025-12-08 18:54:03] درخواست شروع شد - IP: 178.131.26.141 - Session: 06133f4df493ae3c5b916d1cd7ed5cfb - Data: {"method":"POST","post_data":{"captcha":"JH4P4"}}
+[2025-12-08 18:54:03] ورودی دریافت شد - IP: 178.131.26.141 - Session: 06133f4df493ae3c5b916d1cd7ed5cfb - Data: {"input_length":5,"input_preview":"JH4P4"}
+[2025-12-08 18:54:03] کپچا در سشن یافت نشد - IP: 178.131.26.141 - Session: 06133f4df493ae3c5b916d1cd7ed5cfb - Data: {"session_keys":[]}
+[2025-12-08 18:55:53] درخواست شروع شد - IP: 178.131.26.141 - Session: fd04a4b29d9e6304305926338e987630 - Data: {"method":"POST","post_data":{"captcha":"A422A"}}
+[2025-12-08 18:55:53] ورودی دریافت شد - IP: 178.131.26.141 - Session: fd04a4b29d9e6304305926338e987630 - Data: {"input_length":5,"input_preview":"A422A"}
+[2025-12-08 18:55:53] کپچا در سشن یافت نشد - IP: 178.131.26.141 - Session: fd04a4b29d9e6304305926338e987630 - Data: {"session_keys":[]}
+[2025-12-08 18:59:05] درخواست شروع شد - IP: 178.131.26.141 - Session: c0051fb35cea15bfc892437caca2b716 - Data: {"method":"POST","post_data":{"captcha":"PKX6C"}}
+[2025-12-08 18:59:05] ورودی دریافت شد - IP: 178.131.26.141 - Session: c0051fb35cea15bfc892437caca2b716 - Data: {"input_length":5,"input_preview":"PKX6C"}
+[2025-12-08 18:59:05] کپچا در سشن یافت نشد - IP: 178.131.26.141 - Session: c0051fb35cea15bfc892437caca2b716 - Data: {"session_keys":[]}
+[2025-12-08 19:01:44] درخواست شروع شد - IP: 178.131.26.141 - Session: bb18c5d0fd0a6dae5a882116bf86f94d - Data: {"method":"POST","post_data":{"captcha":"L5UG8"}}
+[2025-12-08 19:01:44] ورودی دریافت شد - IP: 178.131.26.141 - Session: bb18c5d0fd0a6dae5a882116bf86f94d - Data: {"input_length":5,"input_preview":"L5UG8"}
+[2025-12-08 19:01:44] بررسی زمان کپچا - IP: 178.131.26.141 - Session: bb18c5d0fd0a6dae5a882116bf86f94d - Data: {"current_time":1765207904,"captcha_time":1765207904,"age_seconds":0}
+[2025-12-08 19:01:44] مدیریت تلاش‌ها - IP: 178.131.26.141 - Session: bb18c5d0fd0a6dae5a882116bf86f94d - Data: {"attempt_number":1,"max_attempts":5,"remaining_attempts":4}
+[2025-12-08 19:01:44] اعتبارسنجی کپچا - IP: 178.131.26.141 - Session: bb18c5d0fd0a6dae5a882116bf86f94d - Data: {"user_input":"l5ug8","captcha_code":"l5ug8","is_match":true}
+[2025-12-08 19:01:44] کپچا صحیح است - IP: 178.131.26.141 - Session: bb18c5d0fd0a6dae5a882116bf86f94d - Data: {"token_generated":"43b131dac7f5de8f..."}
+[2025-12-08 19:01:44] ارسال پاسخ - IP: 178.131.26.141 - Session: bb18c5d0fd0a6dae5a882116bf86f94d - Data: {"success":true,"message":"کد امنیتی صحیح است","code":"CAPTCHA_VALID","remaining_attempts":0,"token":"43b131dac7f5de8f56b15ab994bb7b9cbf4b9504914d75805a0fa02e9a275b5f","timestamp":1765207904}

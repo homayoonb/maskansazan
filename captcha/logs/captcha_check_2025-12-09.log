@@ -1,0 +1,189 @@
+[2025-12-09 07:55:53] درخواست شروع شد - IP: 178.131.26.25 - Session: 60f5fd429497438195ea385cd0dbb4ee - Data: {"method":"POST","post_data":{"captcha":"2FVQ7"}}
+[2025-12-09 07:55:53] ورودی دریافت شد - IP: 178.131.26.25 - Session: 60f5fd429497438195ea385cd0dbb4ee - Data: {"input_length":5,"input_preview":"2FVQ7"}
+[2025-12-09 07:55:53] کپچا در سشن یافت نشد - IP: 178.131.26.25 - Session: 60f5fd429497438195ea385cd0dbb4ee - Data: {"session_keys":[]}
+[2025-12-09 08:07:13] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"DHXFZ","session_keys":["captcha_code","captcha_time","captcha_attempts"]}
+[2025-12-09 08:07:13] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"DHXFZ","captcha_code":"DHXFZP"}
+[2025-12-09 08:07:13] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:08:06] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"M","session_keys":["captcha_code","captcha_time","captcha_attempts"]}
+[2025-12-09 08:08:06] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"M","captcha_code":"M76LBM"}
+[2025-12-09 08:08:06] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:08:11] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"M7","session_keys":["captcha_code","captcha_time","captcha_attempts"]}
+[2025-12-09 08:08:11] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"M7","captcha_code":"M76LBM"}
+[2025-12-09 08:08:11] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:08:15] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"M76","session_keys":["captcha_code","captcha_time","captcha_attempts"]}
+[2025-12-09 08:08:15] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"M76","captcha_code":"M76LBM"}
+[2025-12-09 08:08:15] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:08:18] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"M76L","session_keys":["captcha_code","captcha_time","captcha_attempts"]}
+[2025-12-09 08:08:18] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"M76L","captcha_code":"M76LBM"}
+[2025-12-09 08:08:18] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:08:19] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"M76LB","session_keys":["captcha_code","captcha_time","captcha_attempts"]}
+[2025-12-09 08:08:19] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"M76LB","captcha_code":"M76LBM"}
+[2025-12-09 08:08:19] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:08:21] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"M76LBM","session_keys":["captcha_code","captcha_time","captcha_attempts"]}
+[2025-12-09 08:08:21] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"M76LBM","captcha_code":"M76LBM"}
+[2025-12-09 08:08:21] کپچا صحیح - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"token":"701370c019daf83d..."}
+[2025-12-09 08:09:51] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"ي","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:09:51] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"ي","captcha_code":"DDLWXP"}
+[2025-12-09 08:09:51] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:09:54] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"D","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:09:54] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"D","captcha_code":"DDLWXP"}
+[2025-12-09 08:09:54] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:09:54] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"DD","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:09:54] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"DD","captcha_code":"DDLWXP"}
+[2025-12-09 08:09:54] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:09:58] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"DDL","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:09:58] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"DDL","captcha_code":"DDLWXP"}
+[2025-12-09 08:09:58] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:10:01] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"DDLW","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:10:01] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"DDLW","captcha_code":"DDLWXP"}
+[2025-12-09 08:10:01] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:10:05] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"DDLWX","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:10:05] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"DDLWX","captcha_code":"DDLWXP"}
+[2025-12-09 08:10:05] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:10:07] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"DDLWXP","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:10:07] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"DDLWXP","captcha_code":"DDLWXP"}
+[2025-12-09 08:10:07] کپچا صحیح - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"token":"e970e4edca042076..."}
+[2025-12-09 08:11:26] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"S","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:11:26] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"S","captcha_code":"SCHELW"}
+[2025-12-09 08:11:26] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:11:28] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"SC","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:11:28] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"SC","captcha_code":"SCHELW"}
+[2025-12-09 08:11:28] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:11:31] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"SCH","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:11:31] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"SCH","captcha_code":"SCHELW"}
+[2025-12-09 08:11:31] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:11:35] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"SCHE","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:11:35] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"SCHE","captcha_code":"SCHELW"}
+[2025-12-09 08:11:35] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:11:37] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"SCHEL","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:11:37] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"SCHEL","captcha_code":"SCHELW"}
+[2025-12-09 08:11:37] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:11:38] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"SCHELW","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:11:38] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"SCHELW","captcha_code":"SCHELW"}
+[2025-12-09 08:11:38] کپچا صحیح - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"token":"d5308d2c6b848cc5..."}
+[2025-12-09 08:12:54] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"۵","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:12:54] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"۵","captcha_code":"5W8QLK"}
+[2025-12-09 08:12:54] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:12:57] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"5","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:12:57] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"5","captcha_code":"5W8QLK"}
+[2025-12-09 08:12:57] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:12:59] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"5W","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:12:59] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"5W","captcha_code":"5W8QLK"}
+[2025-12-09 08:12:59] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:13:01] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"5W8","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:13:01] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"5W8","captcha_code":"5W8QLK"}
+[2025-12-09 08:13:01] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:13:03] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"5W8Q","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:13:03] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"5W8Q","captcha_code":"5W8QLK"}
+[2025-12-09 08:13:03] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:13:08] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"5W8QL","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:13:08] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"5W8QL","captcha_code":"5W8QLK"}
+[2025-12-09 08:13:08] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:13:10] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"5W8QLK","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:13:10] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"5W8QLK","captcha_code":"5W8QLK"}
+[2025-12-09 08:13:10] کپچا صحیح - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"token":"150dcc92d9f34da7..."}
+[2025-12-09 08:26:27] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"K","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:26:27] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"K","captcha_code":"K3MNM5"}
+[2025-12-09 08:26:27] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:26:30] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"K3","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:26:30] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"K3","captcha_code":"K3MNM5"}
+[2025-12-09 08:26:30] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:26:33] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"K3M","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:26:33] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"K3M","captcha_code":"K3MNM5"}
+[2025-12-09 08:26:33] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:26:35] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"K3MN","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:26:35] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"K3MN","captcha_code":"K3MNM5"}
+[2025-12-09 08:26:35] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:26:36] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"K3MNM","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:26:36] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"K3MNM","captcha_code":"K3MNM5"}
+[2025-12-09 08:26:36] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:26:38] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"K3MNM5","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:26:38] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"K3MNM5","captcha_code":"K3MNM5"}
+[2025-12-09 08:26:38] کپچا صحیح - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"token":"40e02d45208311a0..."}
+[2025-12-09 08:29:13] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"T","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:29:13] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"T","captcha_code":"TGGVSE"}
+[2025-12-09 08:29:13] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:29:17] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"TG","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:29:17] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"TG","captcha_code":"TGGVSE"}
+[2025-12-09 08:29:17] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:29:18] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"TGG","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:29:18] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"TGG","captcha_code":"TGGVSE"}
+[2025-12-09 08:29:18] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:29:21] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"TGGV","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:29:21] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"TGGV","captcha_code":"TGGVSE"}
+[2025-12-09 08:29:21] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:29:24] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"TGGVS","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:29:24] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"TGGVS","captcha_code":"TGGVSE"}
+[2025-12-09 08:29:24] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:29:26] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"TGGVSE","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:29:26] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"TGGVSE","captcha_code":"TGGVSE"}
+[2025-12-09 08:29:26] کپچا صحیح - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"token":"2a1b63ee44495260..."}
+[2025-12-09 08:36:16] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"W","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:36:16] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"W","captcha_code":"W278LP"}
+[2025-12-09 08:36:16] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:36:19] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"W2","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:36:19] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"W2","captcha_code":"W278LP"}
+[2025-12-09 08:36:19] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:36:19] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"W27","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:36:19] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"W27","captcha_code":"W278LP"}
+[2025-12-09 08:36:19] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:36:23] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"W278","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:36:23] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"W278","captcha_code":"W278LP"}
+[2025-12-09 08:36:23] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:36:25] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"W278L","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:36:25] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"W278L","captcha_code":"W278LP"}
+[2025-12-09 08:36:25] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:36:26] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"W278LP","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:36:26] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"W278LP","captcha_code":"W278LP"}
+[2025-12-09 08:36:26] کپچا صحیح - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"token":"2e76f629e1ff8ac0..."}
+[2025-12-09 08:39:53] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"W278L","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:39:53] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"W278L","captcha_code":"GEYN7A"}
+[2025-12-09 08:39:53] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:39:54] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"W278","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:39:54] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"W278","captcha_code":"GEYN7A"}
+[2025-12-09 08:39:54] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:39:54] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"W27","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:39:54] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"W27","captcha_code":"GEYN7A"}
+[2025-12-09 08:39:54] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:39:54] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"W2","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:39:54] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"W2","captcha_code":"GEYN7A"}
+[2025-12-09 08:39:54] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:39:54] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"W","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:39:54] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"W","captcha_code":"GEYN7A"}
+[2025-12-09 08:39:54] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:39:57] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"G","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:39:57] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"G","captcha_code":"GEYN7A"}
+[2025-12-09 08:39:57] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:40:01] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"GE","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:40:01] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"GE","captcha_code":"GEYN7A"}
+[2025-12-09 08:40:01] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:40:03] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"GEY","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:40:03] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"GEY","captcha_code":"GEYN7A"}
+[2025-12-09 08:40:03] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:40:06] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"GEYN","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:40:06] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"GEYN","captcha_code":"GEYN7A"}
+[2025-12-09 08:40:06] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:40:12] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"GEYN7","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:40:12] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"GEYN7","captcha_code":"GEYN7A"}
+[2025-12-09 08:40:12] کپچا اشتباه - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: []
+[2025-12-09 08:40:15] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"GEYN7A","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time","captcha_code","captcha_time"]}
+[2025-12-09 08:40:15] مقایسه کدها - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"user_input":"GEYN7A","captcha_code":"GEYN7A"}
+[2025-12-09 08:40:15] کپچا صحیح - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"token":"c644102b2640915e..."}
+[2025-12-09 09:38:30] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"E","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time"]}
+[2025-12-09 09:38:34] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"ES","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time"]}
+[2025-12-09 09:38:37] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"ES8","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time"]}
+[2025-12-09 09:38:39] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"ES8C","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time"]}
+[2025-12-09 09:38:40] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"ES8C9","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time"]}
+[2025-12-09 09:38:40] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"ES8C92","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time"]}
+[2025-12-09 09:39:05] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"H","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time"]}
+[2025-12-09 09:39:09] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"HG","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time"]}
+[2025-12-09 09:39:11] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"HG8","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time"]}
+[2025-12-09 09:39:13] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"HG8W","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time"]}
+[2025-12-09 09:39:15] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"HG8WV","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time"]}
+[2025-12-09 09:39:17] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"HG8WVN","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time"]}
+[2025-12-09 09:45:32] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"5","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time"]}
+[2025-12-09 09:45:35] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"5N","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time"]}
+[2025-12-09 09:45:39] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"5NZ","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time"]}
+[2025-12-09 09:45:42] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"5NZC","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time"]}
+[2025-12-09 09:45:45] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"5NZCN","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time"]}
+[2025-12-09 09:45:49] درخواست بررسی کپچا - Session: df30b891c05544bc51868fe0ec5e4373 - IP: 178.131.26.25 - Data: {"input":"5NZCNJ","session_keys":["captcha_attempts","captcha_verified","captcha_token","captcha_verified_time"]}

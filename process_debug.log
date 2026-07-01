@@ -1,0 +1,16 @@
+[2025-12-09 11:56:55] PROCESS_START - Session ID: 78ea45f22cb06ffb547c8ac9b8f69483 - Session Data: Array
+(
+)
+
+[2025-12-09 11:56:55] POST_RECEIVED - Form submitted
+[2025-12-09 11:56:55] CAPTCHA_VALIDATION - Session ID: 78ea45f22cb06ffb547c8ac9b8f69483 - Input: '2MATTA'
+[2025-12-09 11:56:55] ERROR: No captcha found in database for session 78ea45f22cb06ffb547c8ac9b8f69483
+[2025-12-09 11:56:55] VALIDATION_FAILED - Errors: کد امنیتی یافت نشد. لطفاً روی دکمه "دریافت کد جدید" کلیک کنید.
+[2025-12-09 11:57:22] PROCESS_START - Session ID: 78ea45f22cb06ffb547c8ac9b8f69483 - Session Data: Array
+(
+)
+
+[2025-12-09 11:57:22] POST_RECEIVED - Form submitted
+[2025-12-09 11:57:22] CAPTCHA_VALIDATION - Session ID: 78ea45f22cb06ffb547c8ac9b8f69483 - Input: '2MATTA'
+[2025-12-09 11:57:22] ERROR: No captcha found in database for session 78ea45f22cb06ffb547c8ac9b8f69483
+[2025-12-09 11:57:22] VALIDATION_FAILED - Errors: کد امنیتی یافت نشد. لطفاً روی دکمه "دریافت کد جدید" کلیک کنید.

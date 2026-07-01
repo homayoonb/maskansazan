@@ -1,0 +1,5 @@
+[10-Dec-2025 11:06:26 Asia/Tehran] PHP Fatal error:  Uncaught Error: Call to undefined function finfo_open() in /home/maskanhb/public_html/process_register.php:234
+Stack trace:
+#0 /home/maskanhb/public_html/process_register.php(537): validateUploadedFile(Array, '\xDA\xA9\xD8\xA7\xD8\xB1\xD8\xAA \xD9\x85\xD9\x84\xDB\x8C')
+#1 {main}
+  thrown in /home/maskanhb/public_html/process_register.php on line 234

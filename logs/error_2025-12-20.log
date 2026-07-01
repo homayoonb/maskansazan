@@ -1,0 +1,4 @@
+[2025-12-20 10:43:07] اتصال به دیتابیس موفق: maskanhb_maskansazan - IP: 178.131.26.201
+[2025-12-20 10:43:07] کوئری INSERT: INSERT INTO members (first_name, last_name, national_id, birth_certificate_number, father_name, birth_date_fa, mobile, phone, address, national_card_image, birth_certificate_image, check1_image, check2_image, check3_image, status, registration_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) - IP: 178.131.26.201
+[2025-12-20 10:43:07] ثبت نام موفق - کد پیگیری: 14 - شماره ملی: 0060168420 - IP: 178.131.26.201
+[2025-12-20 10:44:07] خطای عمومی: متد درخواست باید POST باشد. - IP: 178.131.26.201
