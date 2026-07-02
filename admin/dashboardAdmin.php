@@ -1133,7 +1133,11 @@ $selectedProjectId = isset($_GET['project_id']) ? (int)$_GET['project_id'] : 0;
 
 $projectMembers = [];
 if ($activeTab === 'members' && $selectedProjectId > 0) {
-    $stmt = $pdo->prepare("SELECT 
+// ۱. دریافت مقدار جستجو از URL (اگر نبود، خالی در نظر بگیر)
+    $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+
+// ۲. پایه کوئری اصلی شما همراه با JOIN
+    $sql = "SELECT 
     project_members.id AS member_record_id,
     project_members.share,
     project_members.introducer,
@@ -1153,9 +1157,24 @@ if ($activeTab === 'members' && $selectedProjectId > 0) {
     projects.created_at
 FROM project_members
 JOIN projects ON project_members.project_id = projects.id
-WHERE project_members.project_id = :project_id");
-    $stmt->execute([':project_id' => $selectedProjectId]);
+WHERE project_members.project_id = :project_id";
+
+// آرایه پارامترها برای Bind کردن مقادیر دیتابیس
+    $params = [':project_id' => $selectedProjectId];
+
+// ۳. اگر مقدار جستجو خالی نبود، فیلتر نام و نام خانوادگی را اضافه کن
+    if ($search !== '') {
+        $sql .= " AND (project_members.first_name LIKE :search 
+                OR project_members.last_name LIKE :search 
+                OR CONCAT(project_members.first_name, ' ', project_members.last_name) LIKE :search)";
+        $params[':search'] = "%{$search}%";
+    }
+
+// اجرای کوئری
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     $projectMembers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 
 }
 $rows = [];
@@ -1175,20 +1194,29 @@ if ($activeTab === 'expenses' && $selectedProjectId > 0) {
 // ========== اتمام کد PHP ==========
 ob_start();
 ?>
+<!-- ۱. فونت‌ها و آیکون‌ها -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
-<!-- در head صفحه -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
+
+<!-- ۲. استایل اصلی قالب (Bootstrap 5 RTL) -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+<!-- ۳. استایل دیتاتیبل مخصوص بوت‌استرپ ۵ -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
+
+<!-- ۴. کتابخانه jQuery (باید قبل از اسکریپت‌های دیگر لود شود) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+<!-- ۵. جاوااسکریپت بوت‌استرپ ۵ (نسخه ۳ حذف شد تا تداخل رفع شود) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- ۶. جاوااسکریپت اصلی دیتاتیبل و افزونه بوت‌استرپ ۵ آن -->
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+
 <style>
 
     .sidebar-menu-half {
@@ -1202,8 +1230,14 @@ ob_start();
     }
 
 </style>
+
+<a href="logoutAdmin.php" class="list-group-item list-group-item-action text-danger">
+    <i class="bi bi-box-arrow-right me-2"></i>خروج
+</a>
+<br>
 <div class="text-bg-info-50 small">خوش آمدید، <?php echo safeEcho($_SESSION['admin_username'] ?? 'ادمین') ?>
-</div><br>
+</div>
+<br>
 <form method="GET" action="dashboardAdmin.php">
     <!-- نگه داشتن تب فعلی در فرم -->
     <input type="hidden" name="tab" value="<?= htmlspecialchars($activeTab) ?>">
@@ -1280,17 +1314,23 @@ ob_start();
            class="list-group-item list-group-item-action <?= $activeTab === 'tickets' ? 'active' : '' ?>">
             <i class="bi bi-chat-dots me-2"></i>تیکت
         </a>
-
-        <a href="logoutAdmin.php" class="list-group-item list-group-item-action text-danger">
-            <i class="bi bi-box-arrow-right me-2"></i>خروج
-        </a>
     </div>
 </div>
 <?php if ($activeTab === 'members'): ?>
+
     <div class="card mt-4">
         <div class="card-body">
-            <h5 class="mb-3">اعضای پروژه</h5>
 
+
+            <h5 class="mb-3">اعضای پروژه</h5>
+            <div class="row">
+                <div class="mb-3 col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" id="memberSearchInput" class="form-control" placeholder="جستجوی آنی نام یا نام خانوادگی...">
+                    </div>
+                </div>
+            </div>
             <?php if ($selectedProjectId <= 0): ?>
                 <div class="alert alert-warning">لطفاً ابتدا یک پروژه انتخاب کنید.</div>
 
@@ -1310,7 +1350,7 @@ ob_start();
                             <th>میزان بدهی</th>
                         </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="projectMembersList">
                         <?php foreach ($projectMembers as $i => $member): ?>
                             <?php
                             $_SESSION['fullName']=trim(($member['first_name'] ?? '') . ' ' . ($member['last_name'] ?? ''));
@@ -1318,15 +1358,21 @@ ob_start();
                             $fullName = $fullName !== '' ? $fullName : '-';
                             echo "<!-- User ID: " . ($member['member_record_id'] ?? 'Not Found') . " -->";
                             ?>
-                            <tr>
+                            <tr class="member-row">
                                 <td><?= (int)$member['member_record_id'] ?></td>
-                                <td>
+                                <td  class="member-name">
                                     <a href="profileuser.php?id=<?= (int)$member['member_record_id'] ?>">
                                         <?= htmlspecialchars($fullName) ?>
                                     </a>
                                 </td>
                                 <td>
-                                    <a href="showDocuments.php?id=<?= (int)$member['member_record_id'] ?>"
+                                    <?php
+                                    $_SESSION['fullName']=trim(($member['first_name'] ?? '') . ' ' . ($member['last_name'] ?? ''));
+                                    $fullName = trim(($member['first_name'] ?? '') . ' ' . ($member['last_name'] ?? ''));
+                                    $fullName = $fullName !== '' ? $fullName : '-';
+                                    echo "<!-- User ID: " . ($member['member_record_id'] ?? 'Not Found') . " -->";
+                                    ?>
+                                    <a href="showDocuments.php?id=<?= (int)$member['member_record_id'] ?>&member_name=<?= $fullName ?>"
                                        class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm"
                                        style="transition: all 0.3s ease;">
                                         <i class="bi bi-file-earmark-text me-1"></i> مشاهده
@@ -1341,37 +1387,39 @@ ob_start();
                                 </td>
                                 <td class="text-center fw-bold">
                                     <?php
-                                    // ۱. ترکیب نام و نام خانوادگی به صورت دقیق
-                                    $firstName = $member['first_name'] ?? '';
-                                    $lastName = $member['last_name'] ?? '';
-                                    $fullName = trim($firstName . ' ' . $lastName);
+                                    // ۱. استخراج کد ملی از آرایه عضو (مطمئن شوید در جدول members نام ستون همین است)
+                                    $n_code = $member['national_code'] ?? '';
 
-                                    // اگر نام خالی بود، یک مقدار پیش‌فرض منطقی بگذارید (مثلاً '-' یا نام کاربری)
-                                    if ($fullName === '') {
-                                        $fullName = '-';
-                                    }
+                                    // ۲. استخراج آیدی پروژه (برای اینکه واریزی‌های پروژه‌های دیگر با هم جمع نشوند)
+                                    $p_id = $member['project_id'] ?? 0;
 
-                                    // ذخیره در سشن برای استفاده در صفحات دیگر
-                                    $_SESSION['fullName'] = $fullName;
+                                    $total_paid = 0;
 
-                                    // ۲. کوئری بهینه برای جمع مبالغ
-                                    $stmt = $pdo->prepare("
-                                                     SELECT COALESCE(SUM(paid_amount), 0)
+                                    if (!empty($n_code)) {
+                                        // ۳. کوئری دقیق بر اساس کد ملی و آیدی پروژه
+                                        $stmt = $pdo->prepare("
+                                                        SELECT COALESCE(SUM(paid_amount), 0)
                                                         FROM member_statements
-                                                        WHERE member_name = :member_name
+                                                        WHERE national_code = :n_code 
+                                                        AND project_id = :p_id
                                                     ");
 
-                                    $stmt->execute([':member_name' => $fullName]);
+                                        $stmt->execute([
+                                                ':n_code' => $n_code,
+                                                ':p_id'   => $p_id
+                                        ]);
 
-                                    // ۳. دریافت خروجی به صورت عدد اعشاری/عددی
-                                    $total_paid = (float)$stmt->fetchColumn();
+                                        $total_paid = (float)$stmt->fetchColumn();
+                                    }
                                     ?>
+
                                     <span class="text-primary">
                                         <?= number_format($total_paid) ?>
                                     </span>
                                     <small class="text-muted" style="font-size: 0.7rem;">ریال</small>
                                     <i class="bi bi-cash-stack text-success ms-1"></i>
                                 </td>
+
 
                             </tr>
                         <?php endforeach; ?>
@@ -1545,161 +1593,53 @@ ob_start();
 <!-- jQuery اول -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-<!-- Bootstrap -->
-
+<!-- memberSearch -->
+<script src="../js/memberSearch.js"></script>
 
 <!-- SweetAlert -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<!-- Bootstrap -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-
 <script>
-
-
     $(document).ready(function () {
-        // $('#chequesTable').DataTable({
-        //     paging: true,
-        //     searching: true,
-        //     ordering: true,
-        //     info: true,
-        //     pageLength: 10,
-        //     lengthMenu: [5, 10, 25, 50],
-        //     order: [[3, 'asc']], // مرتب‌سازی پیش‌فرض بر اساس تاریخ سررسید
-        //     language: {
-        //         search: "جستجو:",
-        //         lengthMenu: "نمایش _MENU_ ردیف",
-        //         info: "نمایش _START_ تا _END_ از _TOTAL_ چک",
-        //         infoEmpty: "چکی برای نمایش وجود ندارد",
-        //         zeroRecords: "چکی یافت نشد",
-        //         paginate: {
-        //             first: "اول",
-        //             last: "آخر",
-        //             next: "بعدی",
-        //             previous: "قبلی"
-        //         }
-        //     }
-        // });
+
         console.log('jQuery:', typeof $);
         console.log('DataTable:', typeof $.fn.DataTable);
 
-            $('#membersTable').DataTable({
-                paging: true,
-                searching: true,
-                ordering: true,
-                info: true,
-                pageLength: 10,
-                lengthMenu: [10, 25, 50, 100],
-
-                order: [[0, 'asc']], // مرتب‌سازی بر اساس ردیف
-
-                columnDefs: [
-                    { orderable: false, targets: [3] } // کد ملی اگر نمی‌خواهی مرتب‌سازی شود
-                ],
-
-                language: {
-                    search: "جستجو:",
-                    lengthMenu: "نمایش _MENU_ عضو",
-                    info: "نمایش _START_ تا _END_ از _TOTAL_ عضو",
-                    infoEmpty: "عضوی برای نمایش وجود ندارد",
-                    zeroRecords: "نتیجه‌ای یافت نشد",
-                    paginate: {
-                        first: "اول",
-                        last: "آخر",
-                        next: "بعدی",
-                        previous: "قبلی"
-                    }
+        // اگر خواستید بعداً فعال کنید
+        /*
+        $('#membersTable').DataTable({
+            paging: true,
+            searching: true,
+            ordering: true,
+            info: true,
+            pageLength: 10,
+            lengthMenu: [10, 25, 50, 100],
+            order: [[0, 'asc']],
+            columnDefs: [
+                { orderable: false, targets: [3] }
+            ],
+            language: {
+                search: "جستجو:",
+                lengthMenu: "نمایش _MENU_ عضو",
+                info: "نمایش _START_ تا _END_ از _TOTAL_ عضو",
+                infoEmpty: "عضوی برای نمایش وجود ندارد",
+                zeroRecords: "نتیجه‌ای یافت نشد",
+                paginate: {
+                    first: "اول",
+                    last: "آخر",
+                    next: "بعدی",
+                    previous: "قبلی"
                 }
-            });
-
-
-        // $('#transfersTable').DataTable({
-        //     paging: true,
-        //     searching: true,
-        //     ordering: true,
-        //     info: true,
-        //     pageLength: 10,
-        //     lengthMenu: [10, 25, 50, 100],
-        //
-        //     order: [[0, 'desc']], // مرتب‌سازی پیش‌فرض بر اساس ID
-        //
-        //     columnDefs: [
-        //         { orderable: false, targets: [3, 7] }, // مدارک + عملیات
-        //     ],
-        //
-        //     language: {
-        //         search: "جستجو:",
-        //         lengthMenu: "نمایش _MENU_ عضو",
-        //         info: "نمایش _START_ تا _END_ از _TOTAL_ عضو",
-        //         infoEmpty: "عضوی برای نمایش وجود ندارد",
-        //         zeroRecords: "نتیجه‌ای یافت نشد",
-        //         paginate: {
-        //             first: "اول",
-        //             last: "آخر",
-        //             next: "بعدی",
-        //             previous: "قبلی"
-        //         }
-        //     }
-        // });
-        // $('#usersTable').DataTable({
-        //     paging: true,
-        //     searching: true,
-        //     ordering: true,
-        //     info: true,
-        //
-        //     pageLength: 10,
-        //     lengthMenu: [10, 25, 50, 100],
-        //
-        //     order: [[0, 'desc']], // مرتب‌سازی پیش‌فرض بر اساس ID
-        //
-        //     columnDefs: [
-        //         { orderable: false, targets: [7] } // ستون عملیات
-        //     ],
-        //
-        //     language: {
-        //         search: "جستجو:",
-        //         lengthMenu: "نمایش _MENU_ کاربر",
-        //         info: "نمایش _START_ تا _END_ از _TOTAL_ کاربر",
-        //         infoEmpty: "کاربری برای نمایش وجود ندارد",
-        //         zeroRecords: "نتیجه‌ای یافت نشد",
-        //         paginate: {
-        //             first: "اول",
-        //             last: "آخر",
-        //             next: "بعدی",
-        //             previous: "قبلی"
-        //         }
-        //     }
-        // });
-        // $('#ticketTable').DataTable({
-        //     paging: true,
-        //     searching: true,
-        //     ordering: true,
-        //     info: true,
-        //     pageLength: 10,
-        //     lengthMenu: [10, 25, 50, 100],
-        //
-        //     order: [[0, 'desc']],
-        //
-        //     columnDefs: [
-        //         { orderable: false, targets: [6] } // فقط ستون عملیات
-        //     ],
-        //
-        //     language: {
-        //         search: "جستجو:",
-        //         lengthMenu: "نمایش _MENU_ تیکت",
-        //         info: "نمایش _START_ تا _END_ از _TOTAL_ تیکت",
-        //         infoEmpty: "تیکتی برای نمایش وجود ندارد",
-        //         zeroRecords: "نتیجه‌ای یافت نشد",
-        //         paginate: {
-        //             first: "اول",
-        //             last: "آخر",
-        //             next: "بعدی",
-        //             previous: "قبلی"
-        //         }
-        //     }
-        // });
+            }
+        });
+        */
 
     });
+
+
     /* ===============================
        STATE
     ================================ */
@@ -1713,16 +1653,18 @@ ob_start();
         loading: false
     };
 
+
     /* ===============================
        LOAD DOCUMENTS (AJAX)
     ================================ */
     function loadDocuments() {
+
         if (docState.loading) return;
         docState.loading = true;
 
         const params = new URLSearchParams({
             ajax: 1,
-            user_id: <?= isset($_GET['user_id']) ? (int)$_GET['user_id'] : 0 ?>,
+            user_id: typeof userId !== "undefined" ? userId : 0,
             page: docState.page,
             per_page: docState.perPage,
             doc_sort: docState.sortField,
@@ -1737,14 +1679,15 @@ ob_start();
         fetch('/admin/loadDocuments.php?' + params.toString())
             .then(res => res.text())
             .then(html => {
+
                 const tbody = document.getElementById('documentsBody');
                 const pagination = document.getElementById('documentsPagination');
 
                 if (!tbody) return;
 
-                // جدا کردن pagination از rows
                 const parts = html.split('<!--PAGINATION-->');
                 tbody.innerHTML = parts[0];
+
                 if (pagination && parts[1]) {
                     pagination.innerHTML = parts[1];
                 }
@@ -1755,11 +1698,14 @@ ob_start();
             .finally(() => docState.loading = false);
     }
 
+
     /* ===============================
        SORT
     ================================ */
     document.querySelectorAll('.table-documents th.sortable').forEach(th => {
+
         th.addEventListener('click', function (e) {
+
             e.preventDefault();
             e.stopPropagation();
 
@@ -1773,15 +1719,21 @@ ob_start();
             }
 
             docState.page = 1;
+
             updateSortIcons();
             loadDocuments();
         });
+
     });
 
+
     function updateSortIcons() {
+
         document.querySelectorAll('.sortable i').forEach(icon => {
+
             icon.className = 'bi bi-arrow-down-up';
             icon.style.opacity = '0.4';
+
         });
 
         const active = document.querySelector(
@@ -1789,105 +1741,125 @@ ob_start();
         );
 
         if (active) {
+
             active.className =
                 docState.sortOrder === 'asc'
                     ? 'bi bi-arrow-up'
                     : 'bi bi-arrow-down';
+
             active.style.opacity = '1';
         }
+
     }
+
 
     /* ===============================
        SEARCH
     ================================ */
     let searchTimer = null;
+
     function debouncedSearch() {
+
         clearTimeout(searchTimer);
+
         searchTimer = setTimeout(() => {
+
             const input = document.getElementById('searchInput');
+
             docState.search = input ? input.value.trim() : '';
+
             docState.page = 1;
+
             loadDocuments();
+
         }, 400);
+
     }
 
-    /* سازگاری با HTML قدیمی */
     function searchDocuments() {
         debouncedSearch();
     }
+
 
     /* ===============================
        FILTER STATUS
     ================================ */
     function filterDocuments(status) {
-        docState.status = status || '';
+
         docState.page = 1;
+        docState.status = status || '';
+
         loadDocuments();
+
     }
+
 
     /* ===============================
        PAGINATION
     ================================ */
     function goToPage(page) {
+
         docState.page = page;
+
         loadDocuments();
+
     }
 
+
     /* ===============================
-       INIT
+       DOCUMENT STATUS UPDATE
     ================================ */
-    document.addEventListener('DOMContentLoaded', function () {
-        loadDocuments();
-    });
     function updateDocumentStatus(documentId, status) {
+
         if (!documentId || !status) return;
 
         if (!confirm('آیا از این عملیات اطمینان دارید؟')) return;
 
         fetch('/maskansazan/admin/change_document_status.php', {
+
             method: 'POST',
+
             headers: {
                 'Content-Type': 'application/json'
             },
+
             body: JSON.stringify({
                 document_id: documentId,
-                status: status,
-                csrf_token:
-                    document.querySelector('meta[name="csrf-token"]')?.content ||
-                    document.querySelector('input[name="csrf_token"]')?.value ||
-                    ''
+                status: status
             })
+
         })
             .then(res => res.json())
             .then(data => {
-                if (data.success) {
-                    alert(data.message || 'وضعیت مدرک بروزرسانی شد');
 
-                    // 🔁 رفرش Ajax لیست
+                alert(data.message || 'وضعیت مدرک بروزرسانی شد');
+
+                if (data.success) {
                     loadDocuments();
-                } else {
-                    alert(data.message || 'خطا در بروزرسانی');
                 }
+
             })
-            .catch(err => {
-                console.error(err);
-                alert('خطا در ارتباط با سرور');
-            });
+            .catch(() => alert('خطا در ارتباط با سرور'));
+
     }
+
+
+    /* ===============================
+       UPLOAD DOCUMENT
+    ================================ */
     function uploadDocument() {
+
         const form = document.getElementById('uploadDocumentForm');
         const type = document.getElementById('documentType');
         const file = document.getElementById('documentFile');
 
         if (!type.value) {
             showToast('نوع مدرک را انتخاب کنید', 'danger');
-            type.focus();
             return;
         }
 
         if (!file.files.length) {
             showToast('فایل مدرک را انتخاب کنید', 'danger');
-            file.focus();
             return;
         }
 
@@ -1897,38 +1869,35 @@ ob_start();
         })
             .then(r => r.json())
             .then(d => {
+
                 showToast(d.message, d.status ? 'success' : 'danger');
 
                 if (d.status) {
+
                     bootstrap.Modal.getInstance(
                         document.getElementById('uploadDocumentModal')
                     ).hide();
+
                     form.reset();
+
+                    loadDocuments();
                 }
+
             });
+
     }
 
-    function deleteDocument(documentId) {
-        console.log('deleteDocument called with:', documentId);
 
-        if (!documentId) {
-            alert('شناسه مدرک نامعتبر است (سمت JS)');
-            return;
-        }
+    /* ===============================
+       DELETE DOCUMENT
+    ================================ */
+    function deleteDocument(documentId) {
 
         if (!confirm('آیا از حذف این مدرک اطمینان دارید؟')) return;
 
         const formData = new FormData();
+
         formData.append('document_id', documentId);
-
-        // CSRF اگر داری
-        const csrf =
-            document.querySelector('meta[name="csrf-token"]')?.content ||
-            document.querySelector('input[name="csrf_token"]')?.value || '';
-
-        if (csrf) {
-            formData.append('csrf_token', csrf);
-        }
 
         fetch('/admin/delete_document.php', {
             method: 'POST',
@@ -1936,52 +1905,96 @@ ob_start();
         })
             .then(res => res.json())
             .then(data => {
-                console.log('Server response:', data);
+
+                alert(data.message);
 
                 if (data.success) {
-                    alert(data.message);
-                    loadDocuments(); // رفرش Ajax
-                    location.reload();
-                } else {
-                    alert(data.message);
+                    loadDocuments();
                 }
+
             })
-            .catch(err => {
-                console.error('Fetch error:', err);
-                alert('خطا در ارتباط با سرور');
-            });
+            .catch(() => alert('خطا در ارتباط با سرور'));
+
     }
-    function filterDocuments(status) {
-        // ذخیره وضعیت فیلتر
-        docState.page = 1;
 
-        if (status && status !== '') {
-            docState.status = status;
-        } else {
-            delete docState.status;
-        }
 
-        loadDocuments();
-    }
-    function updateTransferStatus(id,status){
-        if(!confirm('آیا مطمئن هستید؟')) return;
+    /* ===============================
+       TRANSFER
+    ================================ */
+    function updateTransferStatus(id, status) {
 
-        fetch('transfer_update_status.php',{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({id:id,status:status})
+        if (!confirm('آیا مطمئن هستید؟')) return;
+
+        fetch('transfer_update_status.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, status })
         })
-            .then(r=>r.json())
-            .then(d=>{
+            .then(r => r.json())
+            .then(d => {
+
                 alert(d.message);
-                if(d.status) location.reload();
+
+                if (d.status) location.reload();
+
             });
+
     }
 
-    function toggleSidebar() {
-        const sidebar = document.querySelector('.sidebar');
-        if (sidebar) sidebar.classList.toggle('active');
+
+    function deleteTransfer(id) {
+
+        if (!confirm('آیا از حذف این حواله مطمئن هستید؟')) return;
+
+        fetch('/admin/transfer_delete.php', {
+
+            method: 'POST',
+
+            headers: { 'Content-Type': 'application/json' },
+
+            body: JSON.stringify({ id })
+
+        })
+            .then(res => res.json())
+            .then(data => {
+
+                showToast(data.message, data.status ? 'success' : 'danger');
+
+                location.reload();
+
+            })
+            .catch(() => showToast('خطا در ارتباط با سرور', 'danger'));
+
     }
+
+
+    /* ===============================
+       UI
+    ================================ */
+    function toggleSidebar() {
+
+        const sidebar = document.querySelector('.sidebar');
+
+        if (sidebar) sidebar.classList.toggle('active');
+
+    }
+
+
+    function openReceiptModal(imageSrc) {
+
+        const modalImage = document.getElementById('receiptImage');
+
+        modalImage.src = imageSrc;
+
+        const myModal = new bootstrap.Modal(
+            document.getElementById('receiptModal')
+        );
+
+        myModal.show();
+
+    }
+
+
     function showToast(message, type = 'success') {
 
         const positionClass = window.innerWidth < 768
@@ -2002,66 +2015,49 @@ ob_start();
         setTimeout(() => {
             document.querySelector('.toast-container')?.remove();
         }, 4000);
-    }
-    function deleteTransfer(id) {
 
-        if (!confirm('آیا از حذف این حواله مطمئن هستید؟')) return;
-
-        fetch('/admin/transfer_delete.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id })
-        })
-            .then(res => res.json())
-            .then(data => {
-                showToast(data.message, data.status ? 'success' : 'danger');
-                location.reload();
-            })
-            .catch(() => {
-                showToast('خطا در ارتباط با سرور', 'danger');
-            });
-    }
-    function openReceiptModal(imageSrc) {
-        // جلوگیری از هرگونه رفتار پیش‌فرض (احتیاطی)
-        if (event) event.preventDefault();
-
-        // تنظیم آدرس تصویر در مودال
-        const modalImage = document.getElementById('receiptImage');
-        modalImage.src = imageSrc;
-
-        // باز کردن مودال (اگر از بوت استرپ 5 استفاده می‌کنید)
-        const myModal = new bootstrap.Modal(document.getElementById('receiptModal'));
-        myModal.show();
     }
 
+
+    /* ===============================
+       PROJECT SELECTOR
+    ================================ */
     document.addEventListener('DOMContentLoaded', function () {
+
         const projectSelect = document.getElementById('project_id_selector');
         const menuLinks = document.querySelectorAll('.menu-link');
 
-        // اگر المنت پیدا نشد، ادامه نده تا خطا ندهد
-        if (!projectSelect) {
-            console.warn("Element 'project_id_selector' not found!");
-            return;
-        }
+        if (!projectSelect) return;
 
         function updateMenuLinks() {
+
             const projectId = projectSelect.value;
+
             menuLinks.forEach(link => {
+
                 const tab = link.getAttribute('data-tab');
+
                 if (projectId && tab) {
-                    link.href = `?tab=${encodeURIComponent(tab)}&project_id=${encodeURIComponent(projectId)}`;
+
+                    link.href =
+                        `?tab=${encodeURIComponent(tab)}&project_id=${encodeURIComponent(projectId)}`;
+
                 } else {
-                    // اگر پروژه‌ای انتخاب نشده، لینک را غیرفعال یا به تب خالی بفرستید
+
                     link.href = '#';
+
                 }
+
             });
+
         }
 
         projectSelect.addEventListener('change', updateMenuLinks);
 
-        // اجرای اولیه برای زمانی که صفحه با project_id لود شده است
         updateMenuLinks();
+
     });
+
 </script>
 
 <?php

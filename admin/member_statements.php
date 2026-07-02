@@ -95,7 +95,9 @@ ob_start();
     }
 
 </style>
-
+<a href="dashboardAdmin.php" class="btn btn-secondary" >
+    بازگشت
+</a>
 <div class="container-fluid">
     <div class="row">
 
@@ -150,9 +152,7 @@ ob_start();
             </div>
         </main>
     </div>
-    <a href="dashboardAdmin.php" class="btn btn-secondary" >
-        بازگشت
-    </a>
+
 </div>
 <?php
 $content = ob_get_clean();

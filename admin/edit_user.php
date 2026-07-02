@@ -25,20 +25,79 @@ try {
     // ۲. پردازش فرم پس از کلیک روی ذخیره
     $success_msg = "";
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $Partner = trim($_POST['Partner'] ?? 'ندارد');
+        $Sana_code = trim($_POST['Sana_code'] ?? 'ندارد');
+        $Postal_Code = trim($_POST['Postal_Code'] ?? '');
+
+// اعتبارسنجی ENUM
+        $allowedPartner = ['دارد', 'ندارد'];
+
+        if (!in_array($Partner, $allowedPartner)) {
+            $Partner = 'ندارد';
+        }
+
+        if (!in_array($Sana_code, $allowedPartner)) {
+            $Sana_code = 'ندارد';
+        }
+
+// اگر شریک ندارد → فیلدهای شریک پاک شوند
+        $Partner1 =  trim($_POST['Partner1'] ?? '');
+        $Partner2 =   trim($_POST['Partner2'] ?? '') ;
+        $Partner3 =  trim($_POST['Partner3'] ?? '') ;
+        $Partner4 =  trim($_POST['Partner4'] ?? '') ;
+
         $updateStmt = $pdo->prepare("
-            UPDATE project_members 
-            SET first_name = ?, last_name = ?, national_code = ?, phone = ?, 
-                main_member = ?, share = ?, declared_share = ?, father_name = ?, 
-                birth_certificate = ?, birth_date = ?, birth_place = ?, introducer = ?
-            WHERE id = ?
-        ");
+    UPDATE project_members 
+    SET first_name = ?, 
+        last_name = ?, 
+        national_code = ?, 
+        phone = ?, 
+        main_member = ?, 
+        share = ?, 
+        declared_share = ?, 
+        father_name = ?, 
+        birth_certificate = ?, 
+        birth_date = ?, 
+        birth_place = ?, 
+        introducer = ?,
+        address = ?,
+        Sana_code = ?,
+        Postal_Code = ?,
+        Partner = ?,
+        Partner1 = ?,
+        Partner2 = ?,
+        Partner3 = ?,
+        Partner4 = ?
+    WHERE id = ?
+");
 
         $updateStmt->execute([
-                $_POST['first_name'], $_POST['last_name'], $_POST['national_code'], $_POST['phone'],
-                $_POST['main_member'], $_POST['share'], $_POST['declared_share'], $_POST['father_name'],
-                $_POST['birth_certificate'], $_POST['birth_date'], $_POST['birth_place'], $_POST['introducer'],
+                trim($_POST['first_name']),
+                trim($_POST['last_name']),
+                trim($_POST['national_code']),
+                trim($_POST['phone']),
+                trim($_POST['main_member']),
+                trim($_POST['share']),
+                trim($_POST['declared_share']),
+                trim($_POST['father_name']),
+                trim($_POST['birth_certificate']),
+                trim($_POST['birth_date']),
+                trim($_POST['birth_place']),
+                trim($_POST['introducer']),
+                trim($_POST['address']),
+
+                $Sana_code,
+                $Postal_Code,
+                $Partner,
+
+                $Partner1,
+                $Partner2,
+                $Partner3,
+                $Partner4,
+
                 $user_id
         ]);
+
 
         // هدایت به صفحه پروفایل با پیام موفقیت
         header("Location: profileuser.php?id=$user_id&status=updated");
@@ -86,7 +145,7 @@ try {
                         <p class="text-muted">لطفاً اطلاعات مورد نظر را اصلاح و ذخیره کنید.</p>
                     </div>
 
-                    <form method="POST">
+                    <form method="POST" id="editMemberForm">
 
                         <!-- بخش اطلاعات فردی -->
                         <div class="section-title"><i class="bi bi-info-circle me-2"></i> اطلاعات فردی</div>
@@ -119,6 +178,50 @@ try {
                                 <label class="form-label">تاریخ تولد</label>
                                 <input type="text" name="birth_date" class="form-control" placeholder="1300-01-01" value="<?= htmlspecialchars($user['birth_date']) ?>">
                             </div>
+                            <div class="col-md-4">
+                                <label class="form-label">آدرس</label>
+                                <textarea name="address" class="form-control"><?= htmlspecialchars($user['address'] ?? '') ?></textarea>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">کد پستی</label>
+                                <input
+                                        type="number"
+                                        name="Postal_Code"
+                                        class="form-control"
+                                        maxlength="10"
+                                        pattern="\d{10}"
+                                        value="<?= htmlspecialchars($user['Postal_Code'] ?? '') ?>">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">شریک</label>
+                                <select name="Partner" class="form-select">
+                                    <option value="دارد" <?= $user['Partner'] == 'دارد' ? 'selected' : '' ?>>دارد</option>
+                                    <option value="ندارد" <?= $user['Partner'] == 'ندارد' ? 'selected' : '' ?>>ندارد</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">کد ثنا</label>
+                                <select name="Sana_code" class="form-select">
+                                    <option value="دارد" <?= $user['Sana_code'] == 'دارد' ? 'selected' : '' ?>>دارد</option>
+                                    <option value="ندارد" <?= $user['Sana_code'] == 'ندارد' ? 'selected' : '' ?>>ندارد</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label name="partner1" class="form-label">شریک ۱</label>
+                                <input type="text" name="Partner1" class="form-control" value="<?= htmlspecialchars($user['Partner1'])?>">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">شریک 2</label>
+                                <input name="Partner2" type="text" class="form-control" value="<?= htmlspecialchars($user['Partner2'])?>">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">شریک 3</label>
+                                <input name="Partner3" type="text" class="form-control" value="<?= htmlspecialchars($user['Partner3'])?>">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">شریک 4</label>
+                                <input name="Partner4" type="text" class="form-control" value="<?= htmlspecialchars($user['Partner4'])?>">
+                            </div>
                         </div>
 
                         <!-- بخش پروژه و عضویت -->
@@ -145,9 +248,16 @@ try {
                             <a href="profileuser.php?id=<?= $user_id ?>" class="btn btn-outline-secondary">
                                 <i class="bi bi-arrow-right me-1"></i> لغو و بازگشت
                             </a>
-                            <button type="submit" class="btn btn-primary btn-save shadow-sm">
-                                <i class="bi bi-check-circle me-1"></i> ذخیره تغییرات
+                            <button type="submit" id="submitBtn" class="btn btn-primary btn-save shadow-sm">
+                                <span id="submitIcon">
+                                    <i class="bi bi-check-circle me-1"></i>
+                                </span>
+
+                                <span id="submitText">ذخیره تغییرات</span>
+
+                                <span id="submitSpinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
                             </button>
+
                         </div>
 
                     </form>
@@ -157,6 +267,19 @@ try {
         </div>
     </div>
 </div>
+<script>
+    document.getElementById('editMemberForm').addEventListener('submit', function () {
+        const submitBtn = document.getElementById('submitBtn');
+        const submitIcon = document.getElementById('submitIcon');
+        const submitText = document.getElementById('submitText');
+        const submitSpinner = document.getElementById('submitSpinner');
+
+        submitBtn.disabled = true;
+        submitIcon.classList.add('d-none');
+        submitText.textContent = 'در حال ذخیره...';
+        submitSpinner.classList.remove('d-none');
+    });
+</script>
 
 </body>
 </html>

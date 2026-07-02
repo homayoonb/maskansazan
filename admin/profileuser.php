@@ -5,7 +5,6 @@ require_once '../config/Database.php';
 // ۲. دریافت ID کاربر از URL
 $user_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $memberName = isset($_GET['name']) ? trim($_GET['name']) : '';
-var_dump($memberName);
 if ($user_id <= 0) {
     die("شناسه کاربر معتبر نیست.");
 }
@@ -17,7 +16,6 @@ try {
     $stmt = $pdo->prepare("SELECT * FROM project_members WHERE id = ?");
     $stmt->execute([$user_id]);
     $user = $stmt->fetch();
-
     if (!$user) {
         die("کاربر مورد نظر یافت نشد.");
     }
@@ -160,6 +158,67 @@ try {
                             <span class="text-muted fs-7"><i class="bi bi-telephone me-2 text-primary"></i>تلفن همراه</span>
                             <span class="fw-bold text-dark dir-ltr"><?= htmlspecialchars($user['phone'] ?? '-') ?></span>
                         </div>
+                        <div class="info-item d-flex align-items-center justify-content-between p-3 mb-2 rounded-3 bg-light-subtle hover-shadow">
+                            <span class="text-muted fs-7">
+                                <i class="bi bi-geo-alt me-2 text-primary"></i>آدرس
+                            </span>
+
+                            <span class="fw-bold text-dark">
+                                <?= nl2br(htmlspecialchars($user['address'] ?? '-')) ?>
+                            </span>
+
+                        </div>
+                        <?php if (($user['Partner'] ?? '') === 'دارد'): ?>
+
+                            <?php
+                            $partners = [
+                                    $user['Partner1'] ?? '',
+                                    $user['Partner2'] ?? '',
+                                    $user['Partner3'] ?? '',
+                                    $user['Partner4'] ?? ''
+                            ];
+
+                            // حذف مقادیر خالی
+                            $partners = array_filter($partners);
+                            ?>
+
+                            <?php if (!empty($partners)): ?>
+
+                                <div class="info-item p-3 mb-2 rounded-3 bg-light-subtle hover-shadow">
+
+                                    <div class="text-muted fs-7 mb-2">
+                                        <i class="bi bi-people-fill me-2 text-primary"></i>
+                                        شرکا
+                                    </div>
+
+                                    <div class="fw-bold text-dark">
+                                        <?= htmlspecialchars(implode(' ، ', $partners)) ?>
+                                    </div>
+
+                                </div>
+
+                            <?php endif; ?>
+
+                        <?php else: ?>
+                        <div class="info-item p-3 mb-2 rounded-3 bg-light-subtle hover-shadow">
+
+                            <div class="text-muted fs-7 mb-2">
+                                <i class="bi bi-people-fill me-2 text-primary"></i>
+                                شرکا
+                            </div>
+
+                            <div class="fw-bold text-dark">
+                                <?= htmlspecialchars('ندارد') ?>
+                            </div>
+
+                        </div>
+                        <?php
+                        endif;
+                        ?>
+
+
+
+
 
                         <div class="info-item d-flex align-items-center justify-content-between p-3 rounded-3 bg-primary-subtle hover-shadow">
                             <span class="text-primary fw-bold fs-7"><i class="bi bi-pie-chart-fill me-2"></i>سهم در پروژه</span>

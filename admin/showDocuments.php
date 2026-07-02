@@ -8,7 +8,6 @@ require_once __DIR__ . '/SafeDatabase.php';
 $user_id = isset($_GET['id'])
         ? (int)$_GET['id']
         : (isset($_GET['user_id']) ? (int)$_GET['user_id'] : 0);
-
 // status فقط برای پیام‌های سیستم مثل success استفاده شود
 $message_status = $_GET['status'] ?? '';
 
@@ -81,6 +80,9 @@ ob_start();
     .badge { font-weight: 500; }
 </style>
 <!--<p>USER ID: --><?php //echo $user_id; ?><!--</p>-->
+    <a href="dashboardAdmin.php" class="btn btn-secondary" >
+        بازگشت
+    </a>
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-header bg-white py-3">
         <h5 class="mb-0 fw-bold text-primary">آپلود مدرک جدید</h5>
@@ -145,12 +147,25 @@ ob_start();
 //    echo 'user_id from URL = ' . $user_id;
 //    echo '</div>';
 //    ?>
+
     <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-        <h5 class="mb-0 fw-bold text-primary">لیست اسناد کاربر
+        <h5 class="mb-0 fw-bold text-primary">
+            لیست اسناد کاربر:
             <?php
-                echo $_SESSION['fullName'];
+            // ۱. اولویت با نامی است که از صفحه قبل در URL ارسال شده
+            if (isset($_GET['member_name'])) {
+                echo htmlspecialchars($_GET['member_name']);
+            }
+            // ۲. اگر در URL نبود، از سشن استفاده کن (به عنوان راه حل جایگزین)
+            elseif (isset($_SESSION['fullName'])) {
+                echo htmlspecialchars($_SESSION['fullName']);
+            }
+            else {
+                echo "نامشخص";
+            }
             ?>
         </h5>
+
         <div class="badge bg-primary-subtle text-primary rounded-pill px-3">
             تعداد کل: <?= count($documentsArray) ?>
         </div>
@@ -286,9 +301,6 @@ ob_start();
         </table>
 
     </div>
-    <a href="dashboardAdmin.php" class="btn btn-secondary" >
-        بازگشت
-    </a>
 
 </div>
 <div class="modal fade" id="editDocumentModal" tabindex="-1">
