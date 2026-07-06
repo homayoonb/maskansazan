@@ -2,13 +2,16 @@
 session_start();
 
 // ✅ فقط ادمین اجازه دارد
-if (!isset($_SESSION['admin_id'])) {
-    die("دسترسی غیرمجاز");
+if (empty($_SESSION['admin_id']) || empty($_SESSION['admin_username'])) {
+    header('Location: loginAdmin.php');
+    exit;
 }
+
 
 // ۲. دریافت ID کاربر از URL
 $user_project_id = isset($_GET['user_project_id']) ? (int)$_GET['user_project_id'] : 0;
 $member_name=isset($_GET['member_name']) ? $_GET['member_name'] : null;
+$project_id=isset($_GET['project_id']) ? (int)$_GET['project_id'] : 0;
 if ($user_project_id <= 0) {
     var_dump($_GET);
     die("شناسه کاربر معتبر نیست.");
@@ -96,7 +99,7 @@ ob_start();
     }
 
 </style>
-<a href="dashboardAdmin.php" class="btn btn-secondary" >
+<a href="dashboardAdmin.php?project_id=<?php echo htmlspecialchars($project_id); ?>" class="btn btn-secondary" >
     بازگشت
 </a>
 <div class="container-fluid">
@@ -104,22 +107,28 @@ ob_start();
 
         <!-- بخش محتوای اصلی -->
         <main class="col-md-9 col-lg-10 px-md-4">
-            <div class="row mb-3">
-                <div class="col-md-6">
+            <div class="row mb-3 align-items-center">
+                <div class="col-md-4">
                     <label class="col-form-label">
                         جمع واریز شده ها
                     </label>
                 </div>
-                <div class="col-md-6">
+
+                <div class="col-md-4">
                     <label class="col-form-label d-flex align-items-center gap-2 text-success fw-bold">
-        <span class="bi-box">
-            <?= number_format($total_paid) ?>
-        </span>
+            <span class="bi-box">
+                <?= number_format($total_paid) ?>
+            </span>
                         <span>ریال</span>
                     </label>
                 </div>
 
-
+                <div class="col-md-4 text-end">
+                    <a href="export_paid_installments_admin.php?user_project_id=<?= urlencode($user_project_id) ?>&project_id=<?= urlencode($project_id) ?>"
+                       class="btn btn-success">
+                        خروجی اقساط پرداخت‌شده
+                    </a>
+                </div>
             </div>
             <div class="table-responsive mt-4">
                 <table class="table table-bordered table-hover shadow-sm" style="direction: rtl">

@@ -58,7 +58,6 @@ try {
 
 <div class="container-fluid">
     <div class="row">
-
         <!-- بخش محتوای اصلی -->
         <main class="col-md-9 col-lg-10 px-md-4">
             <div class="row mb-3">
@@ -76,8 +75,8 @@ try {
                     </label>
                 </div>
 
-
             </div>
+
             <div class="table-responsive mt-4">
                 <table class="table table-bordered table-hover shadow-sm">
                     <thead class="table-light">

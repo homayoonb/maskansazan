@@ -1376,18 +1376,18 @@ ob_start();
                                 </td>
                                 <td>
                                     <?php
-                                    $_SESSION['fullName']=trim(($member['full_name'] ?? ''));
+                                    $_SESSION['full_name']=trim(($member['full_name'] ?? ''));
 
                                     echo "<!-- User ID: " . ($member['member_record_id'] ?? 'Not Found') . " -->";
                                     ?>
-                                    <a href="showDocuments.php?id=<?= (int)$member['user_project_id'] ?>&member_name=<?= $_SESSION['fullName'] ?>"
+                                    <a href="showDocuments.php?id=<?= (int)$member['user_project_id'] ?>&full_name=<?= trim(($member['full_name'] ?? '')) ?>&project_id=<?= (int)$selectedProjectId ?>"
                                        class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm"
                                        style="transition: all 0.3s ease;">
                                         <i class="bi bi-file-earmark-text me-1"></i> مشاهده
                                     </a>
                                 </td>
                                 <td>
-                                    <a href="member_statements.php?member_name=<?= urlencode($_SESSION['fullName'])  ?>&user_project_id=<?= (int)$member['user_project_id'] ?>"
+                                    <a href="member_statements.php?member_name=<?= urlencode($_SESSION['fullName'])  ?>&user_project_id=<?= (int)$member['user_project_id'] ?>&project_id=<?= $selectedProjectId ?>"
                                        class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm"
                                        style="transition: all 0.3s ease;">
                                         <i class="bi bi-cash-coin me-1"></i> مشاهده

@@ -4,16 +4,14 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 require_once __DIR__ . '/SafeDatabase.php';
 
-// گرفتن user_id از URL
-$user_id = isset($_GET['id'])
+$user_project_id = isset($_GET['id'])
         ? (int)$_GET['id']
-        : (isset($_GET['user_id']) ? (int)$_GET['user_id'] : 0);
-// status فقط برای پیام‌های سیستم مثل success استفاده شود
+        : (isset($_GET['user_project_id']) ? (int)$_GET['user_project_id'] : 0);
+
+$project_id = isset($_GET['project_id']) ? (int)$_GET['project_id'] : 0;
 $message_status = $_GET['status'] ?? '';
-
-// برای فیلتر وضعیت تأیید، از پارامتر جدا استفاده می‌کنیم
 $verification_filter = $_GET['verification_status'] ?? '';
-
+$full_name= $_GET['full_name'] ?? '';
 $documentsArray = [];
 
 try {
@@ -27,11 +25,15 @@ try {
             ]
     );
 
-    if ($user_id > 0) {
-        $query = "SELECT * FROM user_documents WHERE user_id = ?";
-        $params = [$user_id];
+    if ($user_project_id > 0) {
+        $query = "SELECT * FROM user_documents WHERE user_project_id = ?";
+        $params = [$user_project_id];
 
-        // فقط اگر فیلتر تأیید معتبر بود، به کوئری اضافه شود
+        if ($project_id > 0) {
+            $query .= " AND project_id = ?";
+            $params[] = $project_id;
+        }
+
         if (!empty($verification_filter)) {
             $query .= " AND verification_status = ?";
             $params[] = $verification_filter;
@@ -79,8 +81,8 @@ ob_start();
     .btn-sm { border-radius: 8px; }
     .badge { font-weight: 500; }
 </style>
-<!--<p>USER ID: --><?php //echo $user_id; ?><!--</p>-->
-    <a href="dashboardAdmin.php" class="btn btn-secondary" >
+<!--<p>USER ID: --><?php //echo $user_project_id; ?><!--</p>-->
+    <a href="dashboardAdmin.php?project_id=<?= htmlspecialchars($project_id) ?>" class="btn btn-secondary" >
         بازگشت
     </a>
 <div class="card shadow-sm border-0 mb-4">
@@ -102,9 +104,11 @@ ob_start();
         <?php endif; ?>
 
         <form method="post" action="upload_document.php" enctype="multipart/form-data" class="row g-3">
-            <input type="hidden" name="user_id" value="<?= (int)$user_id ?>">
+            <input type="hidden" name="user_project_id" value="<?= (int)$user_project_id ?>">
+            <input type="hidden" name="project_id" value="<?= (int)$project_id ?>">
+            <input type="hidden" name="full_name" value="<?= $full_name ?>">
 <!--            <p style="color:red">-->
-<!--                user_id داخل فرم: --><?php //= (int)$user_id ?>
+<!--                user_project_id داخل فرم: --><?php //= (int)$user_project_id ?>
 <!--            </p>-->
             <div class="col-md-4">
                 <label class="form-label">نام مدرک</label>
@@ -140,11 +144,11 @@ ob_start();
 
 <div class="card shadow-sm border-0">
 <!--    --><?php
-//    $user_id = (int)($_GET['id'] ?? $_GET['user_id'] ?? 0);
+//    $user_project_id = (int)($_GET['id'] ?? $_GET['user_project_id'] ?? 0);
 //
 //    // دیباگ موقت
 //    echo '<div style="background:#ffe9a8;padding:10px;margin:10px 0">';
-//    echo 'user_id from URL = ' . $user_id;
+//    echo 'user_project_id from URL = ' . $user_project_id;
 //    echo '</div>';
 //    ?>
 
@@ -152,17 +156,7 @@ ob_start();
         <h5 class="mb-0 fw-bold text-primary">
             لیست اسناد کاربر:
             <?php
-            // ۱. اولویت با نامی است که از صفحه قبل در URL ارسال شده
-            if (isset($_GET['member_name'])) {
-                echo htmlspecialchars($_GET['member_name']);
-            }
-            // ۲. اگر در URL نبود، از سشن استفاده کن (به عنوان راه حل جایگزین)
-            elseif (isset($_SESSION['fullName'])) {
-                echo htmlspecialchars($_SESSION['fullName']);
-            }
-            else {
-                echo "نامشخص";
-            }
+             echo $full_name;
             ?>
         </h5>
 
@@ -194,11 +188,26 @@ ob_start();
                         <td>
                             <?= htmlspecialchars($doc['document_name'] ?? '-') ?>
                         </td>
+                        <?php
+                        // دریافت نوع مدرک از ردیف دیتابیس با سوئیچ امن (?? '') برای جلوگیری از هرگونه خطا
+                        $docType = $doc['document_type'] ?? '';
+                        ?>
 
                         <td>
-                            <?= htmlspecialchars($doc['document_type'] ?? '-') ?>
+                            <?php if ($docType === 'national_card'): ?>
+                                کارت ملی
+                            <?php elseif ($docType === 'birth_certificate'): ?>
+                                شناسنامه
+                            <?php elseif ($docType === 'ownership_document'): ?>
+                                سند مالکیت
+                            <?php elseif ($docType === 'bank_document'): ?>
+                                مدرک بانکی
+                            <?php elseif ($docType === 'other'): ?>
+                                سایر
+                            <?php else: ?>
+                                نامشخص (<?= htmlspecialchars($docType) ?>)
+                            <?php endif; ?>
                         </td>
-
                         <td>
                             <?php if (!empty($doc['file_path'])): ?>
                                 <img
@@ -268,7 +277,14 @@ ob_start();
                                 حذف
                             </button>
                             <?php if (($doc['verification_status'] ?? 'pending') !== 'verified'): ?>
-                                <a href="change_document_status.php?id=<?= (int)$doc['id'] ?>&status=verified&user_id=<?= (int)$user_id ?>"
+                                <?php
+                                $verifyUrl = 'change_document_status.php?id=' . (int)$doc['id']
+                                        . '&status=verified'
+                                        . '&user_project_id=' . (int)$user_project_id
+                                        . '&project_id=' . (int)$project_id
+                                        . '&full_name=' . urlencode($full_name);
+                                ?>
+                                <a href="<?= htmlspecialchars($verifyUrl, ENT_QUOTES, 'UTF-8') ?>"
                                    class="btn btn-sm btn-primary"
                                    onclick="return confirm('آیا از تأیید این مدرک مطمئن هستید؟')">
                                     تأیید
@@ -276,12 +292,20 @@ ob_start();
                             <?php endif; ?>
 
                             <?php if (($doc['verification_status'] ?? 'pending') !== 'rejected'): ?>
-                                <a href="change_document_status.php?id=<?= (int)$doc['id'] ?>&status=rejected&user_id=<?= (int)$user_id ?>"
+                                <?php
+                                $rejectUrl = 'change_document_status.php?id=' . (int)$doc['id']
+                                        . '&status=rejected'
+                                        . '&user_project_id=' . (int)$user_project_id
+                                        . '&project_id=' . (int)$project_id
+                                        . '&full_name=' . urlencode($full_name);
+                                ?>
+                                <a href="<?= htmlspecialchars($rejectUrl, ENT_QUOTES, 'UTF-8') ?>"
                                    class="btn btn-sm btn-danger"
                                    onclick="return confirm('آیا از رد این مدرک مطمئن هستید؟')">
                                     رد
                                 </a>
                             <?php endif; ?>
+
                             <a href="EditDocument.php?id=<?= (int)$doc['id'] ?>"
                                class="btn btn-sm btn-warning">
                                 ویرایش
@@ -377,14 +401,14 @@ ob_start();
 
     function updateStatus(id, status) {
         if(confirm('آیا از تغییر وضعیت این سند مطمئن هستید؟')) {
-            window.location.href = `update_doc_status.php?id=${id}&status=${status}&user_id=<?= $user_id ?>`;
+            window.location.href = `update_doc_status.php?id=${id}&status=${status}&user_project_id=<?= $user_project_id ?>`;
         }
     }
 
     function saveAdminNote() {
         const note = document.getElementById('adminNoteText').value;
         // اینجا می‌توانید از AJAX استفاده کنید یا به یک فایل PHP ارسال کنید
-        window.location.href = `save_doc_note.php?id=${currentDocId}&note=${encodeURIComponent(note)}&user_id=<?= $user_id ?>`;
+        window.location.href = `save_doc_note.php?id=${currentDocId}&note=${encodeURIComponent(note)}&user_project_id<?= $user_project_id ?>`;
     }
 
     $(document).on('click', '.btn-delete-doc', function() {
