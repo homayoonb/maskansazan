@@ -2,9 +2,9 @@
 require_once '../config/Database.php';
 
 // دریافت ID از URL
-$user_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$user_project_id = isset($_GET['user_project_id']) ? (int)$_GET['user_project_id'] : 0;
 
-if ($user_id <= 0) {
+if ($user_project_id <= 0) {
     die("شناسه کاربر معتبر نیست.");
 }
 
@@ -14,8 +14,8 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // ۱. دریافت اطلاعات فعلی کاربر برای نمایش در فرم
-    $stmt = $pdo->prepare("SELECT * FROM project_members WHERE id = ?");
-    $stmt->execute([$user_id]);
+    $stmt = $pdo->prepare("SELECT * FROM users_project WHERE id = ?");
+    $stmt->execute([$user_project_id]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$user) {
@@ -25,88 +25,79 @@ try {
     // ۲. پردازش فرم پس از کلیک روی ذخیره
     $success_msg = "";
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $Partner = trim($_POST['Partner'] ?? 'ندارد');
-        $Sana_code = trim($_POST['Sana_code'] ?? 'ندارد');
-        $Postal_Code = trim($_POST['Postal_Code'] ?? '');
+        $has_partner = trim($_POST['has_partner'] ?? 'ندارد');
+        $sana_code = trim($_POST['sana_code'] ?? 'ندارد');
+        $postal_code = trim($_POST['postal_code'] ?? '');
 
-// اعتبارسنجی ENUM
+        // اعتبارسنجی ENUM
         $allowedPartner = ['دارد', 'ندارد'];
 
-        if (!in_array($Partner, $allowedPartner)) {
-            $Partner = 'ندارد';
+        if (!in_array($has_partner, $allowedPartner)) {
+            $has_partner = 'ندارد';
         }
 
-        if (!in_array($Sana_code, $allowedPartner)) {
-            $Sana_code = 'ندارد';
+        if (!in_array($sana_code, $allowedPartner)) {
+            $sana_code = 'ندارد';
         }
 
-// اگر شریک ندارد → فیلدهای شریک پاک شوند
-        $Partner1 =  trim($_POST['Partner1'] ?? '');
-        $Partner2 =   trim($_POST['Partner2'] ?? '') ;
-        $Partner3 =  trim($_POST['Partner3'] ?? '') ;
-        $Partner4 =  trim($_POST['Partner4'] ?? '') ;
-
+// دریافت فیلدهای شریک
+        $partner_1 = trim($_POST['partner_1'] ?? '');
+        $partner_2 = trim($_POST['partner_2'] ?? '');
+        $partner_3 = trim($_POST['partner_3'] ?? '');
+        $partner_4 = trim($_POST['partner_4'] ?? '');
+        if ($has_partner === 'ندارد') {
+            $partner_1 = 'ندارد';
+            $partner_2 = 'ندارد';
+            $partner_3 = 'ندارد';
+            $partner_4 = 'ندارد';
+        }
         $updateStmt = $pdo->prepare("
-    UPDATE project_members 
-    SET first_name = ?, 
-        last_name = ?, 
-        national_code = ?, 
-        phone = ?, 
-        main_member = ?, 
-        share = ?, 
-        declared_share = ?, 
-        father_name = ?, 
-        birth_certificate = ?, 
-        birth_date = ?, 
-        birth_place = ?, 
-        introducer = ?,
-        address = ?,
-        Sana_code = ?,
-        Postal_Code = ?,
-        Partner = ?,
-        Partner1 = ?,
-        Partner2 = ?,
-        Partner3 = ?,
-        Partner4 = ?
-    WHERE id = ?
-");
+            UPDATE users_project 
+            SET full_name = ?, 
+                has_partner = ?, 
+                father_name = ?, 
+                national_code = ?, 
+                birth_certificate_no = ?, 
+                birth_date = ?, 
+                phone = ?, 
+                sana_code = ?, 
+                address = ?, 
+                postal_code = ?, 
+                partner_1 = ?, 
+                partner_2 = ?,
+                partner_3 = ?,
+                partner_4 = ?
+            WHERE id = ?
+        ");
 
         $updateStmt->execute([
-                trim($_POST['first_name']),
-                trim($_POST['last_name']),
-                trim($_POST['national_code']),
-                trim($_POST['phone']),
-                trim($_POST['main_member']),
-                trim($_POST['share']),
-                trim($_POST['declared_share']),
-                trim($_POST['father_name']),
-                trim($_POST['birth_certificate']),
-                trim($_POST['birth_date']),
-                trim($_POST['birth_place']),
-                trim($_POST['introducer']),
-                trim($_POST['address']),
-
-                $Sana_code,
-                $Postal_Code,
-                $Partner,
-
-                $Partner1,
-                $Partner2,
-                $Partner3,
-                $Partner4,
-
-                $user_id
+                trim($_POST['full_name'] ?? ''),       // 1. full_name
+                $has_partner,                           // 2. has_partner (اعتبارسنجی شده)
+                trim($_POST['father_name'] ?? ''),     // 3. father_name
+                trim($_POST['national_code'] ?? ''),   // 4. national_code
+                trim($_POST['birth_certificate_no'] ?? ''), // 5. birth_certificate_no
+                trim($_POST['birth_date'] ?? ''),      // 6. birth_date
+                trim($_POST['phone'] ?? ''),           // 7. phone
+                $sana_code,                             // 8. sana_code (اعتبارسنجی شده)
+                trim($_POST['address'] ?? ''),         // 9. address
+                $postal_code,                           // 10. postal_code (اعتبارسنجی شده)
+                $partner_1,                             // 11. partner_1
+                $partner_2,                             // 12. partner_2
+                $partner_3,                             // 13. partner_3
+                $partner_4,                             // 14. partner_4
+                $user_project_id                        // 15. id (برای WHERE)
         ]);
 
 
         // هدایت به صفحه پروفایل با پیام موفقیت
-        header("Location: profileuser.php?id=$user_id&status=updated");
+        header("Location: profileuser.php?user_project_id=$user_project_id&status=updated");
         exit;
     }
 
 } catch (PDOException $e) {
     die("خطا در پایگاه داده: " . $e->getMessage());
 }
+ob_start();
 ?>
 
 <!DOCTYPE html>
@@ -114,7 +105,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ویرایش اطلاعات | <?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?></title>
+    <title>ویرایش اطلاعات | <?= htmlspecialchars($user['full_name'] ?? '')?></title>
 
     <!-- Bootstrap RTL -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
@@ -151,12 +142,8 @@ try {
                         <div class="section-title"><i class="bi bi-info-circle me-2"></i> اطلاعات فردی</div>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label">نام</label>
-                                <input type="text" name="first_name" class="form-control" value="<?= htmlspecialchars($user['first_name']) ?>" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">نام خانوادگی</label>
-                                <input type="text" name="last_name" class="form-control" value="<?= htmlspecialchars($user['last_name']) ?>" required>
+                                <label class="form-label">نام و نام خانوادگی</label>
+                                <input type="text" name="full_name" class="form-control" value="<?= htmlspecialchars($user['full_name']) ?>" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">کد ملی</label>
@@ -172,7 +159,7 @@ try {
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">شماره شناسنامه</label>
-                                <input type="text" name="birth_certificate" class="form-control" value="<?= htmlspecialchars($user['birth_certificate']) ?>">
+                                <input type="text" name="birth_certificate_no" class="form-control" value="<?= htmlspecialchars($user['birth_certificate_no']) ?>">
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">تاریخ تولد</label>
@@ -186,66 +173,52 @@ try {
                                 <label class="form-label">کد پستی</label>
                                 <input
                                         type="number"
-                                        name="Postal_Code"
+                                        name="postal_code"
                                         class="form-control"
                                         maxlength="10"
                                         pattern="\d{10}"
-                                        value="<?= htmlspecialchars($user['Postal_Code'] ?? '') ?>">
+                                        value="<?= htmlspecialchars($user['postal_code'] ?? '') ?>">
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">شریک</label>
-                                <select name="Partner" class="form-select">
-                                    <option value="دارد" <?= $user['Partner'] == 'دارد' ? 'selected' : '' ?>>دارد</option>
-                                    <option value="ندارد" <?= $user['Partner'] == 'ندارد' ? 'selected' : '' ?>>ندارد</option>
+                                <select name="has_partner" class="form-select">
+                                    <option value="دارد" <?= $user['has_partner'] == 'دارد' ? 'selected' : '' ?>>دارد</option>
+                                    <option value="ندارد" <?= $user['has_partner'] == 'ندارد' ? 'selected' : '' ?>>ندارد</option>
                                 </select>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">کد ثنا</label>
-                                <select name="Sana_code" class="form-select">
-                                    <option value="دارد" <?= $user['Sana_code'] == 'دارد' ? 'selected' : '' ?>>دارد</option>
-                                    <option value="ندارد" <?= $user['Sana_code'] == 'ندارد' ? 'selected' : '' ?>>ندارد</option>
+                                <select name="sana_code" class="form-select">
+                                    <option value="دارد" <?= $user['sana_code'] == 'دارد' ? 'selected' : '' ?>>دارد</option>
+                                    <option value="ندارد" <?= $user['sana_code'] == 'ندارد' ? 'selected' : '' ?>>ندارد</option>
                                 </select>
                             </div>
                             <div class="col-md-4">
-                                <label name="partner1" class="form-label">شریک ۱</label>
-                                <input type="text" name="Partner1" class="form-control" value="<?= htmlspecialchars($user['Partner1'])?>">
+                                <label name="partner_1" class="form-label">شریک ۱</label>
+                                <input type="text" class="form-control" name="partner_1" value="<?= htmlspecialchars($user['partner_1'] ?? '') ?>">
+
+
+
+
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">شریک 2</label>
-                                <input name="Partner2" type="text" class="form-control" value="<?= htmlspecialchars($user['Partner2'])?>">
+                                <input type="text" class="form-control" name="partner_2" value="<?= htmlspecialchars($user['partner_2'] ?? '') ?>">
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">شریک 3</label>
-                                <input name="Partner3" type="text" class="form-control" value="<?= htmlspecialchars($user['Partner3'])?>">
+                                <input type="text" class="form-control" name="partner_3" value="<?= htmlspecialchars($user['partner_3'] ?? '') ?>">
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">شریک 4</label>
-                                <input name="Partner4" type="text" class="form-control" value="<?= htmlspecialchars($user['Partner4'])?>">
+                                <input type="text" class="form-control" name="partner_4" value="<?= htmlspecialchars($user['partner_4'] ?? '') ?>">
                             </div>
                         </div>
 
-                        <!-- بخش پروژه و عضویت -->
-                        <div class="section-title mt-5"><i class="bi bi-briefcase me-2"></i> اطلاعات پروژه و سهم</div>
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label">نوع عضویت</label>
-                                <select name="main_member" class="form-select">
-                                    <option value="اصلی" <?= $user['main_member'] == 'اصلی' ? 'selected' : '' ?>>عضو اصلی</option>
-                                    <option value="فرعی" <?= $user['main_member'] == 'فرعی' ? 'selected' : '' ?>>عضو فرعی</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">سهم در پروژه</label>
-                                <input type="text" name="share" class="form-control" value="<?= htmlspecialchars($user['share']) ?>">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">معرف</label>
-                                <input type="text" name="introducer" class="form-control" value="<?= htmlspecialchars($user['introducer']) ?>">
-                            </div>
-                        </div>
+
 
                         <div class="d-flex justify-content-between align-items-center mt-5">
-                            <a href="profileuser.php?id=<?= $user_id ?>" class="btn btn-outline-secondary">
+                            <a href="profileuser.php?user_project_id=<?= $user_project_id ?>" class="btn btn-outline-secondary">
                                 <i class="bi bi-arrow-right me-1"></i> لغو و بازگشت
                             </a>
                             <button type="submit" id="submitBtn" class="btn btn-primary btn-save shadow-sm">
@@ -283,3 +256,9 @@ try {
 
 </body>
 </html>
+<?php
+$content = ob_get_clean();
+$title = "گروه مسکن سازان";
+include '../partials/layout.php';
+include '../partials/slider.php';
+?>

@@ -1138,30 +1138,32 @@ if ($activeTab === 'members' && $selectedProjectId > 0) {
 
 // ۲. پایه کوئری اصلی شما همراه با JOIN
     $sql = "SELECT 
-    project_members.id AS member_record_id,
-    project_members.share,
-    project_members.introducer,
-    project_members.first_name,
-    project_members.last_name,
-    project_members.main_member,
-    project_members.declared_share,
-    project_members.national_code,
-    project_members.father_name,
-    project_members.birth_certificate,
-    project_members.birth_date,
-    project_members.birth_place,
-    project_members.phone,
-    project_members.project_id,
+    users_project.id AS user_project_id,
+    users_project.full_name,
+    users_project.has_partner,
+    users_project.father_name,
+    users_project.national_code,
+    users_project.father_name,
+    users_project.birth_certificate_no,
+    users_project.birth_date,
+    users_project.phone,
+    users_project.sana_code,
+    users_project.address,
+    users_project.postal_code,
+    users_project.partner_1,
+    users_project.partner_2,
+    users_project.partner_3,
+    users_project.partner_4,
+    users_project.project_id,
     projects.name,
     projects.description,
     projects.created_at
-FROM project_members
-JOIN projects ON project_members.project_id = projects.id
-WHERE project_members.project_id = :project_id";
+FROM users_project
+JOIN projects ON users_project.project_id = projects.id
+WHERE users_project.project_id = :project_id";
 
 // آرایه پارامترها برای Bind کردن مقادیر دیتابیس
     $params = [':project_id' => $selectedProjectId];
-
 // ۳. اگر مقدار جستجو خالی نبود، فیلتر نام و نام خانوادگی را اضافه کن
     if ($search !== '') {
         $sql .= " AND (project_members.first_name LIKE :search 
@@ -1177,16 +1179,25 @@ WHERE project_members.project_id = :project_id";
 
 
 }
-$rows = [];
+foreach ($projectMembers as $member) {
+    $user_project_id = (int)($member['user_project_id'] ?? 0);
 
+
+}
+$rows = [];
 if ($activeTab === 'expenses' && $selectedProjectId > 0) {
     $stmt = $pdo->prepare("
-        SELECT *
-        FROM member_statements ms
-        INNER JOIN projects p ON p.id = ms.project_id
-        WHERE ms.project_id = :project_id
+        SELECT * FROM 
+member_statements AS ms
+INNER JOIN projects AS p ON ms.project_id=p.id
+INNER JOIN users_project AS up ON ms.users_project_id=up.id
+WHERE ms.project_id=:project_id
+AND ms.users_project_id=:user_project_id
     ");
-    $stmt->execute([':project_id' => $selectedProjectId]);
+    $stmt->execute([
+            ':project_id' => $selectedProjectId,
+            ':user_project_id' => $user_project_id
+    ]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
@@ -1353,33 +1364,30 @@ ob_start();
                         <tbody id="projectMembersList">
                         <?php foreach ($projectMembers as $i => $member): ?>
                             <?php
-                            $_SESSION['fullName']=trim(($member['first_name'] ?? '') . ' ' . ($member['last_name'] ?? ''));
-                            $fullName = trim(($member['first_name'] ?? '') . ' ' . ($member['last_name'] ?? ''));
-                            $fullName = $fullName !== '' ? $fullName : '-';
-                            echo "<!-- User ID: " . ($member['member_record_id'] ?? 'Not Found') . " -->";
+                            $_SESSION['fullName']=$member['full_name'];
+                            echo "<!-- User ID: " . ($member['user_project_id'] ?? 'Not Found') . " -->";
                             ?>
                             <tr class="member-row">
-                                <td><?= (int)$member['member_record_id'] ?></td>
+                                <td><?= (int)$member['user_project_id'] ?></td>
                                 <td  class="member-name">
-                                    <a href="profileuser.php?id=<?= (int)$member['member_record_id'] ?>">
-                                        <?= htmlspecialchars($fullName) ?>
+                                    <a href="profileuser.php?user_project_id=<?= (int)$member['user_project_id'] ?>">
+                                        <?= htmlspecialchars($_SESSION['fullName']) ?>
                                     </a>
                                 </td>
                                 <td>
                                     <?php
-                                    $_SESSION['fullName']=trim(($member['first_name'] ?? '') . ' ' . ($member['last_name'] ?? ''));
-                                    $fullName = trim(($member['first_name'] ?? '') . ' ' . ($member['last_name'] ?? ''));
-                                    $fullName = $fullName !== '' ? $fullName : '-';
+                                    $_SESSION['fullName']=trim(($member['full_name'] ?? ''));
+
                                     echo "<!-- User ID: " . ($member['member_record_id'] ?? 'Not Found') . " -->";
                                     ?>
-                                    <a href="showDocuments.php?id=<?= (int)$member['member_record_id'] ?>&member_name=<?= $fullName ?>"
+                                    <a href="showDocuments.php?id=<?= (int)$member['user_project_id'] ?>&member_name=<?= $_SESSION['fullName'] ?>"
                                        class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm"
                                        style="transition: all 0.3s ease;">
                                         <i class="bi bi-file-earmark-text me-1"></i> مشاهده
                                     </a>
                                 </td>
                                 <td>
-                                    <a href="member_statements.php?member_name=<?= urlencode($fullName)  ?>&id=<?= (int)$member['member_record_id'] ?>"
+                                    <a href="member_statements.php?member_name=<?= urlencode($_SESSION['fullName'])  ?>&user_project_id=<?= (int)$member['user_project_id'] ?>"
                                        class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm"
                                        style="transition: all 0.3s ease;">
                                         <i class="bi bi-cash-coin me-1"></i> مشاهده
@@ -1387,34 +1395,41 @@ ob_start();
                                 </td>
                                 <td class="text-center fw-bold">
                                     <?php
-                                    // ۱. استخراج کد ملی از آرایه عضو (مطمئن شوید در جدول members نام ستون همین است)
+                                    // ۱. استخراج کد ملی از آرایه عضو
                                     $n_code = $member['national_code'] ?? '';
 
-                                    // ۲. استخراج آیدی پروژه (برای اینکه واریزی‌های پروژه‌های دیگر با هم جمع نشوند)
-                                    $p_id = $member['project_id'] ?? 0;
+                                    // ۲. استخراج آیدی پروژه و آیدی عضو مربوط به سطر جاری
+                                    $p_id = (int)($member['project_id'] ?? 0);
+                                    $u_p_id = (int)($member['user_project_id'] ?? 0);
 
                                     $total_paid = 0;
 
-                                    if (!empty($n_code)) {
-                                        // ۳. کوئری دقیق بر اساس کد ملی و آیدی پروژه
+                                    if (!empty($n_code) && $u_p_id > 0) {
+                                        // ۳. کوئری دقیق با اضافه شدن کلمه کلیدی FROM
                                         $stmt = $pdo->prepare("
-                                                        SELECT COALESCE(SUM(paid_amount), 0)
-                                                        FROM member_statements
-                                                        WHERE national_code = :n_code 
-                                                        AND project_id = :p_id
-                                                    ");
+            SELECT COALESCE(SUM(ms.paid_amount), 0)
+            FROM member_statements AS ms
+            INNER JOIN projects AS p ON ms.project_id = p.id
+            INNER JOIN users_project AS up ON ms.users_project_id = up.id
+            WHERE ms.project_id = :project_id
+            AND ms.users_project_id = :user_project_id
+        ");
 
+                                        // مقادیر دقیقاً بر اساس اطلاعات عضوِ این ردیف فرستاده می‌شوند
                                         $stmt->execute([
-                                                ':n_code' => $n_code,
-                                                ':p_id'   => $p_id
+                                                ':project_id'      => $p_id,
+                                                ':user_project_id' => $u_p_id
                                         ]);
 
                                         $total_paid = (float)$stmt->fetchColumn();
                                     }
+
+                                    // نمایش مبلغ (مثلاً با فرمت سه‌رقم سه‌رقم)
+
                                     ?>
 
                                     <span class="text-primary">
-                                        <?= number_format($total_paid) ?>
+                                        <?php echo number_format($total_paid);?>
                                     </span>
                                     <small class="text-muted" style="font-size: 0.7rem;">ریال</small>
                                     <i class="bi bi-cash-stack text-success ms-1"></i>

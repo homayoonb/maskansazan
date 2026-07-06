@@ -7,9 +7,10 @@ if (!isset($_SESSION['admin_id'])) {
 }
 
 // ۲. دریافت ID کاربر از URL
-$user_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$user_project_id = isset($_GET['user_project_id']) ? (int)$_GET['user_project_id'] : 0;
 $member_name=isset($_GET['member_name']) ? $_GET['member_name'] : null;
-if ($user_id <= 0) {
+if ($user_project_id <= 0) {
+    var_dump($_GET);
     die("شناسه کاربر معتبر نیست.");
 }
 try {
@@ -21,14 +22,14 @@ try {
     );
 
     // ۱. دریافت شناسه عضو از URL
-    $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+    $id = isset($_GET['user_project_id']) ? (int)$_GET['user_project_id'] : 0;
 
     if ($id <= 0) {
         die("شناسه کاربر معتبر نیست.");
     }
 
 // ۲. خواندن اطلاعات اصلی عضو از جدول اعضا برای به‌دست آوردن کد ملی (national_code)
-    $stmt = $pdo->prepare("SELECT * FROM project_members WHERE id = :id");
+    $stmt = $pdo->prepare("SELECT * FROM users_project WHERE id = :id");
     $stmt->execute([':id' => $id]);
     $member = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$member) {
