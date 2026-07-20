@@ -1188,17 +1188,94 @@ $rows = [];
 if ($activeTab === 'expenses' && $selectedProjectId > 0) {
     $stmt = $pdo->prepare("
         SELECT * FROM 
-member_statements AS ms
-INNER JOIN projects AS p ON ms.project_id=p.id
-INNER JOIN users_project AS up ON ms.users_project_id=up.id
-WHERE ms.project_id=:project_id
-AND ms.users_project_id=:user_project_id
+            member_statements AS ms
+            INNER JOIN projects AS p ON ms.project_id=p.id
+            INNER JOIN users_project AS up ON ms.users_project_id=up.id
+            WHERE ms.project_id=:project_id
+            AND ms.users_project_id=:user_project_id
     ");
     $stmt->execute([
             ':project_id' => $selectedProjectId,
             ':user_project_id' => $user_project_id
     ]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+$contractors = [];
+$contractorSearch = trim($_GET['contractor_search'] ?? '');
+$contractorPage = max(1, (int)($_GET['contractor_page'] ?? 1));
+$contractorPerPage = 10;
+$totalContractors = 0;
+$totalContractorPages = 1;
+
+if ($activeTab === 'suppliers' && $selectedProjectId > 0) {
+    $whereParts = ['contractors.project_id = :project_id'];
+    $params = [
+            ':project_id' => (int)$selectedProjectId
+    ];
+
+    if ($contractorSearch !== '') {
+        $whereParts[] = "(
+            contractors.first_name LIKE :search OR
+            contractors.last_name LIKE :search OR
+            contractors.national_code LIKE :search OR
+            contractors.phone LIKE :search OR
+            contractors.job_title LIKE :search
+        )";
+        $params[':search'] = '%' . $contractorSearch . '%';
+    }
+
+    $whereSql = implode(' AND ', $whereParts);
+
+    $countSql = "SELECT COUNT(*) 
+                 FROM contractors
+                 WHERE $whereSql";
+    $countStmt = $pdo->prepare($countSql);
+    $countStmt->bindValue(':project_id', $params[':project_id'], PDO::PARAM_INT);
+
+    if (isset($params[':search'])) {
+        $countStmt->bindValue(':search', $params[':search'], PDO::PARAM_STR);
+    }
+
+    $countStmt->execute();
+    $totalContractors = (int)$countStmt->fetchColumn();
+
+    $totalContractorPages = max(1, (int)ceil($totalContractors / $contractorPerPage));
+    if ($contractorPage > $totalContractorPages) {
+        $contractorPage = $totalContractorPages;
+    }
+
+    $offset = ($contractorPage - 1) * $contractorPerPage;
+
+    $listSql = "SELECT 
+                    contractors.*,
+                    fd.profile_image AS document_image,
+                    fd.document_type
+                FROM contractors
+                LEFT JOIN file_documents fd 
+                    ON fd.id = (
+                        SELECT fd2.id
+                        FROM file_documents fd2
+                        WHERE fd2.contractor_id = contractors.id
+                        ORDER BY fd2.id DESC
+                        LIMIT 1
+                    )
+                WHERE $whereSql
+                ORDER BY contractors.id DESC
+                LIMIT :limit OFFSET :offset";
+
+    $listStmt = $pdo->prepare($listSql);
+    $listStmt->bindValue(':project_id', $params[':project_id'], PDO::PARAM_INT);
+
+    if (isset($params[':search'])) {
+        $listStmt->bindValue(':search', $params[':search'], PDO::PARAM_STR);
+    }
+
+    $listStmt->bindValue(':limit', $contractorPerPage, PDO::PARAM_INT);
+    $listStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $listStmt->execute();
+
+    $contractors = $listStmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 
@@ -1446,34 +1523,114 @@ ob_start();
     </div>
 
 <?php elseif ($activeTab === 'suppliers'): ?>
+
     <div class="card mt-4">
         <div class="card-body">
-            <h5 class="mb-3">لیست پیمانکاران</h5>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">لیست پیمانکاران</h5>
+
+                <?php if ($selectedProjectId > 0): ?>
+                    <a href="create_new_contractor.php?project_id=<?= (int)$selectedProjectId ?>"
+                       class="btn btn-primary btn-sm">
+                        + ثبت پیمانکار جدید
+                    </a>
+                <?php endif; ?>
+            </div>
 
             <?php if ($selectedProjectId <= 0): ?>
+
                 <div class="alert alert-warning">لطفاً ابتدا یک پروژه انتخاب کنید.</div>
-            <?php elseif (empty($projectMembers)): ?>
-                <div class="alert alert-info">برای این پروژه عضوی ثبت نشده است.</div>
-            <?php else: ?>
+
+            <?php elseif (empty($contractors)): ?>
+
+                <div class="alert alert-info">برای این پروژه پیمانکاری ثبت نشده است.</div>
+
+            <?php else:
+                ?>
+
+
                 <div class="table-responsive">
-                    <table id="membersTable" class="table table-bordered table-hover text-center align-middle">
+                    <table id="contractorsTable" class="table table-bordered table-hover text-center align-middle">
                         <thead>
                         <tr>
                             <th>ردیف</th>
-                            <th>نام عضو</th>
+                            <th>نام تصویر</th>
+                            <th>تصویر</th>
+                            <th>نام پیمانکار</th>
                             <th>شماره تماس</th>
                             <th>کد ملی</th>
+                            <th>عنوان شغلی</th>
+                            <th>عملیات</th>
                         </tr>
                         </thead>
 
                         <tbody>
+                        <?php if (!empty($contractors)): ?>
+                            <?php $i = (($contractorPage - 1) * $contractorPerPage) + 1; ?>
+                            <?php foreach ($contractors as $contractor): ?>
+                                <tr>
+                                    <td><?= $i++ ?></td>
+
+                                    <td>
+                                        <?= htmlspecialchars(basename($contractor['document_type'] ?? ''), ENT_QUOTES, 'UTF-8') ?: 'ندارد' ?>
+                                    </td>
+
+                                    <td>
+                                        <?php if (!empty($contractor['document_image'])): ?>
+                                            <img
+                                                    src="<?= htmlspecialchars($contractor['document_image'], ENT_QUOTES, 'UTF-8') ?>"
+                                                    alt="profile"
+                                                    style="width:50px;height:50px;object-fit:cover;border-radius:6px;"
+                                            >
+                                        <?php else: ?>
+                                            <span class="text-muted">ندارد</span>
+                                        <?php endif; ?>
+                                    </td>
+
+                                    <td>
+                                        <?= htmlspecialchars(trim(($contractor['first_name'] ?? '') . ' ' . ($contractor['last_name'] ?? '')), ENT_QUOTES, 'UTF-8') ?>
+                                    </td>
+
+                                    <td><?= htmlspecialchars($contractor['phone'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td><?= htmlspecialchars($contractor['national_code'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td><?= htmlspecialchars($contractor['job_title'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+
+                                    <td>
+                                        <a href="edit_contractor.php?id=<?= (int)$contractor['id'] ?>&project_id=<?= (int)$selectedProjectId ?>"
+                                           class="btn btn-sm btn-outline-warning">
+                                            ویرایش
+                                        </a>
+
+                                        <a href="delete_contractor.php?id=<?= (int)$contractor['id'] ?>&project_id=<?= (int)$selectedProjectId ?>&tab=suppliers"
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('آیا از حذف این پیمانکار مطمئن هستید؟')">
+                                            حذف
+                                        </a>
+                                        <?php if (!empty($contractor['document_image'])): ?>
+                                            <a href="<?= htmlspecialchars($contractor['document_image'], ENT_QUOTES, 'UTF-8') ?>"
+                                               target="_blank"
+                                               class="btn btn-sm btn-outline-info">
+                                                مشاهده تصویر
+                                            </a>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="8" class="text-muted">موردی یافت نشد</td>
+                            </tr>
+                        <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
 
+
+
             <?php endif; ?>
         </div>
     </div>
+
 <?php elseif ($activeTab === 'expenses'): ?>
     <div class="card mt-4">
         <div class="card-body">

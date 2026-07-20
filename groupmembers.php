@@ -1,12 +1,14 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) {
-    session_save_path("C:/xampp/tmp");
+    // تنظیم مسیر موقت سشن‌ها در زمپ
+    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+        session_save_path("C:/xampp/tmp");
+    }
     ini_set('session.gc_maxlifetime', 1440);
     session_start();
 }
 
-
-// تنظیم تب پیش‌فرض
+// تنظیم تب پیش‌فرض (ورود یا ثبت‌نام)
 $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'login';
 if (!in_array($active_tab, ['login', 'register'])) {
     $active_tab = 'login';
@@ -17,14 +19,17 @@ $success = $_SESSION['register_success'] ?? '';
 unset($_SESSION['login_error']);
 unset($_SESSION['register_success']);
 
+// دریافت لیست پروژه‌ها از کلاس دیتابیس
 if (!function_exists('getProjectsList')) {
-    function getProjectsList() {
-        require_once 'config/Database.php';
-        return Database::getProjectsList();
+    function getProjectsList($dbConnection) {
+        // توجه: این تابع پروژه‌ها را برای منوی کشویی ثبت‌نام واکشی می‌کند.
+        // اگر نام جدول پروژه‌های شما تغییر کرده است، مطمئن شوید متد داخلی کلاس دیتابیس اصلاح شده باشد.
+        require_once __DIR__ . '/config/Database.php';
+        return Database::getProjectsList($dbConnection);
     }
 }
 
-// دریافت لیست پروژه‌ها
+// دریافت لیست پروژه‌ها جهت نمایش در فرم ثبت‌نام
 $projects = [];
 try {
     include_once __DIR__ . '/config/Database.php';
@@ -34,18 +39,20 @@ try {
     if ($db) {
         $projects = getProjectsList($db);
     } else {
-        $error = "خطا در اتصال به دیتابیس";
+        $error = "خطا در اتصال به دیتابیس. لطفاً تنظیمات را بررسی کنید.";
     }
 } catch (Exception $e) {
-    $error = "خطا در سیستم: " . htmlspecialchars((string)$e->getTrace());
+    // نمایش پیام خطای ساده‌تر و امن‌تر به کاربر نهایی
+    $error = "خطا در سیستم: " . htmlspecialchars($e->getMessage());
 }
 
-// تشخیص دستگاه
-$isMobile = preg_match("/(android|iphone|ipod|blackberry|windows phone)/i", $_SERVER['HTTP_USER_AGENT']);
+// تشخیص دستگاه برای بهینه‌سازی رابط کاربری
+$isMobile = preg_match("/(android|iphone|ipod|blackberry|windows phone)/i", $_SERVER['HTTP_USER_AGENT'] ?? '');
 
-$title = 'مدیریت اعضا';
-ob_start(); // شروع ذخیره محتوا
+$title = 'مدیریت اعضا (ورود / ثبت‌نام)';
+ob_start(); // شروع ذخیره محتوا برای لود در قالب اصلی
 ?>
+
 <link href="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css" rel="stylesheet">
 <!-- jQuery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -524,7 +531,6 @@ ob_start(); // شروع ذخیره محتوا
 
         <form method="POST" class="login-form" action="validate.php">
             <input type="hidden" name="action" value="login">
-
             <!-- بخش انتخاب پروژه -->
             <div class="form-group">
                 <label class="form-label required">🏢 پروژه مربوطه:</label>

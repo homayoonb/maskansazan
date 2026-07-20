@@ -42,7 +42,7 @@ try {
     // دریافت تراکنش‌ها
     $stmt2 = $pdo->prepare("
         SELECT * FROM member_statements 
-        WHERE national_code = :national_code AND paid_amount > 0 
+        WHERE national_code = :national_code
         ORDER BY installment_date ASC
     ");
     $stmt2->execute([':national_code' => $nationalCode]);

@@ -56,31 +56,78 @@ try {
 
 </style>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
+<!-- در head صفحه -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<style>
+    *{
+        direction: rtl;
+    }
+    .row {
+        display: flex;
+        flex-wrap: nowrap; /* جلوگیری از شکستن ردیف */
+    }
+    main {
+        flex-grow: 1;
+    }
+    table thead tr th{
+        text-align: right;
+    }
+    .bi-box {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 140px;
+        padding: 8px 12px;
+        border-radius: 10px;
+        background: #eafaf1;
+        border: 1px solid #b7ebc6;
+    }
+
+</style>
 <div class="container-fluid">
     <div class="row">
+
         <!-- بخش محتوای اصلی -->
         <main class="col-md-9 col-lg-10 px-md-4">
-            <div class="row mb-3">
-                <div class="col-md-6">
+            <div class="row mb-3 align-items-center">
+                <div class="col-md-4">
                     <label class="col-form-label">
-                       جمع واریز شده ها
+                        جمع واریز شده ها
                     </label>
                 </div>
-                <div class="col-md-6">
+
+                <div class="col-md-4">
                     <label class="col-form-label d-flex align-items-center gap-2 text-success fw-bold">
-        <span class="bi-box">
-            <?= number_format($total_paid) ?>
-        </span>
+            <span class="bi-box">
+                <?= number_format($total_paid) ?>
+            </span>
                         <span>ریال</span>
                     </label>
                 </div>
 
+                <div class="col-md-4 text-end">
+                    <a
+                       class="btn btn-success">
+                        خروجی اقساط پرداخت‌شده
+                    </a>
+                </div>
             </div>
-
             <div class="table-responsive mt-4">
-                <table class="table table-bordered table-hover shadow-sm">
+                <table class="table table-bordered table-hover shadow-sm" style="direction: rtl">
                     <thead class="table-light">
-                    <tr style="text-align: left">
+                    <tr style="text-align: right">
                         <th>ردیف</th>
                         <th>نام عضو</th>
                         <th>عنوان قسط</th>
@@ -109,6 +156,7 @@ try {
             </div>
         </main>
     </div>
+
 </div>
 
 

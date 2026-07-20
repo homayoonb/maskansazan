@@ -1,6 +1,6 @@
 
 <?php
-if (session_status() == PHP_SESSION_NONE) {
+if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 // مسیر پروژه (اگر در روت هست خالی بگذار)
@@ -59,7 +59,6 @@ else {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="<?= $baseUrl ?>/css/site.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/iran-nastaliq-font@latest/dist/iran-nastaliq.css" rel="stylesheet">
 
     <style>
         body { font-family: 'Vazir', Tahoma, sans-serif; background-color: #f4f7f6; }
@@ -234,6 +233,7 @@ else {
         }
 
     </style>
+</head>
 <body class="d-flex flex-column min-vh-100">
 <div class="wrapper">
     <!-- سایدبار که معمولاً در header یا جداگانه است -->
@@ -318,29 +318,6 @@ else {
 
 <?php if(isset($extraScripts)) echo $extraScripts; ?>
 <!-- Modal Search -->
-<div class="modal fade" id="searchModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content" style="border-radius: 15px; border: none; overflow: hidden;">
-            <div class="modal-header" style="background-color: #1a2d50; color: white;">
-                <h5 class="modal-title">جستجو در سامانه</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" style="padding: 30px; background: #f8f9fa;">
-                <form action="search.php" method="GET">
-                    <div class="input-group mb-3">
-                        <input type="text" name="q" class="form-control form-control-lg text-end" placeholder="عبارت مورد نظر را بنویسید..." autofocus>
-                        <button class="btn btn-warning px-4" type="submit">
-                            <i class="fa fa-search"></i> جستجو
-                        </button>
-                    </div>
-                    <div class="text-muted small">
-                        مثلاً: پروژه‌های مسکونی، اعضای هیئت مدیره و...
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 
 </body>
 </html>

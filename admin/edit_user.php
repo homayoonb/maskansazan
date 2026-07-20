@@ -90,7 +90,7 @@ try {
 
 
         // هدایت به صفحه پروفایل با پیام موفقیت
-        header("Location: profileuser.php?user_project_id=$user_project_id&status=updated");
+        header("Location: profile_user.php?user_project_id=$user_project_id&status=updated");
         exit;
     }
 

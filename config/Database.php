@@ -37,16 +37,16 @@ class Database {
     public static function getProjectsList() {
         $mysqli = self::connect();
         if (!$mysqli) return [];
-        
+
         $projects = [];
         $result = $mysqli->query("SELECT id, name FROM projects ORDER BY id DESC");
-        
+
         if ($result) {
             while ($row = $result->fetch_assoc()) {
                 $projects[] = $row;
             }
         }
-        
+
         return $projects;
     }
 }
