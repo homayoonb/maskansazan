@@ -245,375 +245,295 @@ error_log("Page loaded - CSRF Token: $csrf_token");
 $title = 'مدیریت ';
 ob_start(); // شروع ذخیره محتوا
 ?>
+<!-- ✅ نسخه اصلاح‌شده (تمیز + بدون تداخل کلاس‌ها + RTL درست + دکمه برگشت کاربردی) -->
 <style>
-    .login-container {
-        width: 100%;
-        max-width: 450px;
-        animation: fadeIn 0.5s ease;
+    :root{
+        --brand1:#6a11cb;
+        --brand2:#2575fc;
+        --radius:18px;
     }
 
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    .login-card {
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 20px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-        overflow: hidden;
-    }
-
-    .login-header {
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-        color: white;
-        padding: 35px 20px;
-        text-align: center;
-    }
-
-    .login-header h1 {
-        font-size: 24px;
-        margin-bottom: 10px;
-        font-weight: bold;
-    }
-
-    .login-header p {
-        opacity: 0.9;
-        font-size: 14px;
-    }
-
-    .login-body {
-        padding: 40px 30px;
-    }
-
-    .alert {
-        border-radius: 12px;
-        margin-bottom: 25px;
-        padding: 15px 20px;
-        border: none;
-        text-align: center;
-        font-size: 14px;
-    }
-
-    .alert-danger {
-        background: #fee;
-        color: #c00;
-        border-left: 4px solid #f00;
-    }
-
-    .alert-success {
-        background: #efffef;
-        color: #090;
-        border-left: 4px solid #0a0;
-    }
-
-    .form-group {
-        margin-bottom: 25px;
-    }
-
-    .form-label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 600;
-        color: #333;
-        font-size: 14px;
-    }
-
-    .form-control {
-        width: 100%;
-        padding: 14px 20px;
-        border: 2px solid #e0e0e0;
-        border-radius: 12px;
-        font-size: 16px;
-        transition: all 0.3s;
-        background: #f9f9f9;
-    }
-
-    .form-control:focus {
-        border-color: #4f46e5;
-        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        outline: none;
-        background: white;
-    }
-
-    .form-control::placeholder {
-        color: #aaa;
-    }
-
-    .password-group {
-        position: relative;
-    }
-
-    .toggle-password {
-        position: absolute;
-        left: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        color: #666;
-        cursor: pointer;
-        font-size: 18px;
-        padding: 5px;
-    }
-
-    .checkbox-group {
-        display: flex;
-        align-items: center;
-        margin-bottom: 25px;
-        gap: 10px;
-
-    }
-
-    .checkbox-group input[type="checkbox"] {
-        width: 20px;
-        height: 20px;
-        cursor: pointer;
-        accent-color: #4f46e5;
-    }
-
-    .checkbox-group label {
-        color: #555;
-        cursor: pointer;
-        font-size: 14px;
-    }
-
-    .human-check-section {
-        background: #f8f9fa;
-        border: 2px solid #e9ecef;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 25px;
-    }
-
-    .human-check-box {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        position: relative;
-    }
-
-    .robot-icon {
-        font-size: 32px;
-        color: #4f46e5;
-    }
-
-    .human-check-text {
-        flex-grow: 1;
-    }
-
-    .human-check-text h4 {
-        color: #333;
-        margin-bottom: 5px;
-        font-size: 16px;
-    }
-
-    .human-check-text p {
-        color: #666;
-        font-size: 13px;
-        margin: 0;
-    }
-
-    .btn-login {
-        width: 100%;
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-        color: white;
-        border: none;
-        border-radius: 12px;
-        padding: 16px;
-        font-size: 16px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s;
-        margin-top: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-    }
-
-    .btn-login:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
-    }
-
-    .btn-login:disabled {
-        background: #95a5a6;
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
-    }
-
-    .footer {
-        text-align: center;
-        margin-top: 30px;
-        padding-top: 20px;
-        border-top: 1px solid #eee;
-        color: #888;
-        font-size: 12px;
-    }
-
-    @media (max-width: 480px) {
-        .login-body {
-            padding: 30px 20px;
-        }
-
-        .login-header {
-            padding: 25px 15px;
-        }
-
-        .login-header h1 {
-            font-size: 20px;
-        }
-        .back-to-home {
-            position: relative;
-            top: 0;
-            right: 0;
-            margin: 15px auto;
-            display: block;
-            width: fit-content;
-        }
-
-        .back-btn {
-            width: 100%;
-            justify-content: center;
-        }
-
-    }
-    /* دکمه بازگشت به صفحه اصلی - سمت راست */
-    .back-to-home {
-        position: absolute;
-        top: 20px;
-        right: 20px; /* تغییر از left به right */
-        z-index: 100;
-    }
-
-    .back-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
-        color: white;
-        text-decoration: none;
-        padding: 10px 18px;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 14px;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(237, 137, 54, 0.3);
-        border: none;
-        cursor: pointer;
-    }
-
-    .back-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(237, 137, 54, 0.4);
-        color: white;
-    }
-
-    .back-btn:active {
-        transform: translateY(0);
-    }
-
-    .back-btn i {
-        font-size: 16px;
-    }
-    .form-check {
+    /* صفحه */
+    .admin-login-page{
+        min-height:100vh;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        background:#f8f9fa;
+        padding:24px 12px;
+        position:relative; /* برای دکمه برگشت */
         direction: rtl;
         text-align: right;
     }
-</style>
-<div class="container-fluid d-flex justify-content-center align-items-center min-vh-100 bg-light">
-    <!-- با تغییر col-md-8 به col-md-10 می‌توانید باز هم کادر را بزرگتر کنید -->
-    <div class="card shadow-lg border-0 rounded-4 overflow-hidden col-12 col-md-8 col-lg-6">
 
-        <!-- هدر با گرادیان و رنگ سازمانی -->
-        <div class="card-header border-0 text-white text-center py-4" style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);">
-            <h1 class="h3 mb-0 fw-bold">پنل مدیریت</h1>
+    /* کارت */
+    .admin-login-card{
+        width:100%;
+        max-width:100%;                 /* ✅ عرض مناسب دسکتاپ */
+        background:#fff;
+        border-radius:var(--radius);
+        box-shadow:0 18px 40px rgba(0,0,0,.12);
+        overflow:hidden;
+        border:1px solid rgba(0,0,0,.06);
+    }
+
+    .admin-login-header{
+        background: linear-gradient(135deg, var(--brand1) 0%, var(--brand2) 100%);
+        color:#fff;
+        text-align:center;
+        padding:28px 18px;
+    }
+    .admin-login-header h1{
+        font-size:1.3rem;
+        margin:0;
+        font-weight:800;
+    }
+
+    .admin-login-body{
+        padding:28px 22px;
+    }
+    @media (min-width:768px){
+        .admin-login-body{ padding:36px 34px; }
+    }
+
+    /* دکمه برگشت */
+    .back-to-home{
+        position:absolute;
+        top:18px;
+        right:18px;
+        z-index:10;
+    }
+    .back-btn{
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        background:linear-gradient(135deg,#ed8936 0%,#dd6b20 100%);
+        color:#fff;
+        text-decoration:none;
+        padding:10px 14px;
+        border-radius:12px;
+        font-weight:700;
+        font-size:14px;
+        box-shadow:0 6px 18px rgba(237,137,54,.25);
+        border:0;
+    }
+    .back-btn:hover{ color:#fff; filter:brightness(.98); }
+    @media (max-width:480px){
+        .back-to-home{ position:static; margin:0 auto 14px; display:block; width:fit-content; }
+    }
+
+    /* فرم */
+    .form-label{ font-weight:700; color:#111827; }
+    .form-control{
+        border-radius:14px;
+        padding:14px 16px;
+        border:2px solid #e5e7eb;
+        background:#f9fafb;
+    }
+    .form-control:focus{
+        border-color: var(--brand2);
+        box-shadow: 0 0 0 .2rem rgba(37,117,252,.15);
+        background:#fff;
+    }
+
+    /* ورودی رمز + دکمه نمایش */
+    .password-group .btn{
+        border-radius:14px;
+        border:2px solid #e5e7eb;
+        background:#fff;
+    }
+    /* چون RTL هستیم، برای InputGroup بهتره گردی‌ها درست ست بشه */
+    .password-group .form-control{
+        border-left:0;               /* سمت چپ در RTL می‌چسبد به دکمه */
+        border-top-left-radius:0;
+        border-bottom-left-radius:0;
+    }
+    .password-group .btn{
+        border-right:0;
+        border-top-right-radius:0;
+        border-bottom-right-radius:0;
+    }
+
+    .form-check{
+        direction: rtl;
+        text-align: right;
+    }
+
+    /* بخش "من ربات نیستم" */
+    .human-check{
+        background:#f8fafc;
+        border:2px solid #e5e7eb;
+        border-radius:14px;
+        padding:14px 16px;
+        display:flex;
+        align-items:center;
+        gap:12px;
+    }
+    .human-check .form-check-input{
+        width:22px;
+        height:22px;
+        margin:0;
+        cursor:pointer;
+        accent-color: var(--brand2);
+    }
+    .human-check label{
+        cursor:pointer;
+        font-weight:800;
+        color: var(--brand2);
+        margin:0;
+    }
+
+    /* دکمه ورود */
+    .btn-admin-login{
+        background: linear-gradient(135deg, var(--brand1) 0%, var(--brand2) 100%);
+        border:0;
+        border-radius:14px;
+        padding:14px 16px;
+        font-weight:800;
+    }
+
+    .admin-login-footer{
+        margin-top:26px;
+        padding-top:18px;
+        border-top:1px solid #eef2f7;
+        color:#6b7280;
+        font-size:.85rem;
+        text-align:center;
+    }
+</style>
+
+<!-- کانتینر والد کل صفحه: تراز عمودی و افقی کامل در وسط صفحه به همراه پدینگ جانبی برای موبایل -->
+<div class="admin-login-page d-flex justify-content-center align-items-center min-vh-100 px-3">
+
+    <!-- کارت ورود: عرض متغیر و بهینه (در موبایل تمام‌عرض و در دسکتاپ حداکثر ۴۸۰ پیکسل) -->
+    <div class="admin-login-card shadow-lg" style="width: 100%; max-width: 480px; border-radius: 16px; overflow: hidden;">
+
+        <div class="admin-login-header text-center py-4 text-white" style="background: var(--primary-gradient, linear-gradient(135deg, #667eea 0%, #764ba2 100%));">
+            <h1 class="fs-4 fw-bold m-0">پنل مدیریت مسکن‌سازان</h1>
         </div>
 
-        <div class="card-body p-4 p-md-5">
-            <?php if ($error): ?>
+        <div class="admin-login-body p-4 bg-white">
+
+            <?php if (!empty($error)): ?>
                 <div class="alert alert-danger d-flex align-items-center border-0 shadow-sm mb-4" id="errorAlert">
-                    <span class="me-2">⚠️</span>
-                    <div><?php echo htmlspecialchars($error); ?></div>
+                    <span class="ms-2">⚠️</span>
+                    <div><?= htmlspecialchars($error) ?></div>
                 </div>
             <?php endif; ?>
 
-            <?php if ($success): ?>
+            <?php if (!empty($success)): ?>
                 <div class="alert alert-success d-flex align-items-center border-0 shadow-sm mb-4" id="successAlert">
-                    <span class="me-2">✅</span>
-                    <div><?php echo htmlspecialchars($success); ?></div>
+                    <span class="ms-2">✅</span>
+                    <div><?= htmlspecialchars($success) ?></div>
                 </div>
             <?php endif; ?>
 
-            <form method="POST" action="" id="loginForm">
-                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+            <form method="POST" action="" id="loginForm" novalidate>
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token ?? '') ?>">
 
                 <!-- نام کاربری -->
                 <div class="mb-4">
-                    <label class="form-label fw-bold text-dark">👤 نام کاربری</label>
-                    <input type="text"
-                           name="username"
-                           id="username"
-                           class="form-control form-control-lg border-2 shadow-sm"
-                           placeholder="نام کاربری خود را وارد کنید"
-                           required
-                           autocomplete="username"
-                           autofocus
-                           value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>">
+                    <label class="form-label fw-semibold" for="username">👤 نام کاربری</label>
+                    <input
+                            type="text"
+                            name="username"
+                            id="username"
+                            class="form-control form-control-lg shadow-sm"
+                            placeholder="نام کاربری خود را وارد کنید"
+                            required
+                            autocomplete="username"
+                            autofocus
+                            value="<?= htmlspecialchars($_POST['username'] ?? '') ?>"
+                    >
                 </div>
 
                 <!-- رمز عبور -->
-                <div class="mb-4">
-                    <label class="form-label fw-bold text-dark">🔒 رمز عبور</label>
+                <div class="mb-4 password-group">
+                    <label class="form-label fw-semibold" for="password">🔒 رمز عبور</label>
                     <div class="input-group">
-                        <input type="password"
-                               name="password"
-                               id="password"
-                               class="form-control form-control-lg border-2 border-end-0 shadow-sm"
-                               placeholder="رمز عبور خود را وارد کنید"
-                               required
-                               autocomplete="current-password">
-                        <button class="btn btn-outline-secondary border-2 border-start-0 bg-white shadow-sm" type="button" id="togglePassword">
-                            👁️
-                        </button>
+                        <button
+                                class="btn btn-outline-secondary shadow-sm"
+                                type="button"
+                                id="togglePassword"
+                                aria-label="نمایش/مخفی کردن رمز"
+                                style="border-top-right-radius: 0; border-bottom-right-radius: 0;"
+                        >👁️</button>
+
+                        <input
+                                type="password"
+                                name="password"
+                                id="password"
+                                class="form-control form-control-lg shadow-sm"
+                                placeholder="رمز عبور خود را وارد کنید"
+                                required
+                                autocomplete="current-password"
+                                style="border-top-left-radius: 0; border-bottom-left-radius: 0;"
+                        >
                     </div>
                 </div>
 
                 <!-- مرا به خاطر بسپار -->
-                <div class="form-check mb-4">
-                    <input class="form-check-input" type="checkbox" id="remember" name="remember">
-                    <label class="form-check-label text-muted" for="remember">
-                        مرا به خاطر بسپار (30 روز)
+                <div class="form-check mb-4 d-flex align-items-center gap-2">
+                    <input class="form-check-input m-0" type="checkbox" id="remember" name="remember" style="width: 18px; height: 18px;">
+                    <label class="form-check-label text-muted fs-7" for="remember" style="cursor: pointer; user-select: none;">
+                        مرا به خاطر بسپار (۳۰ روز)
                     </label>
                 </div>
 
-                <!-- بخش تشخیص ربات -->
+                <!-- من ربات نیستم -->
                 <div class="mb-4">
-                    <div class="d-flex align-items-center gap-3 p-3 bg-light border rounded-3 shadow-sm">
-                        <input type="checkbox" id="human_check" name="human_check" required class="form-check-input" style="width: 22px; height: 22px; cursor: pointer;">
-                        <label for="human_check" class="form-check-label fw-bold text-primary mb-0" style="cursor: pointer;">
-                            🤖 من ربات نیستم
-                        </label>
+                    <div class="human-check d-flex align-items-center gap-2 p-3 bg-light border rounded-3">
+                        <input type="checkbox" id="human_check" name="human_check" required class="form-check-input m-0" style="width: 20px; height: 20px; cursor: pointer;">
+                        <label for="human_check" class="form-check-label fw-bold m-0" style="cursor: pointer; user-select: none;">🤖 من ربات نیستم</label>
                     </div>
                 </div>
 
-                <!-- دکمه ورود بزرگ -->
-                <button type="submit" class="btn btn-primary btn-lg w-100 py-3 shadow-sm fw-bold border-0" id="loginBtn" style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);">
-                    <span id="btnText">پنل مدیریت</span>
-                    <span id="btnSpinner" class="spinner-border spinner-border-sm ms-2" style="display:none;" role="status"></span>
+                <!-- دکمه ورود -->
+                <button type="submit" class="btn btn-admin-login btn-lg w-100 shadow-sm py-3 text-white fw-bold" id="loginBtn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                    <span id="btnText">ورود به پنل مدیریت</span>
+                    <span id="btnSpinner" class="spinner-border spinner-border-sm ms-2" style="display:none;" role="status" aria-hidden="true"></span>
                 </button>
 
-                <!-- فوتر اختصاصی فرم -->
-                <div class="mt-5 text-center text-muted small border-top pt-4">
-                    <p class="mb-1">© <?php echo date('Y'); ?> مسکن‌سازان</p>
-                    <p>نسخه ۲.۰ | در صورت مشکل با پشتیبانی تماس بگیرید</p>
+                <div class="admin-login-footer text-center text-muted mt-4 fs-7 border-top pt-3">
+                    <div class="mb-1">© <?= date('Y') ?> مسکن‌سازان</div>
+                    <div class="opacity-75">نسخه ۲.۰ | پشتیبانی فنی</div>
                 </div>
             </form>
+
         </div>
     </div>
 </div>
+
+
+<script>
+    // نمایش/مخفی کردن رمز
+    (function () {
+        const btn = document.getElementById('togglePassword');
+        const input = document.getElementById('password');
+        if (!btn || !input) return;
+
+        btn.addEventListener('click', function () {
+            input.type = (input.type === 'password') ? 'text' : 'password';
+        });
+    })();
+
+    // اسپینر روی دکمه هنگام ارسال (اختیاری)
+    (function () {
+        const form = document.getElementById('loginForm');
+        const btn = document.getElementById('loginBtn');
+        const spinner = document.getElementById('btnSpinner');
+        const text = document.getElementById('btnText');
+
+        if (!form || !btn) return;
+
+        form.addEventListener('submit', function () {
+            btn.disabled = true;
+            if (spinner) spinner.style.display = 'inline-block';
+            if (text) text.textContent = 'در حال ورود...';
+        });
+    })();
+</script>
+
 <?php
 // ۶. پایان ذخیره در بافر و ارسال به لایوت
 $content = ob_get_clean();

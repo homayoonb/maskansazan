@@ -28,6 +28,7 @@ try {
         $paid_amount        = trim($_POST['paid_amount'] ?? '');
         $payment_method     = trim($_POST['payment_method'] ?? '');
         $description        = trim($_POST['description'] ?? '');
+        $Deposit_date        = trim($_POST['Deposit_date'] ?? '');
 
         // حذف جداکننده‌ها از مبالغ
         $installment_amount = str_replace([',', ' '], '', $installment_amount);
@@ -38,7 +39,8 @@ try {
                 $installment_date === '' ||
                 $installment_amount === '' ||
                 $paid_amount === '' ||
-                $payment_method === ''
+                $payment_method === '' ||
+               $Deposit_date === ''
         ) {
             $error_msg = 'لطفاً تمام فیلدهای الزامی را تکمیل کنید.';
         } elseif (!is_numeric($installment_amount) || !is_numeric($paid_amount)) {
@@ -52,7 +54,8 @@ try {
                     installment_amount = :installment_amount,
                     paid_amount = :paid_amount,
                     payment_method = :payment_method,
-                    description = :description
+                    description = :description,
+                    Deposit_date = :Deposit_date
                 WHERE id = :id
                 LIMIT 1
             ");
@@ -64,6 +67,7 @@ try {
                     ':paid_amount'        => $paid_amount,
                     ':payment_method'     => $payment_method,
                     ':description'        => $description,
+                    ':Deposit_date' => $Deposit_date,
                     ':id'                 => $id
             ]);
 
@@ -158,6 +162,17 @@ ob_start();
                                         class="form-control form-control-lg rounded-3"
                                         placeholder="مثلاً 1403/06/15"
                                         value="<?= htmlspecialchars($rows['installment_date'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                                        required
+                                >
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">تاریخ واریز</label>
+                                <input
+                                        type="text"
+                                        name="Deposit_date"
+                                        class="form-control form-control-lg rounded-3"
+                                        placeholder="مثلاً 1403/06/15"
+                                        value="<?= htmlspecialchars($rows['Deposit_date'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
                                         required
                                 >
                             </div>

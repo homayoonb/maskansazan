@@ -62,75 +62,151 @@ ob_start(); // شروع ذخیره محتوا برای لود در قالب اص
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
 
 <style>
+    /* ==========================================================================
+       ۱. متغیرهای اصلی (Design Tokens)
+       ========================================================================== */
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --success-gradient: linear-gradient(135deg, #27ae60 0%, #219653 100%);
+        --primary-color: #667eea;
+        --primary-dark: #764ba2;
+        --secondary-blue: #3498db;
+        --success-color: #27ae60;
+        --danger-color: #e74c3c;
+
+        --bg-light: #f8fafc;
+        --border-color: #e2e8f0;
+        --text-main: #2d3748;
+        --text-muted: #718096;
+
+        --font-family: 'Vazirmatn', sans-serif;
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --shadow-soft: 0 10px 25px rgba(0, 0, 0, 0.05);
+        --shadow-hover: 0 15px 30px rgba(102, 126, 234, 0.2);
+    }
+
+    /* ==========================================================================
+       ۲. چیدمان اصلی و کارت ورود (Login Card & Wrapper)
+       ========================================================================== */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        width: 100%;
+        overflow-x: hidden; /* جلوگیری از اسکرول افقی بی‌مورد */
+    }
+    .container{
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        margin-top: 0 !important;
+    }
     .login-wrapper {
         display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        padding: 20px;
-        width: 100%;
+        justify-content: center; /* تراز افقی در مرکز */
+        align-items: flex-start;  /* تراز عمودی از بالا */
+        min-height: 100vh;      /* برای اینکه صفحه در کل ارتفاع مرورگر در دسترس باشد */
+        box-sizing: border-box; /* برای اینکه پدینگ از عرض کلی کم نشود */
+        font-family: var(--font-family);
+
+    }
+
+    div.container.row{
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        margin-top: 0 !important;
+    }
+    /* اطمینان از اینکه کارت بیش از حد به لبه‌ها نچسبد */
+    @media (max-width: 576px) {
+        .login-wrapper {
+            padding: 10px;      /* در موبایل فاصله کمتر */
+        }
     }
 
     .login-card {
-        background: #fff;
-        border-radius: 15px;
-        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        background: #ffffff;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-soft);
         width: 100%;
-        max-width: 800px; /* کنترل عرض فرم */
+        max-width: 850px;
         overflow: hidden;
-        border: 1px solid #e1e1e1;
+        border: 1px solid var(--border-color);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
     .login-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 30px;
+        background: var(--primary-gradient);
+        color: #ffffff;
+        padding: 30px 20px;
         text-align: center;
     }
 
-    /* استایل تب‌ها */
+    .login-header h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .login-header p {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin-top: 8px;
+    }
+
+    /* ==========================================================================
+       ۳. تب‌ها (Tabs Navigation)
+       ========================================================================== */
     .tabs-container {
         display: flex;
-        border-bottom: 1px solid #ddd;
-        background: #f8f9fa;
+        border-bottom: 1px solid var(--border-color);
+        background: #f1f5f9;
     }
 
     .tab-button {
         flex: 1;
-        padding: 15px;
+        padding: 16px;
         border: none;
-        background: none;
+        background: transparent;
         cursor: pointer;
-        font-weight: bold;
-        transition: 0.3s;
+        font-family: var(--font-family);
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: var(--text-muted);
+        transition: all 0.3s ease;
+    }
+
+    .tab-button:hover {
+        color: var(--primary-color);
+        background: rgba(255, 255, 255, 0.5);
     }
 
     .tab-button.active {
-        background: #fff;
-        color: #764ba2;
-        border-bottom: 3px solid #764ba2;
+        background: #ffffff;
+        color: var(--primary-dark);
+        border-bottom: 3px solid var(--primary-dark);
     }
 
     .tab-content {
         display: none;
-        padding: 30px;
+        padding: 25px;
     }
 
     .tab-content.active {
         display: block;
-    }
-    @keyframes fadeInTab {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        animation: fadeInTab 0.4s ease-out forwards;
     }
 
-
-    /* استایل فرم‌ها */
+    /* ==========================================================================
+       ۴. فرم‌ها و ورودی‌ها (Form Controls)
+       ========================================================================== */
     .form-group {
         margin-bottom: 20px;
     }
@@ -139,726 +215,529 @@ ob_start(); // شروع ذخیره محتوا برای لود در قالب اص
         display: block;
         margin-bottom: 8px;
         font-weight: 600;
-        color: #2d3748;
-        font-size: 14px;
-        font-family: 'Samim', sans-serif;
+        color: var(--text-main);
+        font-size: 0.9rem;
     }
 
-    .form-control {
+    .form-control,
+    .form-select {
         width: 100%;
-        padding: 14px 16px;
-        border: 2px solid #e2e8f0;
-        border-radius: 12px;
-        font-size: 16px;
-        transition: all 0.3s ease;
-        background: #f8fafc;
-        font-family: 'Vazirmatn', sans-serif;
+        padding: 12px 16px;
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-md);
+        font-size: 0.95rem;
+        font-family: var(--font-family);
         font-weight: 500;
+        background: var(--bg-light);
+        color: var(--text-main);
+        transition: all 0.3s ease;
     }
 
-    .form-control:focus {
-        border-color: #667eea;
-        background: white;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--primary-color);
+        background: #ffffff;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
         outline: none;
     }
 
-    .required::after {
-        content: " *";
-        color: #e74c3c;
-    }
-
-    /* استایل دکمه‌ها */
-    .btn-login, .submit-btn-register {
-        width: 100%;
-        background: linear-gradient(135deg, #27ae60, #219653);
-        color: white;
-        border: none;
-        padding: 16px;
-        border-radius: 12px;
-        cursor: pointer;
-        font-size: 16px;
-        font-weight: bold;
-        transition: all 0.3s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        font-family: 'Samim', sans-serif;
-        margin-top: 10px;
-    }
-
-    .btn-login {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-
-    .btn-login:hover, .submit-btn-register:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
-    }
-
-    .btn-login:hover {
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-    }
-
-    /* استایل بخش‌ها */
-    .section {
-        background: #f8f9fa;
-        padding: 25px;
-        border-radius: 10px;
-        margin-bottom: 30px;
-        border-right: 5px solid #3498db;
-    }
-
-    .section h3 {
-        color: #2c3e50;
-        margin-top: 0;
-        margin-bottom: 20px;
-        font-size: 1.3rem;
-    }
-
-    /* استایل بخش چک‌ها */
-    .check-section {
-        background: #f0f7ff;
-        border: 2px solid #cce5ff;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 20px;
-    }
-
-    .check-section h4 {
-        color: #0066cc;
-        margin-bottom: 15px;
-        padding-bottom: 10px;
-        border-bottom: 2px dashed #b3d9ff;
-    }
-
-    .check-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-bottom: 15px;
-    }
-
-    .check-field {
-        flex: 1;
-        min-width: 200px;
-    }
-
-    /* استایل برای تاریخ‌های چک */
-    .date-selector {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        margin-top: 10px;
-    }
-
-    .date-selector select {
-        flex: 1;
-        padding: 10px;
-        border: 2px solid #e2e8f0;
-        border-radius: 8px;
-    }
-
-    .date-converter-btn {
-        padding: 10px 15px;
-        background: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 12px;
-    }
-
-    .date-converter-btn:hover {
-        background: #45a049;
-    }
-
-    .gregorian-date-display {
-        background: #f0f0f0;
-        padding: 8px 12px;
-        border-radius: 6px;
-        font-size: 14px;
-        margin-top: 8px;
-        color: #333;
-    }
-
-    @media (max-width: 768px) {
-        .check-field {
-            min-width: 100%;
-        }
-
-        .date-selector {
-            flex-direction: column;
-        }
-    }
-
-    /* استایل پیام‌ها */
-    .text-danger, .text-success {
-        padding: 12px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        text-align: center;
-        font-weight: bold;
-    }
-
-    .text-danger {
-        background: #fed7d7;
-        color: #e53e3e;
-        border: 1px solid #feb2b2;
-    }
-
-    .text-success {
-        background: #c6f6d5;
-        color: #38a169;
-        border: 1px solid #9ae6b4;
-    }
-
-    .error {
-        color: #e74c3c;
-        font-size: 0.85rem;
-        margin-top: 5px;
-        display: none;
-    }
-
-    .success {
-        color: #27ae60;
-        font-size: 0.85rem;
-        margin-top: 5px;
-        display: none;
-    }
-
-    .loading {
-        color: #3498db;
-        font-size: 0.85rem;
-        margin-top: 5px;
-        display: none;
-    }
-
-    .note {
-        color: #7f8c8d;
-        font-size: 0.85rem;
-        margin-top: 5px;
-        font-style: italic;
-    }
-
-    /* استایل select */
     .form-select {
-        width: 100%;
-        padding: 14px 45px 14px 16px;
-        border: 2px solid #e2e8f0;
-        border-radius: 12px;
-        font-size: 16px;
-        transition: all 0.3s ease;
-        background: #f8fafc;
         cursor: pointer;
         appearance: none;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23667eea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
         background-repeat: no-repeat;
         background-position: left 16px center;
         background-size: 16px;
-        font-family: 'Vazirmatn', sans-serif;
-        font-weight: 500;
+        padding-left: 45px;
     }
 
-    /* استایل checkbox */
-    .checkbox-container {
+    .required::after {
+        content: " *";
+        color: var(--danger-color);
+    }
+
+    /* ==========================================================================
+       ۵. دکمه‌ها (Buttons)
+       ========================================================================== */
+    .btn-login,
+    .submit-btn-register {
+        width: 100%;
+        border: none;
+        padding: 14px 20px;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 700;
+        font-family: var(--font-family);
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 10px;
-        margin: 20px 0;
-        padding: 15px;
-        background: #f1f8ff;
-        border-radius: 8px;
+        transition: all 0.3s ease;
+        margin-top: 15px;
+        color: #ffffff;
     }
 
-    input[type="checkbox"] {
-        width: 20px;
-        height: 20px;
-        cursor: pointer;
+    .btn-login {
+        background: var(--primary-gradient);
     }
 
-    /* استایل‌های مربوط به تاریخ تولد */
-    .date-container {
-        background: white;
-        border: 2px solid #e2e8f0;
-        border-radius: 12px;
+    .submit-btn-register {
+        background: var(--success-gradient);
+    }
+
+    .btn-login:hover,
+    .submit-btn-register:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-hover);
+    }
+
+    .btn-login:active,
+    .submit-btn-register:active {
+        transform: translateY(0);
+    }
+
+    /* ==========================================================================
+       ۶. بخش‌ها و کارت‌های فرعی (Sections & Cards)
+       ========================================================================== */
+    .section {
+        background: var(--bg-light);
         padding: 20px;
+        border-radius: var(--radius-md);
+        margin-bottom: 25px;
+        border-right: 4px solid var(--secondary-blue);
+    }
+
+    .section h3 {
+        color: var(--text-main);
+        margin: 0 0 15px 0;
+        font-size: 1.15rem;
+        font-weight: 700;
+    }
+
+    .check-section {
+        background: #f0f7ff;
+        border: 2px solid #cce5ff;
+        border-radius: var(--radius-md);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .check-section h4 {
+        color: #0066cc;
+        margin: 0 0 15px 0;
+        padding-bottom: 8px;
+        border-bottom: 2px dashed #b3d9ff;
+        font-size: 1rem;
+    }
+
+    .check-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .check-field {
+        flex: 1;
+        min-width: 220px;
+    }
+
+    /* انتخابگر تاریخ و تقویم */
+    .date-container {
+        background: #ffffff;
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 15px;
         margin-bottom: 15px;
     }
 
     .date-row {
         display: flex;
-        gap: 15px;
-        margin-bottom: 15px;
+        gap: 12px;
         flex-wrap: wrap;
     }
 
     .date-field {
         flex: 1;
-        min-width: 150px;
+        min-width: 120px;
     }
 
     .date-preview {
         background: #f1f8ff;
-        border: 2px dashed #3498db;
-        border-radius: 12px;
-        padding: 15px;
+        border: 2px dashed var(--secondary-blue);
+        border-radius: var(--radius-md);
+        padding: 12px;
         text-align: center;
-        font-size: 1.1rem;
-        color: #2c3e50;
+        font-size: 1rem;
+        color: var(--text-main);
         margin-top: 10px;
-        font-weight: bold;
+        font-weight: 700;
     }
 
-    .date-preview .label {
+    .date-input-container {
+        position: relative;
+    }
+
+    .date-input-container .datepicker-trigger {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: var(--text-muted);
+    }
+
+    .checkbox-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 20px 0;
+        padding: 12px 15px;
+        background: #f1f8ff;
+        border-radius: var(--radius-sm);
         font-size: 0.9rem;
-        color: #7f8c8d;
-        margin-bottom: 5px;
+    }
+
+    input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: var(--primary-color);
+    }
+
+    /* ==========================================================================
+       ۷. پیام‌ها و فیدبک‌ها (Alerts & Feedback)
+       ========================================================================== */
+    .text-danger,
+    .text-success {
+        padding: 12px 15px;
+        border-radius: var(--radius-sm);
+        margin-bottom: 20px;
+        text-align: center;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .text-danger {
+        background: #fff5f5;
+        color: var(--danger-color);
+        border: 1px solid #fed7d7;
+    }
+
+    .text-success {
+        background: #f0fff4;
+        color: var(--success-color);
+        border: 1px solid #c6f6d5;
     }
 
     .help-text {
         background: #e8f4fc;
-        border-right: 4px solid #3498db;
+        border-right: 4px solid var(--secondary-blue);
         padding: 10px 15px;
         margin: 10px 0;
-        border-radius: 8px;
-        font-size: 0.9rem;
-        color: #2c3e50;
+        border-radius: var(--radius-sm);
+        font-size: 0.85rem;
+        color: var(--text-main);
     }
 
-    /* انیمیشن‌ها */
-    @keyframes fadeInMobile {
+    /* ==========================================================================
+       ۸. انیمیشن‌ها (Animations)
+       ========================================================================== */
+    @keyframes fadeInTab {
         from {
             opacity: 0;
-            transform: translateY(20px) scale(0.98);
+            transform: translateY(8px);
         }
         to {
             opacity: 1;
-            transform: translateY(0) scale(1);
+            transform: translateY(0);
         }
     }
 
-    /* استایل دسکتاپ */
-    @media (min-width: 768px) {
-        .login-card {
-            max-width: 850px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
-        }
+    /* ==========================================================================
+       ۹. واکنش‌گرایی (Responsive Design)
+       ========================================================================== */
 
+    /* دسکتاپ و نمایشگرهای بزرگ‌تر (>= 768px) */
+    @media (min-width: 768px) {
         .login-header {
-            padding: 40px 35px;
+            padding: 40px 30px;
         }
 
         .login-header h1 {
-            font-size: 28px;
-        }
-
-        .login-header p {
-            font-size: 16px;
-            margin-top: 12px;
+            font-size: 1.8rem;
         }
 
         .tab-content {
             padding: 35px 30px;
         }
-
-        .form-control {
-            padding: 16px 20px;
-            font-size: 15px;
-        }
-
-        .btn-login, .submit-btn-register {
-            padding: 18px;
-            font-size: 17px;
-            margin-top: 15px;
-        }
     }
 
-    /* استایل موبایل */
-    @media (max-width: 768px) {
-        .back-btn {
-            top: 10px;
-            right: 10px;
-            padding: 8px 12px;
-            font-size: 12px;
+    /* تبلت و موبایل (< 768px) */
+    @media (max-width: 767.98px) {
+        .login-wrapper {
+            padding: 10px;
+        }
+
+        .login-header {
+            padding: 25px 15px;
+        }
+
+        .tab-content {
+            padding: 20px 15px;
+        }
+
+        .check-field,
+        .date-field {
+            min-width: 100%;
         }
 
         .date-row {
             flex-direction: column;
+            gap: 10px;
         }
 
-        .date-field {
-            min-width: 100%;
+        .tabs-container {
+            flex-direction: row;
         }
-    }
-    .date-input-container {
-        position: relative;
-    }
-    .date-input-container .datepicker-trigger {
-        position: absolute;
-        left: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        cursor: pointer;
-        color: #6c757d;
+
+        .tab-button {
+            padding: 12px 8px;
+            font-size: 0.85rem;
+        }
     }
 </style>
+<div class="container-fluid"   >
+    <div class="login-card">
+        <div class="login-header">
+            <h1> مدیریت اعضا</h1>
+            <p>ورود اعضای موجود | ثبت‌نام اعضای جدید</p>
+        </div>
 
-<div class="login-card">
-    <div class="login-header">
-        <h1> مدیریت اعضا</h1>
-        <p>ورود اعضای موجود | ثبت‌نام اعضای جدید</p>
-    </div>
-
-    <!-- تب‌ها -->
-    <div class="tabs-container">
-        <button class="tab-button <?php echo $active_tab == 'login' ? 'active' : ''; ?>"
-                data-tab="login">
-            🔐 ورود اعضا
-        </button>
-        <button class="tab-button <?php echo $active_tab == 'register' ? 'active' : ''; ?>"
-                data-tab="register">
-            📝 ثبت‌نام جدید
-        </button>
-    </div>
-
-    <!-- محتوای تب ورود -->
-    <div id="login-tab" class="tab-content <?php echo $active_tab == 'login' ? 'active' : ''; ?>">
-        <?php if($error): ?>
-            <div class="text-danger"><?php echo htmlspecialchars($error); ?></div>
-        <?php endif; ?>
-
-        <form method="POST" class="login-form" action="validate.php">
-            <input type="hidden" name="action" value="login">
-            <!-- بخش انتخاب پروژه -->
-            <div class="form-group">
-                <label class="form-label required">🏢 پروژه مربوطه:</label>
-                <select name="project_id" class="form-select" required>
-                    <option value="">-- انتخاب پروژه --</option>
-                    <?php foreach ($projects as $project): ?>
-                        <option value="<?php echo $project['id']; ?>">
-                            🏗️ <?php echo htmlspecialchars($project['name']); ?>
-                            <?php if (!empty($project['code'])): ?>
-                                - <?php echo htmlspecialchars($project['code']); ?>
-                            <?php endif; ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label required">👤 نام کاربری (شماره ملی):</label>
-                <input type="text" name="national_code" class="form-control" maxlength="10" required
-                       placeholder="شماره ملی خود را وارد کنید">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label required">🔑 گذرواژه:</label>
-                <input type="password" name="password" class="form-control" required
-                       placeholder="گذرواژه خود را وارد کنید">
-            </div>
-
-            <!-- "من ربات نیستم" -->
-            <div class="form-group">
-                <div style="display: flex; align-items: center; gap: 10px; padding: 15px; background: #f0f7ff; border-radius: 8px;">
-                    <input type="checkbox" id="not_robot_login" name="not_robot" required style="width: 20px; height: 20px;">
-                    <label for="not_robot_login" style="font-weight: bold; cursor: pointer;">
-                        🤖 من ربات نیستم
-                    </label>
-                </div>
-            </div>
-
-            <button type="submit" class="btn-login">
-                🚀 ورود به سیستم
+        <!-- تب‌ها -->
+        <div class="tabs-container">
+            <button class="tab-button <?php echo $active_tab == 'login' ? 'active' : ''; ?>"
+                    data-tab="login">
+                🔐 ورود اعضا
             </button>
-        </form>
-    </div>
+            <button class="tab-button <?php echo $active_tab == 'register' ? 'active' : ''; ?>"
+                    data-tab="register">
+                📝 ثبت‌نام جدید
+            </button>
+        </div>
 
-    <!-- محتوای تب ثبت‌نام -->
-    <div id="register-tab" class="tab-content <?php echo $active_tab == 'register' ? 'active' : ''; ?>">
-        <?php if($success): ?>
-            <div class="text-success"><?php echo htmlspecialchars($success); ?></div>
-        <?php endif; ?>
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-12 col-lg-8">
-                    <form id="registrationForm" action="process_register.php" method="POST" enctype="multipart/form-data" class="register-form">
-                        <input type="hidden" name="action" value="register">
+        <!-- محتوای تب ورود -->
+        <div id="login-tab" class="tab-content <?php echo $active_tab == 'login' ? 'active' : ''; ?>">
+            <?php if($error): ?>
+                <div class="text-danger mb-3"><?php echo htmlspecialchars($error); ?></div>
+            <?php endif; ?>
 
-                        <!-- بخش مشخصات فردی -->
-                        <div class="section">
-                            <h3><i class="fas fa-id-card"></i> مشخصات فردی</h3>
+            <form method="POST" class="login-form" action="validate.php">
+                <input type="hidden" name="action" value="login">
 
-                            <!-- نام و نام خانوادگی -->
-                            <div class="form-group">
-                                <label for="first_name" class="required">نام:</label>
-                                <input type="text" id="first_name" name="first_name" class="form-control" required>
-                                <div class="error" id="first_name_error"></div>
-                            </div>
+                <!-- ورودی‌ها -->
+                <div class="form-group mb-4">
+                    <label class="form-label required">🏢 پروژه مربوطه:</label>
+                    <select name="project_id" class="form-select" required>
+                        <option value="">-- انتخاب پروژه --</option>
+                        <?php foreach ($projects as $project): ?>
+                            <option value="<?php echo $project['id']; ?>">
+                                🏗️ <?php echo htmlspecialchars($project['name']); ?>
+                                <?php if (!empty($project['code'])): ?>
+                                    (<?php echo htmlspecialchars($project['code']); ?>)
+                                <?php endif; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
 
-                            <div class="form-group">
-                                <label for="last_name" class="required">نام خانوادگی:</label>
-                                <input type="text" id="last_name" name="last_name" class="form-control" required>
-                                <div class="error" id="last_name_error"></div>
-                            </div>
+                <div class="form-group mb-3">
+                    <label class="form-label required">👤 نام کاربری (شماره ملی):</label>
+                    <input type="text" name="national_code" class="form-control" maxlength="10" required
+                           placeholder="شماره ملی خود را وارد کنید">
+                </div>
 
-                            <!-- شماره ملی -->
-                            <div class="form-group">
-                                <label for="national_id" class="required">شماره ملی (۱۰ رقم):</label>
-                                <input type="text" id="national_id" name="national_id" class="form-control"
-                                       pattern="\d{10}"
-                                       maxlength="10"
-                                       placeholder="مثال: ۰۰۷۸۶۱۰۶۴۱"
-                                       required>
-                                <div class="loading" id="national_id_loading">در حال بررسی...</div>
-                                <div class="success" id="national_id_success">✓ شماره ملی معتبر است</div>
-                                <div class="error" id="national_id_error"></div>
-                            </div>
+                <div class="form-group mb-3">
+                    <label class="form-label required">🔑 گذرواژه:</label>
+                    <input type="password" name="password" class="form-control" required
+                           placeholder="گذرواژه خود را وارد کنید">
+                </div>
 
-                            <!-- شماره شناسنامه و نام پدر -->
-                            <div class="form-group">
-                                <label for="birth_certificate_number" class="required">شماره شناسنامه:</label>
-                                <input type="text" id="birth_certificate_number" name="birth_certificate_number" class="form-control" required>
-                            </div>
+                <!-- چک‌باکس ربات - اصلاح ساختار برای جلوگیری از پرش -->
+                <div class="form-group my-4">
+                    <div class="d-flex align-items-center p-3 bg-light border rounded">
+                        <input type="checkbox" id="not_robot_login" name="not_robot" required class="me-2">
+                        <label for="not_robot_login" class="mb-0 fw-bold" style="cursor: pointer;">
+                            🤖 من ربات نیستم
+                        </label>
+                    </div>
+                </div>
 
-                            <div class="form-group">
-                                <label for="father_name" class="required">نام پدر:</label>
-                                <input type="text" id="father_name" name="father_name" class="form-control" required>
-                            </div>
+                <button type="submit" class="btn-login w-100 py-2">
+                    🚀 ورود به سیستم
+                </button>
+            </form>
+        </div>
 
-                            <!-- تاریخ تولد -->
-                            <div class="form-group">
-                                <label class="required">تاریخ تولد (شمسی):</label>
-                                <div class="help-text">
-                                    <strong>راهنما:</strong> لطفاً تاریخ تولد خود را به درستی انتخاب کنید.
-                                </div>
 
-                                <div class="date-container">
-                                    <div class="date-row">
-                                        <div class="date-field">
-                                            <label for="birth_year">سال:</label>
-                                            <select id="birth_year" name="birth_year" class="form-select" required>
-                                                <option value="">انتخاب سال</option>
-                                                <!-- سال‌ها با JavaScript پر می‌شود -->
-                                            </select>
-                                        </div>
+        <!-- محتوای تب ثبت‌نام -->
+        <div id="register-tab" class="tab-content <?php echo $active_tab == 'register' ? 'active' : ''; ?>">
+            <?php if($success): ?>
+                <div class="text-success"><?php echo htmlspecialchars($success); ?></div>
+            <?php endif; ?>
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-12 col-lg-8" style="width: 100%" >
+                        <form id="registrationForm" action="process_register.php" method="POST" enctype="multipart/form-data" class="register-form">
+                            <input type="hidden" name="action" value="register">
 
-                                        <div class="date-field">
-                                            <label for="birth_month">ماه:</label>
-                                            <select id="birth_month" name="birth_month" class="form-select" required>
-                                                <option value="">انتخاب ماه</option>
-                                                <option value="01">فروردین (۱)</option>
-                                                <option value="02">اردیبهشت (۲)</option>
-                                                <option value="03">خرداد (۳)</option>
-                                                <option value="04">تیر (۴)</option>
-                                                <option value="05">مرداد (۵)</option>
-                                                <option value="06">شهریور (۶)</option>
-                                                <option value="07">مهرآفرین (۷)</option>
-                                                <option value="08">آبان (۸)</option>
-                                                <option value="09">آذر (۹)</option>
-                                                <option value="10">دی (۱۰)</option>
-                                                <option value="11">بهمن (۱۱)</option>
-                                                <option value="12">اسفند (۱۲)</option>
-                                            </select>
-                                        </div>
+                            <!-- بخش مشخصات فردی -->
+                            <div class="section" >
+                                <h3><i class="fas fa-id-card"></i> مشخصات فردی</h3>
 
-                                        <div class="date-field">
-                                            <label for="birth_day">روز:</label>
-                                            <select id="birth_day" name="birth_day" class="form-select" required>
-                                                <option value="">انتخاب روز</option>
-                                                <!-- روزها با JavaScript پر می‌شود -->
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="date-preview">
-                                        <div class="label">تاریخ انتخابی:</div>
-                                        <div id="selected_date">--- / -- / --</div>
-                                    </div>
-                                </div>
-
-                                <input type="hidden" id="birth_date_fa" name="birth_date_fa">
-                                <input type="hidden" id="birth_date" name="birth_date">
-                            </div>
-
-                            <!-- تلفن‌ها -->
-                            <div class="form-group">
-                                <label for="mobile" class="required">تلفن همراه:</label>
-                                <input type="tel" id="mobile" name="mobile" class="form-control"
-                                       pattern="09\d{9}"
-                                       placeholder="مثال: ۰۹۱۲۳۴۵۶۷۸۹"
-                                       required>
-                                <div class="error" id="mobile_error"></div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="phone">تلفن ثابت:</label>
-                                <input type="tel" id="phone" name="phone" class="form-control"
-                                       pattern="\d{8,11}"
-                                       placeholder="مثال: ۰۲۱۸۸۵۵۶۶۷۷">
-                            </div>
-
-                            <!-- آدرس -->
-                            <div class="form-group">
-                                <label for="address" class="required">آدرس کامل:</label>
-                                <textarea id="address" name="address" rows="4" class="form-control" required></textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="postalCode" class="required">کد پستی (۱۰ رقم):</label>
-                                <input type="text"
-                                       id="postalCode"
-                                       name="postalCode"
-                                       class="form-control"
-                                       pattern="\d{10}"
-                                       maxlength="10"
-                                       placeholder="مثال: ۱۲۳۴۵۶۷۸۹۰"
-                                       required>
-                                <div class="error" id="postalCode_error"></div>
-                            </div>
-                        </div>
-
-                        <!-- بخش چک‌ها -->
-                        <div class="section">
-                            <h3><i class="fas fa-money-check-alt"></i> اطلاعات چک‌ها</h3>
-                            <div class="note" style="margin-bottom: 20px;">
-                                <strong>توجه:</strong> لطفاً تاریخ چک‌ها را به فرمت میلادی (YYYY-MM-DD) وارد کنید یا از مبدل تاریخ استفاده کنید.
-                            </div>
-
-                            <?php for($i = 1; $i <= 3; $i++): ?>
-                            <div class="check-section">
-                                <h4>چک شماره <?= $i ?></h4>
-
-                                <div class="check-row">
-                                    <div class="check-field">
-                                        <label class="form-label required">شماره چک:</label>
-                                        <input type="text"
-                                               name="check<?= $i ?>_number"
-                                               class="form-control"
-                                               placeholder="شماره چک"
-                                               required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label required">تاریخ چک:</label>
-                                        <div class="date-input-container">
-                                            <input type="text"
-                                                   id="check<?= $i ?>_date"
-                                                   name="check<?= $i ?>_date"
-                                                   class="form-control persian-datepicker"
-                                                   placeholder="برای انتخاب تاریخ کلیک کنید"
-                                                   autocomplete="off"
-                                                   required>
-                                            <span class="datepicker-trigger">
-                            <i class="bi bi-calendar"></i>
-                        </span>
-                                        </div>
-                                        <div class="note">تاریخ شمسی - فرمت: سال/ماه/روز</div>
-                                    </div>
-
-                                    <div class="check-row">
-                                        <div class="check-field">
-                                            <label class="form-label required">مبلغ چک (ریال):</label>
-                                            <input type="number"
-                                                   name="check<?= $i ?>_amount"
-                                                   class="form-control"
-                                                   placeholder="مثال: 10000000"
-                                                   min="1"
-                                                   required>
-                                        </div>
-
-                                        <div class="check-field">
-                                            <label class="form-label required">بانک صادرکننده:</label>
-                                            <input type="text"
-                                                   name="check<?= $i ?>_bank"
-                                                   class="form-control"
-                                                   placeholder="نام بانک"
-                                                   required>
-                                        </div>
-                                    </div>
-
-                                    <div class="check-row">
-                                        <div class="check-field">
-                                            <label class="form-label required">تصویر چک:</label>
-                                            <input type="file"
-                                                   name="check<?= $i ?>_image"
-                                                   class="form-control"
-                                                   accept=".jpg,.jpeg,.png,.pdf"
-                                                   required>
-                                            <div class="note">تصویر واضح از چک (JPG, PNG, PDF - حداکثر ۲۰۰KB)</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <?php endfor; ?>
-                            </div>
-
-                            <!-- بخش مدارک -->
-                            <div class="section">
-                                <h3><i class="fas fa-file-upload"></i> بارگذاری مدارک</h3>
-
-                                <!-- کارت ملی و شناسنامه -->
+                                <!-- نام و نام خانوادگی -->
                                 <div class="form-group">
-                                    <label for="national_card_image" class="required">تصویر کارت ملی:</label>
-                                    <input type="file" id="national_card_image" name="national_card_image"
-                                           accept=".jpg,.jpeg,.png,.pdf"
+                                    <label for="first_name" class="required">نام:</label>
+                                    <input type="text" id="first_name" name="first_name" class="form-control" required>
+                                    <div class="error" id="first_name_error"></div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="last_name" class="required">نام خانوادگی:</label>
+                                    <input type="text" id="last_name" name="last_name" class="form-control" required>
+                                    <div class="error" id="last_name_error"></div>
+                                </div>
+
+                                <!-- شماره ملی -->
+                                <div class="form-group">
+                                    <label for="national_id" class="required">شماره ملی (۱۰ رقم):</label>
+                                    <input type="text" id="national_id" name="national_id" class="form-control"
+                                           pattern="\d{10}"
+                                           maxlength="10"
+                                           placeholder="مثال: ۰۰۷۸۶۱۰۶۴۱"
                                            required>
-                                    <div class="note">عکس واضح از هر دو طرف کارت ملی (JPG, PNG, PDF)</div>
+                                    <div class="loading" id="national_id_loading">در حال بررسی...</div>
+                                    <div class="success" id="national_id_success">✓ شماره ملی معتبر است</div>
+                                    <div class="error" id="national_id_error"></div>
+                                </div>
+
+                                <!-- شماره شناسنامه و نام پدر -->
+                                <div class="form-group">
+                                    <label for="birth_certificate_number" class="required">شماره شناسنامه:</label>
+                                    <input type="text" id="birth_certificate_number" name="birth_certificate_number" class="form-control" required>
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="birth_certificate_image" class="required">تصویر شناسنامه:</label>
-                                    <input type="file" id="birth_certificate_image" name="birth_certificate_image"
-                                           accept=".jpg,.jpeg,.png,.pdf"
+                                    <label for="father_name" class="required">نام پدر:</label>
+                                    <input type="text" id="father_name" name="father_name" class="form-control" required>
+                                </div>
+
+                                <!-- تاریخ تولد -->
+                                <div class="form-group">
+                                    <label class="required">تاریخ تولد (شمسی):</label>
+                                    <div class="help-text">
+                                        <strong>راهنما:</strong> لطفاً تاریخ تولد خود را به درستی انتخاب کنید.
+                                    </div>
+
+                                    <div class="date-container">
+                                        <div class="date-row">
+                                            <div class="date-field">
+                                                <label for="birth_year">سال:</label>
+                                                <select id="birth_year" name="birth_year" class="form-select" required>
+                                                    <option value="">انتخاب سال</option>
+                                                    <!-- سال‌ها با JavaScript پر می‌شود -->
+                                                </select>
+                                            </div>
+
+                                            <div class="date-field">
+                                                <label for="birth_month">ماه:</label>
+                                                <select id="birth_month" name="birth_month" class="form-select" required>
+                                                    <option value="">انتخاب ماه</option>
+                                                    <option value="01">فروردین (۱)</option>
+                                                    <option value="02">اردیبهشت (۲)</option>
+                                                    <option value="03">خرداد (۳)</option>
+                                                    <option value="04">تیر (۴)</option>
+                                                    <option value="05">مرداد (۵)</option>
+                                                    <option value="06">شهریور (۶)</option>
+                                                    <option value="07">مهرآفرین (۷)</option>
+                                                    <option value="08">آبان (۸)</option>
+                                                    <option value="09">آذر (۹)</option>
+                                                    <option value="10">دی (۱۰)</option>
+                                                    <option value="11">بهمن (۱۱)</option>
+                                                    <option value="12">اسفند (۱۲)</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="date-field">
+                                                <label for="birth_day">روز:</label>
+                                                <select id="birth_day" name="birth_day" class="form-select" required>
+                                                    <option value="">انتخاب روز</option>
+                                                    <!-- روزها با JavaScript پر می‌شود -->
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="date-preview">
+                                            <div class="label">تاریخ انتخابی:</div>
+                                            <div id="selected_date">--- / -- / --</div>
+                                        </div>
+                                    </div>
+
+                                    <input type="hidden" id="birth_date_fa" name="birth_date_fa">
+                                    <input type="hidden" id="birth_date" name="birth_date">
+                                </div>
+
+                                <!-- تلفن‌ها -->
+                                <div class="form-group">
+                                    <label for="mobile" class="required">تلفن همراه:</label>
+                                    <input type="tel" id="mobile" name="mobile" class="form-control"
+                                           pattern="09\d{9}"
+                                           placeholder="مثال: ۰۹۱۲۳۴۵۶۷۸۹"
                                            required>
-                                    <div class="note">صفحه اول و دوم شناسنامه (JPG, PNG, PDF)</div>
+                                    <div class="error" id="mobile_error"></div>
                                 </div>
+
+                                <div class="form-group">
+                                    <label for="phone">تلفن ثابت:</label>
+                                    <input type="tel" id="phone" name="phone" class="form-control"
+                                           pattern="\d{8,11}"
+                                           placeholder="مثال: ۰۲۱۸۸۵۵۶۶۷۷">
+                                </div>
+
+                                <!-- آدرس -->
+                                <div class="form-group">
+                                    <label for="address" class="required">آدرس کامل:</label>
+                                    <textarea id="address" name="address" rows="4" class="form-control" required></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="postalCode" class="required">کد پستی (۱۰ رقم):</label>
+                                    <input type="text"
+                                           id="postalCode"
+                                           name="postalCode"
+                                           class="form-control"
+                                           pattern="\d{10}"
+                                           maxlength="10"
+                                           placeholder="مثال: ۱۲۳۴۵۶۷۸۹۰"
+                                           required>
+                                    <div class="error" id="postalCode_error"></div>
+                                </div>
+                                <!-- دکمه ارسال -->
+                                <button type="submit" class="submit-btn-register">
+                                    <i class="fas fa-paper-plane"></i> ثبت اطلاعات و ارسال مدارک
+                                </button>
                             </div>
 
-                            <!-- بخش تاییدیه‌ها -->
-                            <div class="section">
-                                <h3><i class="fas fa-check-circle"></i> تاییدیه‌ها</h3>
 
-                                <!-- پروژه مربوطه -->
-                                <div class="form-group">
-                                    <label for="project_id_reg" class="required">🏢 پروژه مربوطه:</label>
-                                    <select name="project_id_reg" id="project_id_reg" class="form-select" >
-                                        <option value="1">                                🏗صدرا</option>
-
-                                    </select>
-                                </div>
-
-                                <!-- "من ربات نیستم" -->
-                                <div class="form-group">
-                                    <div style="display: flex; align-items: center; gap: 10px; padding: 15px; background: #f0f7ff; border-radius: 8px;">
-                                        <input type="checkbox" id="not_robot" name="not_robot" required style="width: 20px; height: 20px;">
-                                        <label for="not_robot" style="font-weight: bold; cursor: pointer;">
-                                            🤖 من ربات نیستم
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <!-- تایید اطلاعات -->
-                                <div class="form-group">
-                                    <div style="display: flex; align-items: flex-start; gap: 10px; padding: 15px; background: #e8f6ef; border-radius: 8px;">
-                                        <input type="checkbox" id="confirm_info" name="confirm_info" required style="width: 20px; height: 20px; margin-top: 3px;">
-                                        <label for="confirm_info" style="cursor: pointer;">
-                                            <strong>✅ تایید اطلاعات</strong><br>
-                                            من تمام اطلاعات فوق را تأیید می‌کنم و مسئولیت صحت آن‌ها را می‌پذیرم.
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- دکمه ارسال -->
-                            <button type="submit" class="submit-btn-register">
-                                <i class="fas fa-paper-plane"></i> ثبت اطلاعات و ارسال مدارک
-                            </button>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
 <link rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css">
 

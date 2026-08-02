@@ -46,13 +46,15 @@ try {
         $paid_amount        = str_replace([',', ' '], '', trim($_POST['paid_amount'] ?? ''));
         $payment_method     = trim($_POST['payment_method'] ?? '');
         $description        = trim($_POST['description'] ?? '');
-
+        $Deposit_date=trim($_POST['Deposit_date'] ?? '');
         if (
                 $installment_title === '' ||
                 $installment_date === '' ||
                 $installment_amount === '' ||
                 $paid_amount === '' ||
-                $payment_method === ''
+                $payment_method === '' ||
+                $Deposit_date === ''
+
         ) {
             $error_msg = 'لطفاً تمام فیلدهای الزامی را تکمیل کنید.';
         } elseif (!is_numeric($installment_amount) || !is_numeric($paid_amount)) {
@@ -69,7 +71,8 @@ try {
                     installment_amount,
                     paid_amount,
                     payment_method,
-                    description
+                    description,
+                    Deposit_date
                 ) VALUES (
                     :user_project_id,
                     :project_id,
@@ -80,7 +83,8 @@ try {
                     :installment_amount,
                     :paid_amount,
                     :payment_method,
-                    :description
+                    :description,
+                    :Deposit_date
                 )
             ");
 
@@ -94,7 +98,8 @@ try {
                     ':installment_amount'  => $installment_amount,
                     ':paid_amount'         => $paid_amount,
                     ':payment_method'      => $payment_method,
-                    ':description'         => $description
+                    ':description'         => $description,
+                            ':Deposit_date'=>$Deposit_date
             ]);
 
             header("Location: member_statements.php?user_project_id=" . urlencode((string)$user_project_id) . "&project_id=" . urlencode((string)$project_id) . "&success=created");
@@ -160,6 +165,10 @@ ob_start()
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">تاریخ قسط</label>
                                 <input type="text" name="installment_date" class="form-control form-control-lg rounded-3" placeholder="مثلاً 1403/06/15" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">تاریخ واریز</label>
+                                <input type="text" name="Deposit_date" class="form-control form-control-lg rounded-3" placeholder="مثلاً 1403/06/15" required>
                             </div>
 
                             <div class="col-md-6">

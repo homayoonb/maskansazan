@@ -5,6 +5,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
     header('Location: groupmembers.php');
     exit();
 }
+require_once __DIR__ . '/config/Database.php';
 
 $db = new Database();
 $conn = $db->connect();

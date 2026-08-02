@@ -41,6 +41,11 @@ else {
             'contact.php'          => 'تماس با ما',
             'peymankaran_taminkonandegan_login.php'          => 'پیمانکاران',
             'loginAdmin.php'          => 'مدیریت',
+            'dashboardAdmin.php'          => 'داشبورد ادمین',
+            'create_new_contractor.php'          => 'ایجاد پیمانکارجدید',
+            'edit_contractor.php'          => 'ویرایش پیمانکار',
+            'showDocuments.php'          => 'مشاهده مدارک',
+            'member_statements.php'          => 'مشاهده قسطهای پرداخت شده',
     ];
 
     if (isset($pages[$currentPage])) {

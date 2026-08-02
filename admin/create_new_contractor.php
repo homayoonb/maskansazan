@@ -16,7 +16,7 @@ if ($project_id <= 0) {
     var_dump($_GET);
     die("شناسه پروژه معتبر نیست.");
 }
-$allowedDocumentTypes = ['شناسنامه', 'کارت ملی', 'قرارداد', 'سند', 'فیش بانکی', 'سایر'];
+$allowedDocumentTypes = ['فاکتور','شناسنامه', 'کارت ملی', 'قرارداد', 'سند', 'فیش بانکی', 'سایر'];
 $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf'];
 
 function generateUploadName($prefix, $extension)

@@ -6,7 +6,6 @@ if (empty($_SESSION['admin_id']) || empty($_SESSION['admin_username'])) {
     exit;
 }
 
-// لود خودکار کتابخانه‌ها از طریق Composer
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../includes/jdf.php';
 
@@ -41,19 +40,50 @@ try {
 
     // دریافت تراکنش‌ها
     $stmt2 = $pdo->prepare("
-        SELECT * FROM member_statements 
-        WHERE national_code = :national_code
-        ORDER BY installment_date ASC
+    SELECT * FROM member_statements 
+    WHERE national_code = :national_code 
+      AND installment_date IS NOT NULL
+      AND installment_date != ''
+      AND Deposit_date IS NOT NULL
+      AND Deposit_date != ''
+    ORDER BY installment_date ASC
     ");
     $stmt2->execute([':national_code' => $nationalCode]);
     $rows = $stmt2->fetchAll();
 
     $total_paid = 0;
+    $total_installment_amount = 0;
+
     foreach ($rows as $row) {
         $total_paid += (float)($row['paid_amount'] ?? 0);
+        $total_installment_amount += (float)($row['installment_amount'] ?? 0);
     }
 
-    // قالب‌بندی خروجی با استایل تمیز و سازگار با mPDF
+// پاکسازی رشته مبلغ ثابت مصوب و تبدیل به عدد شناور جهت محاسبات
+    $target_installment_amount = (float)str_replace(',', '', '16,500,000,000');
+
+// محاسبه مابه‌التفاوت مطابق با منطق داشبورد
+    $items = $target_installment_amount - $total_paid;
+
+// تعیین کسری، اضافه پرداخت و وضعیت نهایی
+    if ($items > 0) {
+        // مبلغ مصوب از پرداختی بیشتر است => کسری پرداخت داریم
+        $deficit = $items;
+        $surplus = 0;
+        $paymentStatus = 'بدهکار';
+    } elseif ($items < 0) {
+        // پرداختی از مبلغ مصوب بیشتر است => اضافه پرداخت داریم
+        $deficit = 0;
+        $surplus = abs($items);
+        $paymentStatus = 'بستانکار';
+    } else {
+        // مابه‌التفاوت صفر است => تسویه شده
+        $deficit = 0;
+        $surplus = 0;
+        $paymentStatus = 'تسویه شده';
+    }
+
+
     $html = '
     <html lang="fa" dir="rtl">
     <head>
@@ -87,15 +117,37 @@ try {
                 border: none;
                 padding: 4px 0;
             }
-            .total-box {
+            .summary-table {
+                width: 100%;
+                border-collapse: collapse;
                 margin: 10px 0 20px 0;
-                padding: 12px;
-                border: 1px solid #198754;
+            }
+            .summary-table td {
+                border: 1px solid #ccc;
+                padding: 10px;
+                text-align: center;
+                font-size: 12px;
+                font-weight: bold;
+            }
+            .bg-green {
                 background-color: #eafaf1;
                 color: #198754;
-                font-weight: bold;
-                font-size: 13px;
-                border-radius: 4px;
+            }
+            .bg-red {
+                background-color: #fdeaea;
+                color: #dc3545;
+            }
+            .bg-blue {
+                background-color: #eaf2ff;
+                color: #0d6efd;
+            }
+            .bg-yellow {
+                background-color: #fff8e1;
+                color: #b8860b;
+            }
+            .bg-gray {
+                background-color: #f5f5f5;
+                color: #444;
             }
             table.data-table {
                 width: 100%;
@@ -125,9 +177,16 @@ try {
             </tr>
         </table>
 
-        <div class="total-box">
-            جمع کل مبالغ واریزی: ' . number_format($total_paid) . ' ریال
-        </div>
+        <table class="summary-table">
+            <tr>
+                <td class="bg-green">جمع کل واریزی<br>' . number_format($total_paid) . ' ریال</td>
+                <td class="bg-yellow">جمع اقساط تا تاریخ ۱۴۰۵/۰۲/۱۵<br>' . number_format($target_installment_amount) . ' ریال</td>
+                <td class="bg-red">بدهکار<br>' . number_format($deficit) . ' ریال</td>
+                <td class="bg-blue">بستانکار<br>' . number_format($surplus) . ' ریال</td>
+                <td class="bg-gray">وضعیت<br>' . $paymentStatus . '</td>
+            </tr>
+        </table>
+
 
         <table class="data-table">
             <thead>
@@ -140,10 +199,10 @@ try {
                     <th width="15%">مبلغ پرداختی (ریال)</th>
                     <th width="11%">روش پرداخت</th>
                     <th width="12%">توضیحات</th>
+                    <th width="12%">تاریخ واریز</th>
                 </tr>
             </thead>
             <tbody>';
-
     if (!empty($rows)) {
         foreach ($rows as $i => $row) {
             $html .= '
@@ -156,10 +215,11 @@ try {
                     <td>' . number_format((float)($row['paid_amount'] ?? 0)) . '</td>
                     <td>' . htmlspecialchars($row['payment_method'] ?? '---') . '</td>
                     <td>' . htmlspecialchars($row['description'] ?? '---') . '</td>
+                    <td>' . htmlspecialchars($row['Deposit_date'] ?? '---') . '</td>
                 </tr>';
         }
     } else {
-        $html .= '<tr><td colspan="8">هیچ اطلاعاتی یافت نشد.</td></tr>';
+        $html .= '<tr><td colspan="9">هیچ اطلاعاتی یافت نشد.</td></tr>';
     }
 
     $html .= '
@@ -168,10 +228,9 @@ try {
     </body>
     </html>';
 
-    // راه‌اندازی mPDF با جهت‌دهی راست به چپ (RTL) و حالت افقی (Landscape)
     $mpdf = new \Mpdf\Mpdf([
         'mode' => 'utf-8',
-        'format' => 'A4-L', // سایز A4 به صورت افقی برای جا شدن بهتر جدول عریض
+        'format' => 'A4-L',
         'default_font' => 'dejavusans',
         'margin_top' => 12,
         'margin_bottom' => 12,
@@ -183,8 +242,6 @@ try {
     $mpdf->WriteHTML($html);
 
     $safeFileName = 'paid_installments_' . preg_replace('/[^0-9]/', '', $nationalCode) . '.pdf';
-
-    // دانلود خودکار فایل در سیستم کاربر
     $mpdf->Output($safeFileName, \Mpdf\Output\Destination::DOWNLOAD);
     exit;
 

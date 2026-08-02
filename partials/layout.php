@@ -61,17 +61,24 @@ else {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        body { font-family: 'Vazir', Tahoma, sans-serif; background-color: #f4f7f6; }
+        body { font-family: 'Vazir', Tahoma, sans-serif; background-color: #F4F4FC; }
 
         /* چیدمان اصلی */
         .wrapper { display: flex; min-height: 100vh; }
-        .main-content {
-            margin-right: 260px; /* عرض سایدبار */
-            margin-top: 70px;    /* ارتفاع هدر */
-            padding: 20px;
-            background-color: transparent !important;
-            min-height: 100vh;
+        .main-content .row {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            margin-top: 50px;
         }
+
+        .main-content .col-lg-10 {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            margin-top: auto !important;
+        }
+
 
         /* استایل سایدبار عمودی */
         .sidebar {
@@ -88,12 +95,6 @@ else {
             transition: all 0.3s;
         }
 
-        .main-content {
-            flex: 1;
-            margin-right: 280px; /* ایجاد فضا برای سایدبار */
-            padding: 20px;
-            transition: all 0.3s;
-        }
 
         /* لوگو در سایدبار */
         .sidebar-header {
@@ -239,20 +240,19 @@ else {
     <!-- سایدبار که معمولاً در header یا جداگانه است -->
     <?php
        include 'header.php';
-       include 'sidebar.php';
     ?>
 
-    <!-- بخش اصلی -->
-    <main class="main-content">
-
-
-
-
-        <!-- محتوای اصلی -->
-        <div class="content-body container-fluid p-4">
-            <?php echo isset($content) ? $content : '<p>محتوایی یافت نشد.</p>'; ?>
+    <main class="main-content py-4" style="margin-top: 200px;width:100%">
+        <div class="container">
+            <div class="row col-lg-10">
+                <div class="col-lg-10">
+                    <?php echo isset($content) ? $content : '<p>محتوایی یافت نشد.</p>'; ?>
+                </div>
+            </div>
         </div>
     </main>
+
+
 </div>
 <!-- Modal Search -->
 <div class="modal fade" id="searchModal" tabindex="-1">

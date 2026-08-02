@@ -1,5 +1,16 @@
 
+<style>
+    #lang-select {
+        background-color: black;
+        color: white;
+    }
 
+    #lang-select option {
+        background-color: black;
+        color: white;
+    }
+
+</style>
 <div id="datetime-box" style="
     color: black;
     font-family: 'Tahoma', sans-serif;
@@ -15,19 +26,22 @@
     <span id="persian-date"></span>
     <span id="gregorian-date"></span>
     <span id="local-time"></span>
+
     <select id="lang-select" style="
         background: rgba(255,255,255,0.2);
         color: black;
+        background-color: white;
         border: none;
         border-radius: 5px;
         padding: 3px 6px;
         font-size: 14px;
         cursor: pointer;
     ">
-        <option value="fa">فارسی</option>
-        <option value="en">English</option>
+        <option value="fa" style="color: black; background: white;">فارسی</option>
+        <option value="en" style="color: black; background: white;">English</option>
     </select>
 </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/min/moment.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/moment-jalaali@0.9.2/build/moment-jalaali.js"></script>

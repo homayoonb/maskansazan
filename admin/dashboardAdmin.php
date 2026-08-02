@@ -1186,19 +1186,19 @@ foreach ($projectMembers as $member) {
 }
 $rows = [];
 if ($activeTab === 'expenses' && $selectedProjectId > 0) {
-    $stmt = $pdo->prepare("
-        SELECT * FROM 
-            member_statements AS ms
-            INNER JOIN projects AS p ON ms.project_id=p.id
-            INNER JOIN users_project AS up ON ms.users_project_id=up.id
-            WHERE ms.project_id=:project_id
-            AND ms.users_project_id=:user_project_id
-    ");
-    $stmt->execute([
-            ':project_id' => $selectedProjectId,
-            ':user_project_id' => $user_project_id
-    ]);
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+//    $stmt = $pdo->prepare("
+//        SELECT * FROM
+//            member_statements AS ms
+//            INNER JOIN projects AS p ON ms.project_id=p.id
+//            INNER JOIN users_project AS up ON ms.users_project_id=up.id
+//            WHERE ms.project_id=:project_id
+//            AND ms.users_project_id=:user_project_id
+//    ");
+//    $stmt->execute([
+//            ':project_id' => $selectedProjectId,
+//            ':user_project_id' => $user_project_id
+//    ]);
+//    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 $contractors = [];
@@ -1316,6 +1316,18 @@ ob_start();
             width: 100%;
         }
     }
+    /* انیمیشن برای چرخش آیکون پلاس */
+    .transition-icon {
+        transition: transform 0.3s ease;
+    }
+    .rotate-45 {
+        transform: rotate(45deg); /* تبدیل پلاس به ضربدر یا نشان دادن باز شدن */
+        color: #0d6efd;
+    }
+    .list-group-item.active {
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
+    }
 
 </style>
 
@@ -1352,41 +1364,73 @@ ob_start();
             <i class="bi bi-people me-2"></i>اعضای سایت
         </a>
         <div class="list-group">
-            <div class="list-group-item">
-                <div class="d-flex justify-content-between align-items-center">
-                    <a href="dashboardAdmin.php?tab=expenses&project_id=<?= (int)$selectedProjectId ?>"
-                       class="text-decoration-none <?= $activeTab === 'expenses' ? 'fw-bold text-primary' : 'text-dark' ?>">
-                        <i class="bi bi-receipt me-2"></i> هزینه
-                    </a>
+            <div class="list-group-item p-2">
+                <!-- بخش هزینه با زیرمنو -->
+                <div>
+                    <div class="d-flex justify-content-between align-items-center p-2 cursor-pointer"
+                         style="cursor: pointer;"
+                         onclick="toggleCollapse('collapseExpenses', this)">
 
-                    <button
-                            class="btn btn-sm border-0 shadow-none"
-                            type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#collapse1"
-                            aria-expanded="false"
-                            aria-controls="collapse1"
-                    >
-                        <i class="bi bi-plus-lg"></i>
-                    </button>
-                </div>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-receipt me-2 <?= $activeTab === 'expenses' ? 'text-primary' : '' ?>"></i>
+                            <a href="dashboardAdmin.php?tab=expenses&project_id=<?= (int)$selectedProjectId ?>"
+                               class="text-decoration-none <?= $activeTab === 'expenses' ? 'fw-bold text-primary' : 'text-dark' ?>"
+                               onclick="event.stopPropagation();"> <!-- جلوگیری از بسته شدن منو هنگام کلیک روی متن -->
+                                هزینه
+                            </a>
+                        </div>
 
-                <div id="collapse1" class="collapse mt-2">
-                    <div class="ps-3 border-start border-2 border-primary">
-                        <div class="py-1">چک</div>
-                        <div class="py-1">حواله</div>
+                        <i class="bi bi-plus-lg transition-icon"></i>
+                    </div>
+
+                    <!-- زیرمنو -->
+                    <div id="collapseExpenses"  class="collapse <?= ($activeTab === 'expenses') ? 'show' : '' ?>">
+                        <div class="mx-3 mb-3 ps-3  bg-light-subtle rounded">
+                            <a href="dashboardAdmin.php?tab=expenses&project_id=<?= $selectedProjectId ?>" class="d-block py-2 text-decoration-none text-dark small border-bottom">مدیریت فاکتور</a>
+                            <a href="#" class="d-block py-2 text-decoration-none text-dark border-bottom small">پیمانکاران</a>
+                            <a href="#" class="d-block py-2 text-decoration-none text-dark small">قراردادها</a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
 
+        <div class="list-group">
+            <!-- بخش درآمد -->
+            <div class="list-group-item p-0 border rounded mb-2 bg-white">
+                <!-- هدر منو -->
+                <div class="d-flex justify-content-between align-items-center p-3 cursor-pointer"
+                     style="cursor: pointer;"
+                     onclick="toggleCollapse1('collapseincome', this)">
+
+                    <!-- ۱. آیکون + (سمت چپ) -->
 
 
-        <a href="dashboardAdmin.php?tab=income&project_id=<?= $selectedProjectId ?>"
-           class="list-group-item list-group-item-action <?= $activeTab === 'income' ? 'active' : '' ?>">
-            <i class="bi bi-graph-up-arrow me-2"></i>درآمد
-        </a>
+                    <!-- ۲. ترکیب متن و آیکون اصلی (سمت راست) -->
+                    <div class="d-flex align-items-end">
+                        <a href="dashboardAdmin.php?tab=income&project_id=<?= (int)$selectedProjectId ?>"
+                           class="text-decoration-none me-2 <?= $activeTab === 'income' ? 'fw-bold text-primary' : 'text-dark' ?>"
+                           onclick="event.stopPropagation();">
+                            <i class="bi bi-receipt-cutoff fs-5 text-primary"></i>
+                            درآمد
+                        </a>
+                        <i class="bi fs-5 <?= $activeTab === 'income' ? 'text-primary' : 'text-secondary' ?>"></i>
+                    </div>
+                    <i class="bi bi-plus-lg  transition-icon text-secondary"></i>
+                </div>
+
+                <!-- زیرمنو -->
+                <div id="collapseincome" class="collapse">
+                    <div class="mx-3 mb-3 ps-3 bg-light-subtle rounded">
+                        <a href="#" class="d-block py-2 text-decoration-none text-dark small border-bottom text-start">قسط اعضا</a>
+                        <a href="#" class="d-block py-2 text-decoration-none text-dark small border-bottom text-start">پیش فروش</a>
+                        <a href="#" class="d-block py-2 text-decoration-none text-dark small text-start">سایر</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
         <a href="dashboardAdmin.php?tab=finance&project_id=<?= $selectedProjectId ?>"
            class="list-group-item list-group-item-action <?= $activeTab === 'finance' ? 'active' : '' ?>">
@@ -1404,9 +1448,12 @@ ob_start();
         </a>
     </div>
 </div>
+<br>
+<br>
+<br>
 <?php if ($activeTab === 'members'): ?>
 
-    <div class="card mt-4">
+    <div class="card-header" >
         <div class="card-body">
 
 
@@ -1415,7 +1462,7 @@ ob_start();
                 <div class="mb-3 col-md-4">
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" id="memberSearchInput" class="form-control" placeholder="جستجوی آنی نام یا نام خانوادگی...">
+                        <input type="text" id="memberSearchInput" class="form-control"  placeholder="جستجوی آنی نام یا نام خانوادگی...">
                     </div>
                 </div>
             </div>
@@ -1426,7 +1473,7 @@ ob_start();
                 <div class="alert alert-info">برای این پروژه عضوی ثبت نشده است.</div>
 
             <?php else: ?>
-                <div class="table-responsive">
+                <div class="table-responsive" >
                     <table id="membersTable" class="table table-bordered table-hover text-center align-middle">
                         <thead>
                         <tr>
@@ -1632,49 +1679,23 @@ ob_start();
     </div>
 
 <?php elseif ($activeTab === 'expenses'): ?>
-    <div class="card mt-4">
-        <div class="card-body">
-            <h5 class="mb-3">لیست قست های پرداخت شده</h5>
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        <?php
+        $tab = $_GET['tab'] ?? 'dashboard'; // تب پیش‌فرض
 
-            <?php if ($selectedProjectId <= 0): ?>
-                <div class="alert alert-warning">لطفاً ابتدا یک پروژه انتخاب کنید.</div>
-            <?php elseif (empty($rows)): ?>
-                <div class="alert alert-info">برای این پروژه عضوی ثبت نشده است.</div>
-            <?php else: ?>
-                <div class="table-responsive mt-4">
-                    <table class="table table-bordered table-hover shadow-sm">
-                        <thead class="table-light">
-                        <tr style="text-align: left">
-                            <th>ردیف</th>
-                            <th>نام عضو</th>
-                            <th>عنوان قسط</th>
-                            <th>تاریخ قسط</th>
-                            <th>مبلغ قسط (ریال)</th>
-                            <th>مبلغ پرداختی (ریال)</th>
-                            <th>روش پرداخت</th>
-                            <th>توضیحات</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php foreach ($rows as $i=> $row): ?>
-                            <tr>
-                                <td><?= $i+1 ?></td>
-                                <td><?= htmlspecialchars($row['member_name']) ?></td>
-                                <td><?= htmlspecialchars($row['installment_title']) ?></td>
-                                <td class="text-nowrap"><?= htmlspecialchars($row['installment_date']) ?></td>
-                                <td><?= number_format($row['installment_amount']) ?></td>
-                                <td><?= number_format($row['paid_amount']) ?></td>
-                                <td><?= htmlspecialchars($row['payment_method'] ?? '---') ?></td>
-                                <td><?= htmlspecialchars($row['description'] ?? '---') ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
+        switch ($tab) {
+            case 'expenses':
+                include __DIR__ . '/factor_list.php';
+                break;
 
-            <?php endif; ?>
-        </div>
-    </div>
+
+            // سایر تب‌ها...
+            default:
+                break;
+        }
+        ?>
+    </main>
+
 <?php elseif ($activeTab==='tickets') : ?>
     <div class="card mt-4">
         <div class="card-body">
@@ -1772,9 +1793,40 @@ ob_start();
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <!-- Bootstrap -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 
 <script>
+    function toggleCollapse(elementId, toggler) {
+        const myCollapse = document.getElementById(elementId);
+        const bsCollapse = new bootstrap.Collapse(myCollapse, {
+            toggle: true // این پارامتر باعث می‌شود با هر بار کلیک وضعیت برعکس شود
+        });
+
+        // تغییر آیکون
+        const icon = toggler.querySelector('.bi-plus-lg');
+        myCollapse.addEventListener('shown.bs.collapse', function () {
+            icon.classList.add('rotate-45');
+        });
+        myCollapse.addEventListener('hidden.bs.collapse', function () {
+            icon.classList.remove('rotate-45');
+        });
+    }
+    function toggleCollapse1(elementId, toggler) {
+        const myCollapse = document.getElementById(elementId);
+        const bsCollapse = new bootstrap.Collapse(myCollapse, {
+            toggle: true // این پارامتر باعث می‌شود با هر بار کلیک وضعیت برعکس شود
+        });
+
+        // تغییر آیکون
+        const icon = toggler.querySelector('.bi-plus-lg');
+        myCollapse.addEventListener('shown.bs.collapse', function () {
+            icon.classList.add('rotate-45');
+        });
+        myCollapse.addEventListener('hidden.bs.collapse', function () {
+            icon.classList.remove('rotate-45');
+        });
+    }
     $(document).ready(function () {
 
         console.log('jQuery:', typeof $);

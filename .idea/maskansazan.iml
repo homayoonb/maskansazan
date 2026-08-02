@@ -25,5 +25,6 @@
     <orderEntry type="library" name="sweetalert2" level="application" />
     <orderEntry type="library" name="Vazirmatn-font-face" level="application" />
     <orderEntry type="library" name="jquery-3.6.0" level="application" />
+    <orderEntry type="library" name="@majidh1/jalalidatepicker" level="application" />
   </component>
 </module>

@@ -46,8 +46,13 @@ try {
     $stmt2 = $pdo->prepare("
     SELECT * FROM member_statements 
     WHERE national_code = :national_code 
-    ORDER BY   installment_date ASC
+      AND installment_date IS NOT NULL
+      AND installment_date != ''
+      AND Deposit_date IS NOT NULL
+      AND Deposit_date != ''
+    ORDER BY installment_date ASC
 ");
+
     $stmt2->execute([':national_code' => $nationalCode]);
     $rows = $stmt2->fetchAll(PDO::FETCH_ASSOC);
     $total_paid = 0; // متغیر برای ذخیره جمع کل
@@ -131,29 +136,112 @@ ob_start();
     <div class="row">
 
         <main class="col-md-9 col-lg-10 px-md-4">
-            <div class="row mb-3 align-items-center">
-                <div class="col-md-4">
-                    <label class="col-form-label">
-                        جمع واریز شده ها
-                    </label>
+            <div class="container-fluid px-3"> <!-- کانتینر برای محدود کردن عرض محتوا -->
+                <!-- ردیف اول آمار (۳ ستون) -->
+                <div class="row text-center mb-3 g-3">
+                    <!-- جمع کل واریزی‌ها -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="p-3 border rounded bg-white shadow-sm">
+                            <label class="fw-bold d-block text-secondary mb-2 small">جمع کل واریزی‌ها</label>
+                            <span class="badge bg-light text-success fs-5 border border-success w-100 py-2">
+                <?= number_format($total_paid ?? 0) ?> <small class="fs-6">ریال</small>
+            </span>
+                        </div>
+                    </div>
+
+                    <!-- پرداختی این عضو (در واقع همان جمع واریزی است، اما اگر منظور سقف است، مقدار ۱۶.۵ را نشان دهید) -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="p-3 border rounded bg-white shadow-sm">
+                            <label class="fw-bold d-block text-secondary mb-2 small">پرداختی این عضو</label>
+                            <span class="badge bg-light text-primary fs-5 border border-primary w-100 py-2">
+                <?= number_format($total_paid ?? 0) ?> <small class="fs-6">ریال</small>
+            </span>
+                        </div>
+                    </div>
+
+                    <!-- جمع اقساط تا تاریخ -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="p-3 border rounded bg-white shadow-sm">
+                            <?php
+                            $target_amount = 16500000000; // ۱۶.۵ میلیارد ریال
+                            ?>
+                            <label class="fw-bold d-block text-secondary mb-2 small">جمع اقساط تا <span class="text-dark">۱۴۰۵/۰۲/۱۵</span></label>
+                            <span class="badge bg-light text-warning fs-5 border border-warning text-dark w-100 py-2">
+                <?= number_format($target_amount) ?> <small class="fs-6">ریال</small>
+            </span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="col-md-4">
-                    <label class="col-form-label d-flex align-items-center gap-2 text-success fw-bold">
-                        <span>
-                            <?= number_format($total_paid) ?>
-                        </span>
-                        <span>ریال</span>
-                    </label>
+                <?php
+                // محاسبه مابه‌التفاوت واقعی
+                $diff = $target_amount - $total_paid;
+                ?>
+
+                <!-- ردیف دوم آمار و دکمه -->
+                <div class="row text-center mb-4 g-3 align-items-end">
+
+                    <?php if ($diff > 0): ?>
+                        <!-- مابه‌التفاوت مثبت است یعنی بدهکار است -->
+                        <div class="col-lg-4 col-md-6">
+                            <div class="p-3 border rounded bg-white shadow-sm">
+                                <label class="fw-bold d-block text-secondary mb-2 small">بدهکار (کسری پرداخت)</label>
+                                <span class="badge bg-light text-danger fs-5 border border-danger w-100 py-2">
+                    <?= number_format($diff) ?> <small class="fs-6">ریال</small>
+                </span>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6">
+                            <div class="p-3 border rounded bg-white shadow-sm">
+                                <label class="fw-bold d-block text-secondary mb-2 small">بستانکار (اضافه پرداخت)</label>
+                                <span class="badge bg-light text-secondary fs-5 border border-secondary w-100 py-2">
+                    0 <small class="fs-6">ریال</small>
+                </span>
+                            </div>
+                        </div>
+
+                    <?php elseif ($diff < 0): ?>
+                        <!-- مابه‌التفاوت منفی است یعنی بستانکار است -->
+                        <div class="col-lg-4 col-md-6">
+                            <div class="p-3 border rounded bg-white shadow-sm">
+                                <label class="fw-bold d-block text-secondary mb-2 small">بدهکار (کسری پرداخت)</label>
+                                <span class="badge bg-light text-secondary fs-5 border border-secondary w-100 py-2">
+                    0 <small class="fs-6">ریال</small>
+                </span>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6">
+                            <div class="p-3 border rounded bg-white shadow-sm">
+                                <label class="fw-bold d-block text-secondary mb-2 small">بستانکار (اضافه پرداخت)</label>
+                                <span class="badge bg-light text-success fs-5 border border-success w-100 py-2">
+                    <?= number_format(abs($diff)) ?> <small class="fs-6">ریال</small>
+                </span>
+                            </div>
+                        </div>
+
+                    <?php else: ?>
+                        <!-- تسویه کامل -->
+                        <div class="col-lg-8 col-md-12">
+                            <div class="p-3 border rounded bg-light shadow-sm">
+                                <span class="text-primary fw-bold">حساب عضو تسویه می‌باشد.</span>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- دکمه خروجی PDF -->
+                    <div class="col-lg-4 col-md-12">
+                        <div class="p-2">
+                            <a href="export_paid_installments_admin.php?user_project_id=<?= urlencode((string)$user_project_id) ?>&project_id=<?= urlencode((string)$project_id) ?>"
+                               class="btn btn-success fw-bold py-3 w-100 shadow-sm d-flex align-items-center justify-content-center">
+                                <i class="bi bi-file-earmark-pdf fs-5 me-2"></i> خروجی اقساط پرداخت‌شده
+                            </a>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="col-md-4 text-end">
-                    <a href="export_paid_installments_admin.php?user_project_id=<?= urlencode((string)$user_project_id) ?>&project_id=<?= urlencode((string)$project_id) ?>"
-                       class="btn btn-success">
-                        خروجی اقساط پرداخت‌شده
-                    </a>
-                </div>
-            </div>
+
+
+
 
             <div class="table-responsive mt-4">
                 <table class="table table-bordered table-hover shadow-sm align-middle" style="direction: rtl">
@@ -163,6 +251,7 @@ ob_start();
                         <th>نام عضو</th>
                         <th>عنوان قسط</th>
                         <th>تاریخ قسط</th>
+                        <th>تاریخ واریز</th>
                         <th>مبلغ قسط (ریال)</th>
                         <th>مبلغ پرداختی (ریال)</th>
                         <th>روش پرداخت</th>
@@ -178,6 +267,7 @@ ob_start();
                                 <td><?= htmlspecialchars($row['member_name'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
                                 <td><?= htmlspecialchars($row['installment_title'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
                                 <td class="text-nowrap"><?= htmlspecialchars($row['installment_date'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+                                <td class="text-nowrap"><?= htmlspecialchars($row['Deposit_date'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
                                 <td><?= number_format((float)($row['installment_amount'] ?? 0)) ?></td>
                                 <td><?= number_format((float)($row['paid_amount'] ?? 0)) ?></td>
                                 <td><?= htmlspecialchars($row['payment_method'] ?? '---', ENT_QUOTES, 'UTF-8') ?></td>
