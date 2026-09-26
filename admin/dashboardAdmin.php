@@ -1186,68 +1186,54 @@ foreach ($projectMembers as $member) {
 }
 $rows = [];
 if ($activeTab === 'expenses' && $selectedProjectId > 0) {
-//    $stmt = $pdo->prepare("
-//        SELECT * FROM
-//            member_statements AS ms
-//            INNER JOIN projects AS p ON ms.project_id=p.id
-//            INNER JOIN users_project AS up ON ms.users_project_id=up.id
-//            WHERE ms.project_id=:project_id
-//            AND ms.users_project_id=:user_project_id
-//    ");
-//    $stmt->execute([
-//            ':project_id' => $selectedProjectId,
-//            ':user_project_id' => $user_project_id
-//    ]);
-//    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
 
-$contractors = [];
-$contractorSearch = trim($_GET['contractor_search'] ?? '');
-$contractorPage = max(1, (int)($_GET['contractor_page'] ?? 1));
-$contractorPerPage = 10;
-$totalContractors = 0;
-$totalContractorPages = 1;
+    $contractors = [];
+    $contractorSearch = trim($_GET['contractor_search'] ?? '');
+    $contractorPage = max(1, (int)($_GET['contractor_page'] ?? 1));
+    $contractorPerPage = 10;
+    $totalContractors = 0;
+    $totalContractorPages = 1;
 
-if ($activeTab === 'suppliers' && $selectedProjectId > 0) {
-    $whereParts = ['contractors.project_id = :project_id'];
-    $params = [
-            ':project_id' => (int)$selectedProjectId
-    ];
+    if ($activeTab === 'suppliers' && $selectedProjectId > 0) {
+        $whereParts = ['contractors.project_id = :project_id'];
+        $params = [
+                ':project_id' => (int)$selectedProjectId
+        ];
 
-    if ($contractorSearch !== '') {
-        $whereParts[] = "(
+        if ($contractorSearch !== '') {
+            $whereParts[] = "(
             contractors.first_name LIKE :search OR
             contractors.last_name LIKE :search OR
             contractors.national_code LIKE :search OR
             contractors.phone LIKE :search OR
             contractors.job_title LIKE :search
         )";
-        $params[':search'] = '%' . $contractorSearch . '%';
-    }
+            $params[':search'] = '%' . $contractorSearch . '%';
+        }
 
-    $whereSql = implode(' AND ', $whereParts);
+        $whereSql = implode(' AND ', $whereParts);
 
-    $countSql = "SELECT COUNT(*) 
+        $countSql = "SELECT COUNT(*) 
                  FROM contractors
                  WHERE $whereSql";
-    $countStmt = $pdo->prepare($countSql);
-    $countStmt->bindValue(':project_id', $params[':project_id'], PDO::PARAM_INT);
+        $countStmt = $pdo->prepare($countSql);
+        $countStmt->bindValue(':project_id', $params[':project_id'], PDO::PARAM_INT);
 
-    if (isset($params[':search'])) {
-        $countStmt->bindValue(':search', $params[':search'], PDO::PARAM_STR);
-    }
+        if (isset($params[':search'])) {
+            $countStmt->bindValue(':search', $params[':search'], PDO::PARAM_STR);
+        }
 
-    $countStmt->execute();
-    $totalContractors = (int)$countStmt->fetchColumn();
+        $countStmt->execute();
+        $totalContractors = (int)$countStmt->fetchColumn();
 
-    $totalContractorPages = max(1, (int)ceil($totalContractors / $contractorPerPage));
-    if ($contractorPage > $totalContractorPages) {
-        $contractorPage = $totalContractorPages;
-    }
+        $totalContractorPages = max(1, (int)ceil($totalContractors / $contractorPerPage));
+        if ($contractorPage > $totalContractorPages) {
+            $contractorPage = $totalContractorPages;
+        }
 
-    $offset = ($contractorPage - 1) * $contractorPerPage;
+        $offset = ($contractorPage - 1) * $contractorPerPage;
 
-    $listSql = "SELECT 
+        $listSql = "SELECT 
                     contractors.*,
                     fd.profile_image AS document_image,
                     fd.document_type
@@ -1264,19 +1250,565 @@ if ($activeTab === 'suppliers' && $selectedProjectId > 0) {
                 ORDER BY contractors.id DESC
                 LIMIT :limit OFFSET :offset";
 
-    $listStmt = $pdo->prepare($listSql);
-    $listStmt->bindValue(':project_id', $params[':project_id'], PDO::PARAM_INT);
+        $listStmt = $pdo->prepare($listSql);
+        $listStmt->bindValue(':project_id', $params[':project_id'], PDO::PARAM_INT);
 
-    if (isset($params[':search'])) {
-        $listStmt->bindValue(':search', $params[':search'], PDO::PARAM_STR);
+        if (isset($params[':search'])) {
+            $listStmt->bindValue(':search', $params[':search'], PDO::PARAM_STR);
+        }
+
+        $listStmt->bindValue(':limit', $contractorPerPage, PDO::PARAM_INT);
+        $listStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $listStmt->execute();
+
+        $contractors = $listStmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    $listStmt->bindValue(':limit', $contractorPerPage, PDO::PARAM_INT);
-    $listStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-    $listStmt->execute();
 
-    $contractors = $listStmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+if ($activeTab === 'remitance_out' && $selectedProjectId > 0) {
+    // ۱. تابع نرمال‌سازی ارقام فارسی/عربی به انگلیسی
+    if (!function_exists('toEnglishDigits')) {
+        function toEnglishDigits($str)
+        {
+            $persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+            $arabic  = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+            $english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+            $str = str_replace($persian, $english, (string)$str);
+            return str_replace($arabic, $english, $str);
+        }
+    }
+
+    // ۲. تابع کمکی استخراج لیست‌های متمایز (جلوگیری از تکرار کد و امنیت Prepared Statement)
+    if (!function_exists('fetchDistinctColumn')) {
+        function fetchDistinctColumn(PDO $pdo, string $column, int $projectId): array
+        {
+            $allowedColumns = ['bank/hesab', 'subchapter', 'transaction', 'beneficiary', 'document', 'voroodi/khoroujy'];
+            if (!in_array($column, $allowedColumns, true)) {
+                return [];
+            }
+            $stmt = $pdo->prepare("SELECT DISTINCT `{$column}` FROM `remittance_output` 
+                                  WHERE `{$column}` IS NOT NULL AND `{$column}` != '' 
+                                    AND `project_id` = :pid 
+                                  ORDER BY `{$column}` ASC");
+            $stmt->execute([':pid' => $projectId]);
+            return $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
+        }
+    }
+
+    // ۳. دریافت و اعتبارسنجی ورودی‌های فیلتر
+    $bank_hesab       = trim((string)($_GET['bank/hesab'] ?? ''));
+    $subchapter       = trim((string)($_GET['subchapter'] ?? ''));
+    $transaction      = trim((string)($_GET['transaction'] ?? ''));
+    $beneficiary      = trim((string)($_GET['beneficiary'] ?? ''));
+    $document         = trim((string)($_GET['document'] ?? ''));
+    $voroodi_khoroujy = trim((string)($_GET['voroodi/khoroujy'] ?? ''));
+    $dateFrom         = toEnglishDigits(trim((string)($_GET['date_from'] ?? '')));
+    $dateTo           = toEnglishDigits(trim((string)($_GET['date_to'] ?? '')));
+    $minAmount        = toEnglishDigits(trim((string)($_GET['min_amount'] ?? '')));
+    $maxAmount        = toEnglishDigits(trim((string)($_GET['max_amount'] ?? '')));
+
+    // تنظیمات صفحه‌بندی
+    $allowedLimits = [10, 25, 50, 100];
+    $perPage = (int)($_GET['per_page'] ?? 25);
+    if (!in_array($perPage, $allowedLimits, true)) {
+        $perPage = 25;
+    }
+    $page = max(1, (int)($_GET['page'] ?? 1));
+
+    // تنظیمات مرتب‌سازی (Sort Whitelist)
+    $allowedSort = ['id', 'history', 'harvest', 'invoice_number', 'document'];
+    $orderBy = in_array($_GET['order_by'] ?? '', $allowedSort, true) ? $_GET['order_by'] : 'id';
+    $orderDir = strtolower($_GET['order_dir'] ?? 'desc') === 'asc' ? 'ASC' : 'DESC';
+    $toggleDir = ($orderDir === 'ASC') ? 'desc' : 'asc';
+
+    // ۴. دریافت لیست‌های دراپ‌داون
+    $bankHesabList   = fetchDistinctColumn($pdo, 'bank/hesab', (int)$selectedProjectId);
+    $beneficiaryList = fetchDistinctColumn($pdo, 'beneficiary', (int)$selectedProjectId);
+    $transactionList = fetchDistinctColumn($pdo, 'transaction', (int)$selectedProjectId);
+    $subchapterList  = fetchDistinctColumn($pdo, 'subchapter', (int)$selectedProjectId);
+    $documentList    = fetchDistinctColumn($pdo, 'document', (int)$selectedProjectId);
+
+    // ۵. ساخت شروط WHERE پویا
+    $whereConditions = ["`project_id` = :project_id"];
+    $queryParams = [':project_id' => (int)$selectedProjectId];
+
+    if ($bank_hesab !== '') {
+        $whereConditions[] = "`bank/hesab` LIKE :bank_hesab";
+        $queryParams[':bank_hesab'] = "%{$bank_hesab}%";
+    }
+    if ($subchapter !== '') {
+        $whereConditions[] = "`subchapter` LIKE :subchapter";
+        $queryParams[':subchapter'] = "%{$subchapter}%";
+    }
+    if ($transaction !== '') {
+        $whereConditions[] = "`transaction` LIKE :transaction";
+        $queryParams[':transaction'] = "%{$transaction}%";
+    }
+    if ($beneficiary !== '') {
+        $whereConditions[] = "`beneficiary` LIKE :beneficiary";
+        $queryParams[':beneficiary'] = "%{$beneficiary}%";
+    }
+    if ($document !== '') {
+        $whereConditions[] = "`document` LIKE :document";
+        $queryParams[':document'] = "%{$document}%";
+    }
+    if ($voroodi_khoroujy !== '') {
+        $whereConditions[] = "`voroodi/khoroujy` LIKE :voroodi_khoroujy";
+        $queryParams[':voroodi_khoroujy'] = "%{$voroodi_khoroujy}%";
+    }
+
+    if ($dateFrom !== '') {
+        $whereConditions[] = "`history` >= :date_from";
+        $queryParams[':date_from'] = $dateFrom;
+    }
+    if ($dateTo !== '') {
+        $whereConditions[] = "`history` <= :date_to";
+        $queryParams[':date_to'] = $dateTo;
+    }
+
+    if ($minAmount !== '' && is_numeric($minAmount)) {
+        $whereConditions[] = "`harvest` >= :min_amount";
+        $queryParams[':min_amount'] = (float)$minAmount;
+    }
+    if ($maxAmount !== '' && is_numeric($maxAmount)) {
+        $whereConditions[] = "`harvest` <= :max_amount";
+        $queryParams[':max_amount'] = (float)$maxAmount;
+    }
+
+    $whereSql = 'WHERE ' . implode(' AND ', $whereConditions);
+
+    // ۶. استخراج نقشه‌برداری روابط (Mapping) سرفصل به زیرفصل
+    $transactionSubMap = [];
+    try {
+        $mapStmt = $pdo->prepare("
+            SELECT DISTINCT `transaction`, `subchapter` 
+            FROM `remittance_output` 
+            WHERE `transaction` IS NOT NULL AND `transaction` != '' 
+              AND `project_id` = :pid
+            ORDER BY `transaction` ASC, `subchapter` ASC
+        ");
+        $mapStmt->execute([':pid' => (int)$selectedProjectId]);
+        $mapRows = $mapStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($mapRows as $r) {
+            $t = trim($r['transaction'] ?? '');
+            $s = trim($r['subchapter'] ?? '');
+            if ($t === '') continue;
+            if (!isset($transactionSubMap[$t])) {
+                $transactionSubMap[$t] = [];
+            }
+            if ($s !== '' && !in_array($s, $transactionSubMap[$t], true)) {
+                $transactionSubMap[$t][] = $s;
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Transaction Map Error: " . $e->getMessage());
+        $transactionSubMap = [];
+    }
+
+    // ساخت نقشه بانک به ذی‌نفع‌ها (Prepared Statement ایمن بدون var_dump)
+    $bank_hesabMap = [];
+    try {
+        $stmtMap = $pdo->prepare("
+            SELECT DISTINCT `bank/hesab`, `beneficiary` 
+            FROM `remittance_output` 
+            WHERE `bank/hesab` IS NOT NULL AND `bank/hesab` != ''
+              AND `project_id` = :pid
+        ");
+        $stmtMap->execute([':pid' => (int)$selectedProjectId]);
+        while ($row = $stmtMap->fetch(PDO::FETCH_ASSOC)) {
+            $bank = trim($row['bank/hesab']);
+            $beneficiary = trim($row['beneficiary'] ?? '');
+            if ($bank !== '') {
+                if (!isset($bank_hesabMap[$bank])) {
+                    $bank_hesabMap[$bank] = [];
+                }
+                if ($beneficiary !== '' && !in_array($beneficiary, $bank_hesabMap[$bank], true)) {
+                    $bank_hesabMap[$bank][] = $beneficiary;
+                }
+            }
+        }
+    } catch (PDOException $e) {
+        error_log("Bank Map Error: " . $e->getMessage());
+        $bank_hesabMap = [];
+    }
+
+    // ۷. اجرای کوئری تجمیع داده‌ها و صفحه‌بندی
+    try {
+        // کوئری شمارش کل و جمع مبالغ
+        $summarySql = "SELECT COUNT(*) AS total_count, COALESCE(SUM(`harvest`), 0) AS total_amount 
+                       FROM `remittance_output` {$whereSql}";
+        $summaryStmt = $pdo->prepare($summarySql);
+        $summaryStmt->execute($queryParams);
+        $summaryData = $summaryStmt->fetch(PDO::FETCH_ASSOC);
+
+        $totalRecords = (int)($summaryData['total_count'] ?? 0);
+        $totalWithdrawalAmount = (float)($summaryData['total_amount'] ?? 0);
+        $totalPages = max(1, (int)ceil($totalRecords / $perPage));
+
+        if ($page > $totalPages) {
+            $page = $totalPages;
+        }
+        $offset = ($page - 1) * $perPage;
+
+        // کوئری دریافت داده‌های صفحه جاری
+        $sql = "SELECT * FROM `remittance_output` 
+                {$whereSql} 
+                ORDER BY `{$orderBy}` {$orderDir}, `id` DESC 
+                LIMIT :limit OFFSET :offset";
+
+        $stmt = $pdo->prepare($sql);
+
+        foreach ($queryParams as $param => $val) {
+            $stmt->bindValue($param, $val);
+        }
+        $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        // ذخیره همزمان در هر دو متغیر برای هماهنگی با هر کجای جدول
+        $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $remittance_output_rows = $expenses;
+
+    } catch (PDOException $e) {
+        error_log("Remittance Output Error: " . $e->getMessage());
+        $expenses = [];
+        $remittance_output_rows = [];
+        $totalRecords = 0;
+        $totalWithdrawalAmount = 0;
+    }
+}
+
+// مقداردهی اولیه در بالای فایل یا قبل از شرط (برای جلوگیری از Undefined در تب‌های دیگر)
+
+if ($activeTab === 'check_out' && $selectedProjectId > 0) {
+
+    /*
+    |--------------------------------------------------------------------------
+    | ۱. مقداردهی اولیه
+    |--------------------------------------------------------------------------
+    */
+
+    $checks = [];
+    $check_output_rows = [];
+    $totalRecords = 0;
+    $totalPages = 1;
+    $offset = 0;
+
+    /*
+    |--------------------------------------------------------------------------
+    | ۲. نرمال‌سازی ارقام فارسی و عربی
+    |--------------------------------------------------------------------------
+    */
+
+    if (!function_exists('toEnglishDigits')) {
+        function toEnglishDigits($value): string
+        {
+            $persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+            $arabic  = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+            $english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+
+            $value = str_replace($persian, $english, (string)$value);
+            return str_replace($arabic, $english, $value);
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | ۳. تابع دریافت مقادیر متمایز ستون‌ها
+    |--------------------------------------------------------------------------
+    */
+
+    if (!function_exists('fetchCheckDistinctColumn')) {
+        function fetchCheckDistinctColumn(PDO $pdo, string $column, int $projectId): array
+        {
+            $allowedColumns = [
+                    'check_amount',
+                    'check_due_date',
+                    'passed/failed',
+                    'bank',
+                    'check_number',
+                    'transaction',
+                    'subchapter',
+                    'recipient'
+            ];
+
+            if (!in_array($column, $allowedColumns, true)) {
+                return [];
+            }
+
+            try {
+                $sql = "
+                    SELECT DISTINCT `{$column}`
+                    FROM `check_output`
+                    WHERE `project_id` = :project_id
+                      AND `{$column}` IS NOT NULL
+                      AND TRIM(`{$column}`) <> ''
+                    ORDER BY `{$column}` ASC
+                ";
+
+                $stmt = $pdo->prepare($sql);
+                $stmt->bindValue(':project_id', $projectId, PDO::PARAM_INT);
+                $stmt->execute();
+
+                return $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
+            } catch (PDOException $e) {
+                error_log("Check distinct column error [{$column}]: " . $e->getMessage());
+                return [];
+            }
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | ۴. دریافت مقادیر ورودی فیلترها و نرمال‌سازی
+    |--------------------------------------------------------------------------
+    */
+
+    // فیلتر وضعیت چک با نام متغیر مجزا (جلوگیری از بازنویسی با لیست دیتابیس)
+    $filterPassedFailed = trim((string)($_GET['passed/failed'] ?? $_GET['status'] ?? ''));
+    $filterCheckNumber  = trim((string)($_GET['check_number'] ?? ''));
+    $filterRecipient    = trim((string)($_GET['recipient'] ?? ''));
+    $filterTransaction  = trim((string)($_GET['transaction'] ?? ''));
+    $filterSubchapter   = trim((string)($_GET['subchapter'] ?? ''));
+    $filterBank         = trim((string)($_GET['bank'] ?? ''));
+
+    $dateFrom  = toEnglishDigits(trim((string)($_GET['date_from'] ?? '')));
+    $dateTo    = toEnglishDigits(trim((string)($_GET['date_to'] ?? '')));
+    $minAmount = toEnglishDigits(str_replace([',', ' '], '', (string)($_GET['min_amount'] ?? '')));
+    $maxAmount = toEnglishDigits(str_replace([',', ' '], '', (string)($_GET['max_amount'] ?? '')));
+
+    /*
+    |--------------------------------------------------------------------------
+    | ۵. دریافت گزینه‌های دراپ‌داون‌ها
+    |--------------------------------------------------------------------------
+    */
+
+    $transactionList   = fetchCheckDistinctColumn($pdo, 'transaction', (int)$selectedProjectId);
+    $subchapterList    = fetchCheckDistinctColumn($pdo, 'subchapter', (int)$selectedProjectId);
+    $check_numberList  = fetchCheckDistinctColumn($pdo, 'check_number', (int)$selectedProjectId);
+    $recipientList     = fetchCheckDistinctColumn($pdo, 'recipient', (int)$selectedProjectId);
+    $passedFailedList  = fetchCheckDistinctColumn($pdo, 'passed/failed', (int)$selectedProjectId);
+
+    /*
+    |--------------------------------------------------------------------------
+    | ۶. تنظیم صفحه‌بندی و مرتب‌سازی امن
+    |--------------------------------------------------------------------------
+    */
+
+    $allowedLimits = [10, 25, 50, 100];
+    $perPage = (int)($_GET['per_page'] ?? 25);
+    if (!in_array($perPage, $allowedLimits, true)) {
+        $perPage = 25;
+    }
+
+    $page = max(1, (int)($_GET['page'] ?? 1));
+
+    $allowedSortColumns = [
+            'id',
+            'check_amount',
+            'check_due_date',
+            'passed/failed',
+            'bank',
+            'check_number',
+    ];
+
+    $requestedOrderBy = (string)($_GET['order_by'] ?? 'id');
+    $orderBy = in_array($requestedOrderBy, $allowedSortColumns, true) ? $requestedOrderBy : 'id';
+
+    $requestedOrderDir = strtolower((string)($_GET['order_dir'] ?? 'desc'));
+    $orderDir = $requestedOrderDir === 'asc' ? 'ASC' : 'DESC';
+    $toggleDir = $orderDir === 'ASC' ? 'desc' : 'asc';
+
+    /*
+    |--------------------------------------------------------------------------
+    | ۷. ساخت شرط‌های WHERE به صورت یکپارچه
+    |--------------------------------------------------------------------------
+    */
+
+    $whereConditions = [
+            'c.`project_id` = :project_id'
+    ];
+
+    $queryParams = [
+            ':project_id' => (int)$selectedProjectId
+    ];
+
+    // فیلتر وضعیت چک (اصلاح شده بدون کاراکتر اسلش در نام پارامتر PDO)
+    if ($filterPassedFailed !== '') {
+        $whereConditions[] = "c.`passed/failed` = :passed_failed";
+        $queryParams[':passed_failed'] = $filterPassedFailed;
+    }
+
+    // شماره چک
+    if ($filterCheckNumber !== '') {
+        $whereConditions[] = "c.`check_number` = :check_number";
+        $queryParams[':check_number'] = $filterCheckNumber;
+    }
+
+    // دریافت کننده
+    if ($filterRecipient !== '') {
+        $whereConditions[] = "c.`recipient` LIKE :recipient";
+        $queryParams[':recipient'] = "%{$filterRecipient}%";
+    }
+
+    // سرفصل
+    if ($filterTransaction !== '') {
+        $whereConditions[] = "c.`transaction` = :transaction";
+        $queryParams[':transaction'] = $filterTransaction;
+    }
+
+    // زیرفصل
+    if ($filterSubchapter !== '') {
+        $whereConditions[] = "c.`subchapter` = :subchapter";
+        $queryParams[':subchapter'] = $filterSubchapter;
+    }
+
+    // بانک
+    if ($filterBank !== '') {
+        $whereConditions[] = "c.`bank` LIKE :bank";
+        $queryParams[':bank'] = "%{$filterBank}%";
+    }
+
+    // تاریخ سررسید
+    if ($dateFrom !== '') {
+        $whereConditions[] = "c.`check_due_date` >= :date_from";
+        $queryParams[':date_from'] = $dateFrom;
+    }
+    if ($dateTo !== '') {
+        $whereConditions[] = "c.`check_due_date` <= :date_to";
+        $queryParams[':date_to'] = $dateTo;
+    }
+
+    // مبلغ
+    if ($minAmount !== '' && is_numeric($minAmount)) {
+        $whereConditions[] = "c.`check_amount` >= :min_amount";
+        $queryParams[':min_amount'] = (float)$minAmount;
+    }
+    if ($maxAmount !== '' && is_numeric($maxAmount)) {
+        $whereConditions[] = "c.`check_amount` <= :max_amount";
+        $queryParams[':max_amount'] = (float)$maxAmount;
+    }
+
+    $whereSql = $whereConditions ? ('WHERE ' . implode(' AND ', $whereConditions)) : '';
+
+    /*
+    |--------------------------------------------------------------------------
+    | ۸. تابع امن اتصال پارامترها
+    |--------------------------------------------------------------------------
+    */
+
+    $bindCheckParams = static function (PDOStatement $stmt, array $params): void {
+        foreach ($params as $name => $value) {
+            $type = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
+            $stmt->bindValue($name, $value, $type);
+        }
+    };
+
+// دریافت نقشه سرفصل‌ها به زیرفصل‌های مرتبط در همین پروژه
+    $transactionSubMap = [];
+    try {
+        $subStmt = $pdo->prepare("
+        SELECT DISTINCT `transaction`, `subchapter`
+        FROM `check_output`
+        WHERE `project_id` = :project_id
+          AND `transaction` IS NOT NULL AND TRIM(`transaction`) <> ''
+          AND `subchapter` IS NOT NULL AND TRIM(`subchapter`) <> ''
+        ORDER BY `transaction` ASC, `subchapter` ASC
+    ");
+        $subStmt->bindValue(':project_id', (int)$selectedProjectId, PDO::PARAM_INT);
+        $subStmt->execute();
+        while ($row = $subStmt->fetch(PDO::FETCH_ASSOC)) {
+            $t = trim($row['transaction']);
+            $s = trim($row['subchapter']);
+            if (!isset($transactionSubMap[$t])) {
+                $transactionSubMap[$t] = [];
+            }
+            if (!in_array($s, $transactionSubMap[$t], true)) {
+                $transactionSubMap[$t][] = $s;
+            }
+        }
+    } catch (PDOException $e) {
+        error_log("SubMap Error: " . $e->getMessage());
+    }
+
+// مقادیر فیلتر فعلی از GET
+    $currentTransaction = trim((string)($_GET['transaction'] ?? ''));
+    $currentSubchapter  = trim((string)($_GET['subchapter'] ?? ''));
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ۹. شمارش و دریافت رکوردهای چک
+    |--------------------------------------------------------------------------
+    */
+
+    try {
+        // شمارش کل رکوردهای منطبق
+        $summarySql = "
+            SELECT COUNT(*) AS total_count, COALESCE(SUM(`check_amount`), 0) AS total_amount
+            FROM `check_output` AS c
+            {$whereSql}
+        ";
+
+        $summaryStmt = $pdo->prepare($summarySql);
+        $bindCheckParams($summaryStmt, $queryParams);
+        $summaryStmt->execute();
+
+        $summaryData = $summaryStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+        $totalWithdrawalAmount = (float)($summaryData['total_amount'] ?? 0);
+        $totalRecords = (int)($summaryData['total_count'] ?? 0);
+
+        // محاسبه صفحات
+        $totalPages = max(1, (int)ceil($totalRecords / $perPage));
+        if ($page > $totalPages) {
+            $page = $totalPages;
+        }
+
+        $offset = ($page - 1) * $perPage;
+
+        // دریافت رکوردهای صفحه جاری
+        $sql = "
+            SELECT
+                c.*,
+                p.`name` AS `project_name`
+            FROM `check_output` AS c
+            LEFT JOIN `projects` AS p
+                ON p.`id` = c.`project_id`
+            {$whereSql}
+            ORDER BY
+                c.`{$orderBy}` {$orderDir},
+                c.`id` DESC
+            LIMIT :limit OFFSET :offset
+        ";
+
+        $stmt = $pdo->prepare($sql);
+        $bindCheckParams($stmt, $queryParams);
+        $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $checks = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $check_output_rows = $checks;
+
+    } catch (PDOException $e) {
+        error_log('Check Output Error: ' . $e->getMessage());
+        $checks = [];
+        $check_output_rows = [];
+        $totalRecords = 0;
+        $totalPages = 1;
+        $page = 1;
+        $offset = 0;
+    }
+}
+
+
+
+
 
 
 // ========== اتمام کد PHP ==========
@@ -1294,12 +1826,15 @@ ob_start();
 
 <!-- ۳. استایل دیتاتیبل مخصوص بوت‌استرپ ۵ -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.rtl.min.css" />
 
-<!-- ۴. کتابخانه jQuery (باید قبل از اسکریپت‌های دیگر لود شود) -->
+
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
-<!-- ۵. جاوااسکریپت بوت‌استرپ ۵ (نسخه ۳ حذف شد تا تداخل رفع شود) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
 
 <!-- ۶. جاوااسکریپت اصلی دیتاتیبل و افزونه بوت‌استرپ ۵ آن -->
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
@@ -1328,6 +1863,38 @@ ob_start();
         background-color: #0d6efd !important;
         border-color: #0d6efd !important;
     }
+    .expense-submenu {
+        display: none;
+        transition: all 0.3s ease;
+    }
+
+    .expense-submenu.open {
+        display: block;
+    }
+
+    .toggle-icon {
+        transition: transform 0.25s ease-in-out;
+    }
+
+    .toggle-icon.rotated {
+        transform: rotate(45deg);
+    }
+    /* اصلاح ترتیب نمایش مودال روی لایه تاریک */
+    .modal-backdrop {
+        z-index: 1050 !important;
+    }
+
+    .modal {
+        z-index: 1055 !important;
+    }
+
+    .modal.show {
+        display: block !important;
+    }
+
+    body > .modal {
+        z-index: 1060;
+    }
 
 </style>
 
@@ -1355,7 +1922,7 @@ ob_start();
 
 
 <div class="mb-3 sidebar-menu-half">
-    <h6 class="text-white mb-3">منو</h6>
+    <h6 class="text-black mb-3">منو</h6>
     <div class="list-group">
 
 
@@ -1388,7 +1955,51 @@ ob_start();
                         <div class="mx-3 mb-3 ps-3  bg-light-subtle rounded">
                             <a href="dashboardAdmin.php?tab=expenses&project_id=<?= $selectedProjectId ?>" class="d-block py-2 text-decoration-none text-dark small border-bottom">مدیریت فاکتور</a>
                             <a href="#" class="d-block py-2 text-decoration-none text-dark border-bottom small">پیمانکاران</a>
-                            <a href="#" class="d-block py-2 text-decoration-none text-dark small">قراردادها</a>
+                            <a href="#" class="d-block py-2 text-decoration-none text-dark border-bottom small">قراردادها</a>
+                            <a  class="d-block py-2 text-decoration-none text-dark small"></a>
+                            <?php
+                            $isExpenseOpen = in_array($activeTab, ['check', 'havaleh'], true);
+                            ?>
+
+                            <div class="expense-menu-wrapper border-bottom py-2">
+                                <!-- عنوان کلیک‌خور -->
+                                <div class="d-flex align-items-center justify-content-between cursor-pointer py-1"
+                                     id="expenseToggleBtn"
+                                     style="cursor: pointer; user-select: none;">
+
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-wallet2 fs-5 text-secondary"></i>
+                                        <span class="fw-bold">لیست هزینه‌ها</span>
+                                    </div>
+
+                                    <i class="bi bi-plus-lg toggle-icon text-secondary <?= $isExpenseOpen ? 'rotated' : '' ?>"></i>
+                                </div>
+
+                                <!-- محتوای زیرمنو (نمایش زیر هم با flex-column) -->
+                                <div id="expenseSubmenuContent" class="expense-submenu <?= $isExpenseOpen ? 'open' : '' ?>">
+                                    <div class="d-flex flex-column gap-2 pe-4 pt-2 pb-1">
+
+                                        <!-- گزینه چک -->
+                                        <a href="dashboardAdmin.php?tab=check_out&project_id=<?= (int)$selectedProjectId ?>"
+                                           class="text-decoration-none d-flex align-items-center gap-2 <?= $activeTab === 'check' ? 'fw-bold text-primary' : 'text-dark' ?>">
+                                            <i class="bi bi-check2-square fs-5"></i>
+                                            <span>چک</span>
+                                        </a>
+
+                                        <!-- گزینه حواله -->
+                                        <a href="dashboardAdmin.php?tab=remitance_out&project_id=<?= $selectedProjectId ?>"
+                                           class="text-decoration-none d-flex align-items-center gap-2 <?= $activeTab === 'havaleh' ? 'fw-bold text-primary' : 'text-dark' ?>">
+                                            <i class="bi bi-receipt-cutoff fs-5"></i>
+                                            <span>حواله</span>
+                                        </a>
+
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+
                         </div>
                     </div>
                 </div>
@@ -1756,6 +2367,895 @@ ob_start();
             <?php endif; ?>
         </div>
     </div>
+<?php elseif ($activeTab === 'remitance_out'): ?>
+    <h1 class="h1 mb-3">
+        لیست حواله ها
+    </h1>
+
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div class="d-flex gap-2">
+            <button type="button"
+                    class="btn btn-primary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#advancedSearchModal">
+                <i class="bi bi-funnel me-1"></i>
+                جست‌وجوی پیشرفته
+            </button>
+        </div>
+        <!-- مجموع برداشت بر اساس فیلترهای فعال -->
+        <div class="d-flex align-items-center gap-2">
+            <div class="badge bg-danger-subtle text-danger border border-danger-subtle fs-6 py-2 px-3 fw-medium">
+                <i class="bi bi-wallet2 me-1"></i>
+                مجموع برداشت:
+                <strong><?= number_format($totalWithdrawalAmount ?? 0) ?></strong>
+                <small class="fw-normal">ریال</small>
+            </div>
+        </div>
+
+
+
+        <!-- فرم کوچک برای تغییر آنی تعداد ردیف در بالای جدول -->
+        <form method="GET" action="" class="d-flex align-items-center gap-2 m-0">
+            <!-- حفظ تمام فیلترهای فعال فعلی هنگام تغییر تعداد ردیف -->
+            <?php foreach ($_GET as $key => $val): ?>
+                <?php if (!in_array($key, ['per_page', 'page'], true) && is_string($val)): ?>
+                    <input type="hidden" name="<?= htmlspecialchars($key, ENT_QUOTES, 'UTF-8') ?>" value="<?= htmlspecialchars($val, ENT_QUOTES, 'UTF-8') ?>">
+                <?php endif; ?>
+            <?php endforeach; ?>
+            <input type="hidden" name="page" value="1">
+
+            <label for="tablePerPage" class="form-label mb-0 text-nowrap small text-muted">
+                <i class="bi bi-list-ol me-1"></i>تعداد نمایش:
+            </label>
+            <select name="per_page" id="tablePerPage" class="form-select form-select-sm" style="width: 120px;" onchange="this.form.submit()">
+                <option value="10" <?= ($perPage ?? 25) == 10 ? 'selected' : '' ?>>۱۰ ردیف</option>
+                <option value="25" <?= ($perPage ?? 25) == 25 ? 'selected' : '' ?>>۲۵ ردیف</option>
+                <option value="50" <?= ($perPage ?? 25) == 50 ? 'selected' : '' ?>>۵۰ ردیف</option>
+                <option value="100" <?= ($perPage ?? 25) == 100 ? 'selected' : '' ?>>۱۰۰ ردیف</option>
+            </select>
+            <label class="text-muted small mb-0">
+                از
+                <strong><?= number_format($totalRecords ?? 0) ?></strong>
+            </label>
+        </form>
+    </div>
+
+    <div class="table-responsive shadow-sm rounded border">
+        <table class="table table-bordered table-hover text-center align-middle mb-0">
+            <thead class="table-light">
+            <tr>
+                <th>ردیف</th>
+
+                <!-- ستون سورت‌شونده تاریخ -->
+                <?php
+                $orderDirCurrent = strtolower($orderDir ?? ($_GET['order_dir'] ?? 'desc'));
+                $toggleDir = ($orderDirCurrent === 'asc') ? 'desc' : 'asc';
+
+                $queryParams = $_GET ?? [];
+                $queryParams['order_by']  = 'history';
+                $queryParams['order_dir'] = $toggleDir;
+                $sortDateUrl = '?' . http_build_query($queryParams);
+                ?>
+                <th class="text-center align-middle">
+                    <a href="<?= htmlspecialchars($sortDateUrl, ENT_QUOTES, 'UTF-8') ?>" class="text-decoration-none text-dark d-inline-flex align-items-center justify-content-center gap-1 w-100">
+                        <span>تاریخ</span>
+                        <?php if (($orderBy ?? '') === 'history'): ?>
+                            <i class="bi <?= strtolower($orderDir ?? 'desc') === 'asc' ? 'bi-sort-numeric-down text-primary' : 'bi-sort-numeric-up-alt text-primary' ?> fs-6"></i>
+                        <?php else: ?>
+                            <i class="bi bi-arrow-down-up text-muted opacity-50 fs-6"></i>
+                        <?php endif; ?>
+                    </a>
+                </th>
+
+                <th>سند</th>
+
+                <!-- ستون سورت‌شونده مبلغ برداشت -->
+                <?php
+                $paramsHarvest = $_GET;
+                $paramsHarvest['order_by'] = 'harvest';
+
+                $currentOrderBy  = $_GET['order_by'] ?? 'history';
+                $currentOrderDir = strtolower($_GET['order_dir'] ?? 'desc');
+
+                $paramsHarvest['order_dir'] =
+                        ($currentOrderBy === 'harvest' && $currentOrderDir === 'asc')
+                                ? 'desc'
+                                : 'asc';
+
+                $sortHarvestUrl = '?' . http_build_query($paramsHarvest);
+                ?>
+
+                <th class="text-center align-middle">
+                    <a href="<?= htmlspecialchars($sortHarvestUrl, ENT_QUOTES, 'UTF-8') ?>"
+                       class="text-decoration-none text-dark d-inline-flex align-items-center justify-content-center gap-1 w-100">
+                        <span>برداشت مبلغ (ریال)</span>
+                        <?php if ($currentOrderBy === 'harvest'): ?>
+                            <i class="bi <?= $currentOrderDir === 'asc'
+                                    ? 'bi-sort-numeric-down text-primary'
+                                    : 'bi-sort-numeric-up-alt text-primary' ?> fs-6"></i>
+                        <?php else: ?>
+                            <i class="bi bi-arrow-down-up text-muted opacity-50 fs-6"></i>
+                        <?php endif; ?>
+                    </a>
+                </th>
+
+                <th>ذی‌نفع</th>
+                <th>سرفصل</th>
+                <th>زیرفصل</th>
+                <th>بانک/حساب</th>
+                <th>ورودی/خروجی</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <?php
+            $tableRows = $expenses ?? $remittance_output_rows ?? [];
+            ?>
+            <?php if (!empty($tableRows)): ?>
+                <?php foreach ($tableRows as $i => $row): ?>
+                    <tr>
+                        <td><?= ($offset ?? 0) + $i + 1 ?></td>
+                        <td><?= htmlspecialchars($row['history'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+                        <!-- ستون سند -->
+                        <td>
+                            <?php if (!empty($row['document'])): ?>
+                                <button type="button"
+                                        class="btn btn-link text-decoration-none fw-semibold text-primary p-0 m-0 border-0"
+                                        onclick="showDocumentDetails(this)"
+                                        data-doc="<?= htmlspecialchars($row['document'] ?? '-', ENT_QUOTES, 'UTF-8') ?>"
+                                        data-history="<?= htmlspecialchars($row['history'] ?? '-', ENT_QUOTES, 'UTF-8') ?>"
+                                        data-amount="<?= !empty($row['harvest']) ? number_format((float) $row['harvest']) . ' ریال' : '-' ?>"
+                                        data-beneficiary="<?= htmlspecialchars($row['beneficiary'] ?? '-', ENT_QUOTES, 'UTF-8') ?>"
+                                        data-transaction="<?= htmlspecialchars($row['transaction'] ?? '-', ENT_QUOTES, 'UTF-8') ?>"
+                                        data-subchapter="<?= htmlspecialchars($row['subchapter'] ?? '-', ENT_QUOTES, 'UTF-8') ?>"
+                                        data-description="<?= htmlspecialchars($row['description'] ?? $row['tozih'] ?? $row['comments'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                                    <i class="bi bi-file-earmark-text me-1"></i>
+                                    <?= htmlspecialchars($row['document'], ENT_QUOTES, 'UTF-8') ?>
+                                </button>
+                            <?php else: ?>
+                                <span class="text-muted">-</span>
+                            <?php endif; ?>
+                        </td>
+                        <td class="text-nowrap fw-bold text-danger">
+                            <?= !empty($row['harvest']) ? number_format((float) $row['harvest']) : '-' ?>
+                        </td>
+                        <td><?= htmlspecialchars($row['beneficiary'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+                        <td><?= htmlspecialchars($row['transaction'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+                        <td><?= htmlspecialchars($row['subchapter'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+                        <td><?= htmlspecialchars($row['bank/hesab'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+                        <td><?= htmlspecialchars($row['voroodi/khoroujy'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php elseif (in_array($activeTab, ['remitance_out', 'remittance_out'],true)): ?>
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-5">
+                        <i class="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i>
+                        موردی مطابق با فیلترهای انتخابی یافت نشد.
+                    </td>
+                </tr>
+            <?php endif; ?>
+            </tbody>
+        </table>
+
+        <!-- نوار صفحه‌بندی -->
+        <?php if (!empty($totalPages) && $totalPages > 1): ?>
+            <div class="d-flex justify-content-between align-items-center p-3 flex-wrap gap-2 border-top bg-light">
+                <div class="text-muted small">
+                    نمایش <?= count($expenses) ?> از <?= number_format($totalRecords ?? 0) ?> ردیف (صفحه <?= $page ?? 1 ?> از <?= $totalPages ?>)
+                </div>
+
+                <nav aria-label="صفحه‌بندی">
+                    <ul class="pagination pagination-sm mb-0">
+                        <?php $pageParams = $_GET; ?>
+
+                        <!-- دکمه قبلی -->
+                        <li class="page-item <?= (($page ?? 1) <= 1) ? 'disabled' : '' ?>">
+                            <?php $pageParams['page'] = max(1, ($page ?? 1) - 1); ?>
+                            <a class="page-link" href="?<?= htmlspecialchars(http_build_query($pageParams), ENT_QUOTES, 'UTF-8') ?>">قبلی</a>
+                        </li>
+
+                        <!-- شماره صفحات -->
+                        <?php for ($p = max(1, ($page ?? 1) - 2); $p <= min($totalPages, ($page ?? 1) + 2); $p++): ?>
+                            <?php $pageParams['page'] = $p; ?>
+                            <li class="page-item <?= ($p === ($page ?? 1)) ? 'active' : '' ?>">
+                                <a class="page-link" href="?<?= htmlspecialchars(http_build_query($pageParams), ENT_QUOTES, 'UTF-8') ?>"><?= $p ?></a>
+                            </li>
+                        <?php endfor; ?>
+
+                        <!-- دکمه بعدی -->
+                        <li class="page-item <?= (($page ?? 1) >= $totalPages) ? 'disabled' : '' ?>">
+                            <?php $pageParams['page'] = min($totalPages, ($page ?? 1) + 1); ?>
+                            <a class="page-link" href="?<?= htmlspecialchars(http_build_query($pageParams), ENT_QUOTES, 'UTF-8') ?>">بعدی</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- مودال جست‌وجوی پیشرفته -->
+    <div class="modal fade"
+         id="advancedSearchModal"
+         tabindex="-1"
+         aria-labelledby="advancedSearchModalLabel"
+         aria-hidden="true"
+         dir="rtl">
+
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header d-flex justify-content-between align-items-center">
+                    <h5 class="modal-title m-0" id="advancedSearchModalLabel">
+                        <i class="bi bi-funnel-fill text-primary ms-2"></i>
+                        جست‌وجوی پیشرفته حواله‌ها
+                    </h5>
+                    <button type="button"
+                            class="btn-close m-0"
+                            data-bs-dismiss="modal"
+                            aria-label="بستن"></button>
+                </div>
+
+                <form method="GET" action="">
+                    <div class="modal-body">
+                        <!-- تب فعال -->
+                        <input type="hidden" name="tab" value="remitance_out">
+
+                        <!-- بازگشت به صفحه اول در زمان فیلتر جدید -->
+                        <input type="hidden" name="page" value="1">
+
+                        <!-- پروژه انتخاب‌شده -->
+                        <?php if (!empty($selectedProjectId)): ?>
+                            <input type="hidden" name="project_id" value="<?= htmlspecialchars($selectedProjectId, ENT_QUOTES, 'UTF-8') ?>">
+                        <?php else : ?>
+                            <div class="alert-danger">
+                                <?php echo "پروژه مورد نظر را انتخاب کنید"?>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- مرتب‌سازی -->
+                        <input type="hidden" name="order_by" value="<?= htmlspecialchars($orderBy ?? 'history', ENT_QUOTES, 'UTF-8') ?>">
+                        <input type="hidden" name="order_dir" value="<?= htmlspecialchars(strtolower($orderDir ?? 'DESC'), ENT_QUOTES, 'UTF-8') ?>">
+
+                        <div class="row g-3">
+                            <?php
+                            $current_bank_hesab = trim($_GET['bank/hesab'] ?? '');
+                            $current_beneficiary = trim($_GET['beneficiary'] ?? '');
+                            ?>
+                            <div class="row g-3">
+
+                                <!-- بانک/حساب -->
+                                <div class="col-md-6 position-relative">
+                                    <label class="form-label">بانک/حساب</label>
+                                    <input type="hidden" name="bank/hesab" id="selectedBankInput"
+                                           value="<?= htmlspecialchars($current_bank_hesab, ENT_QUOTES, 'UTF-8') ?>">
+
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-end d-flex justify-content-between align-items-center bg-white"
+                                                type="button" id="bankDropdownBtn"
+                                                data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                <span id="bankBtnText" class="text-truncate">
+                    <?= $current_bank_hesab !== '' ? htmlspecialchars($current_bank_hesab, ENT_QUOTES, 'UTF-8') : 'انتخاب یا جست‌وجوی حساب...' ?>
+                </span>
+                                        </button>
+
+                                        <div class="dropdown-menu w-100 p-2 shadow" aria-labelledby="bankDropdownBtn" style="max-height: 280px;">
+                                            <input type="text" class="form-control form-control-sm mb-2" id="bankSearchInput"
+                                                   placeholder="تایپ کنید تا فیلتر شود..." autocomplete="off">
+
+                                            <div class="overflow-auto" style="max-height: 200px;" id="bankItemsList">
+                                                <a class="dropdown-item py-2 rounded <?= $current_bank_hesab === '' ? 'active' : '' ?>"
+                                                   href="#" data-val="">-- همه حساب‌ها --</a>
+                                                <?php
+                                                $bank_hesabMap = $bank_hesabMap ?? [];
+                                                if (!is_array($bank_hesabMap))
+                                                    $bank_hesabMap = [];
+                                                ?>
+                                                <?php foreach (array_keys($bank_hesabMap) as $bankName): ?>
+                                                    <a class="dropdown-item py-2 rounded <?= ($current_bank_hesab === $bankName) ? 'active' : '' ?>"
+                                                       href="#"
+                                                       data-val="<?= htmlspecialchars($bankName, ENT_QUOTES, 'UTF-8') ?>">
+                                                        <?= htmlspecialchars($bankName, ENT_QUOTES, 'UTF-8') ?>
+                                                    </a>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- ذی‌نفع (وابسته به حساب) -->
+                                <div class="col-md-6 position-relative">
+                                    <label class="form-label">ذی‌نفع</label>
+                                    <input type="hidden" name="beneficiary" id="selectedbeneficiaryInput"
+                                           value="<?= htmlspecialchars($current_beneficiary, ENT_QUOTES, 'UTF-8') ?>">
+
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-end d-flex justify-content-between align-items-center bg-white"
+                                                type="button" id="beneficiaryDropdownBtn"
+                                                data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                <span id="beneficiaryBtnText" class="text-truncate">
+                    <?= $current_beneficiary !== '' ? htmlspecialchars($current_beneficiary, ENT_QUOTES, 'UTF-8') : 'انتخاب یا جست‌وجوی ذینفع...' ?>
+                </span>
+                                        </button>
+
+                                        <div class="dropdown-menu w-100 p-2 shadow" aria-labelledby="beneficiaryDropdownBtn" style="max-height: 280px;">
+                                            <input type="text" class="form-control form-control-sm mb-2" id="beneficiarySearchInput"
+                                                   placeholder="تایپ کنید تا فیلتر شود..." autocomplete="off">
+
+                                            <div class="overflow-auto" style="max-height: 200px;" id="beneficiaryItemsList">
+                                                <a class="dropdown-item py-2 rounded <?= $current_beneficiary === '' ? 'active' : '' ?>"
+                                                   href="#" data-val="">-- همه ذی‌نفع‌ها --</a>
+                                                <!-- با JS پر می‌شود -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <!-- انتخاب سرفصل -->
+                                <div class="col-md-6 position-relative">
+                                    <label class="form-label">سرفصل</label>
+
+                                    <!-- اصلاح مقدار value با استفاده از ?? '' برای جلوگیری از خطا -->
+                                    <input type="hidden" name="transaction" id="selectedtransactionInput"
+                                           value="<?= htmlspecialchars($transaction ?? '', ENT_QUOTES, 'UTF-8') ?>">
+
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-end d-flex justify-content-between align-items-center bg-white"
+                                                type="button" id="transactionDropdownBtn"
+                                                data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+
+                                            <!-- اصلاح متن نمایش داده شده در دکمه -->
+                                            <span id="transactionBtnText" class="text-truncate">
+                <?= htmlspecialchars($current_transaction ?? 'همه سرفصل‌ها', ENT_QUOTES, 'UTF-8') ?>
+            </span>
+                                        </button>
+
+                                        <div class="dropdown-menu w-100 p-2 shadow" aria-labelledby="transactionDropdownBtn" style="max-height: 280px;">
+                                            <input type="text" class="form-control form-control-sm mb-2" id="transactionSearchInput"
+                                                   placeholder="تایپ کنید تا فیلتر شود..." autocomplete="off">
+
+                                            <div class="overflow-auto" style="max-height: 200px;" id="transactionItemsList">
+                                                <a class="dropdown-item py-2 rounded" href="#" data-val="">-- همه سرفصل‌ها --</a>
+                                                <!-- با JS پر می‌شود -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <!-- انتخاب زیرفصل -->
+                                <div class="col-md-6">
+                                    <label class="form-label">زیرفصل</label>
+                                    <select name="subchapter" id="filterSubchapter" class="form-select select2-searchable" <?= empty($currentTransaction) ? 'disabled' : '' ?>>
+                                        <option value="">-- همه زیرفصل‌ها --</option>
+                                    </select>
+                                </div>
+                            </div>
+
+
+
+                            <div class="col-md-6">
+                                <label for="document" class="form-label">سند</label>
+                                <select id="modaldocument" name="document" class="form-select">
+                                    <option value="">-- همه سندها --</option>
+                                    <?php if (!empty($documentList)): ?>
+                                        <?php foreach ($documentList as $account): ?>
+                                            <option value="<?= htmlspecialchars($account, ENT_QUOTES, 'UTF-8') ?>"
+                                                    <?= (isset($_GET['document']) && $_GET['document'] === $account) ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars($account, ENT_QUOTES, 'UTF-8') ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="modalDateFrom" class="form-label">از تاریخ</label>
+                                <input type="text"
+                                       id="modalDateFrom"
+                                       name="date_from"
+                                       class="form-control persian-date"
+                                       autocomplete="off"
+                                       value="<?= htmlspecialchars($_GET['date_from'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                                       placeholder="مثلاً ۱۴۰۳/۰۱/۰۱">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="modalDateTo" class="form-label">تا تاریخ</label>
+                                <input type="text"
+                                       id="modalDateTo"
+                                       name="date_to"
+                                       class="form-control persian-date"
+                                       autocomplete="off"
+                                       value="<?= htmlspecialchars($_GET['date_to'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                                       placeholder="مثلاً ۱۴۰۳/۱۲/۲۹">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="modalMinAmount" class="form-label">حداقل مبلغ</label>
+                                <input type="text"
+                                       id="modalMinAmount"
+                                       name="min_amount"
+                                       class="form-control"
+                                       inputmode="decimal"
+                                       value="<?= htmlspecialchars($_GET['min_amount'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                                       placeholder="حداقل مبلغ">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="modalMaxAmount" class="form-label">حداکثر مبلغ</label>
+                                <input type="text"
+                                       id="modalMaxAmount"
+                                       name="max_amount"
+                                       class="form-control"
+                                       inputmode="decimal"
+                                       value="<?= htmlspecialchars($_GET['max_amount'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                                       placeholder="حداکثر مبلغ">
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <a href="?<?= htmlspecialchars(http_build_query([
+                                'tab' => 'remitance_out',
+                                'order_by' => $orderBy ?? 'history',
+                                'order_dir' => strtolower($orderDir ?? 'DESC'),
+                                'project_id'=>$selectedProjectId
+                        ]), ENT_QUOTES, 'UTF-8') ?>"
+                           class="btn btn-outline-secondary">
+                            پاک‌کردن فیلترها
+                        </a>
+
+                        <button type="button"
+                                class="btn btn-secondary"
+                                data-bs-dismiss="modal">
+                            انصراف
+                        </button>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search me-1"></i>
+                            اعمال فیلتر
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- مودال نمایش توضیحات سند -->
+    <div class="modal fade" id="documentDetailModal" tabindex="-1" aria-hidden="true" dir="rtl" style="z-index: 99999 !important;">
+        <div class="modal-dialog modal-dialog-centered" style="z-index: 100000 !important;">
+            <div class="modal-content shadow-lg border-0">
+                <div class="modal-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="modal-title m-0 text-primary fs-6">
+                        <i class="bi bi-info-circle-fill me-1"></i>
+                        مشخصات سند: <span id="modalDocTitle" class="fw-bold text-dark"></span>
+                    </h5>
+                    <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="بستن"></button>
+                </div>
+
+                <div class="modal-body p-4">
+                    <table class="table table-sm table-bordered text-start align-middle mb-3">
+                        <tbody>
+                        <tr>
+                            <th class="table-light w-25">تاریخ:</th>
+                            <td id="modalDocDate">-</td>
+                        </tr>
+                        <tr>
+                            <th class="table-light">مبلغ:</th>
+                            <td id="modalDocAmount" class="fw-bold text-danger">-</td>
+                        </tr>
+                        <tr>
+                            <th class="table-light">ذی‌نفع:</th>
+                            <td id="modalDocBeneficiary">-</td>
+                        </tr>
+                        <tr>
+                            <th class="table-light">سرفصل / زیرفصل:</th>
+                            <td><span id="modalDocChapter">-</span> / <span id="modalDocSubchapter">-</span></td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="mb-0">
+                        <label class="form-label fw-bold text-secondary small mb-1">
+                            <i class="bi bi-card-text me-1"></i> شرح / توضیحات سند:
+                        </label>
+                        <div id="modalDocDescription" class="p-3 bg-light border rounded" style="min-height: 70px; white-space: pre-wrap; line-height: 1.7;">
+                            توضیحاتی برای این سند ثبت نشده است.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                        بستن
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php elseif ($activeTab === 'check_out'): ?>
+    <h1 class="h1 mb-3">
+        لیست چک ها
+    </h1>
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div class="d-flex gap-2">
+            <button type="button"
+                    class="btn btn-primary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#advancedSearchModal">
+                <i class="bi bi-funnel me-1"></i>
+                جست‌وجوی پیشرفته
+            </button>
+
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <div class="badge bg-danger-subtle text-danger border border-danger-subtle fs-6 py-2 px-3 fw-medium">
+                <i class="bi bi-wallet2 me-1"></i>
+                مجموع مبلغ چک ها:
+                <strong><?= number_format($totalWithdrawalAmount ?? 0) ?></strong>
+                <small class="fw-normal">ریال</small>
+            </div>
+        </div>
+
+
+
+        <!-- فرم کوچک برای تغییر آنی تعداد ردیف در بالای جدول -->
+        <form method="GET" action="" class="d-flex align-items-center gap-2 m-0">
+            <!-- حفظ تمام فیلترهای فعال فعلی هنگام تغییر تعداد ردیف -->
+            <?php foreach ($_GET as $key => $val): ?>
+                <?php if (!in_array($key, ['per_page', 'page'], true) && is_string($val)): ?>
+                    <input type="hidden" name="<?= htmlspecialchars($key, ENT_QUOTES, 'UTF-8') ?>" value="<?= htmlspecialchars($val, ENT_QUOTES, 'UTF-8') ?>">
+                <?php endif; ?>
+            <?php endforeach; ?>
+            <input type="hidden" name="page" value="1">
+
+            <label for="tablePerPage" class="form-label mb-0 text-nowrap small text-muted">
+                <i class="bi bi-list-ol me-1"></i>تعداد نمایش:
+            </label>
+            <select name="per_page" id="tablePerPage" class="form-select form-select-sm" style="width: 120px;" onchange="this.form.submit()">
+                <option value="10" <?= ($perPage ?? 25) == 10 ? 'selected' : '' ?>>۱۰ ردیف</option>
+                <option value="25" <?= ($perPage ?? 25) == 25 ? 'selected' : '' ?>>۲۵ ردیف</option>
+                <option value="50" <?= ($perPage ?? 25) == 50 ? 'selected' : '' ?>>۵۰ ردیف</option>
+                <option value="100" <?= ($perPage ?? 25) == 100 ? 'selected' : '' ?>>۱۰۰ ردیف</option>
+            </select>
+            <label class="text-muted small mb-0">
+                از
+                <strong><?= number_format($totalRecords ?? 0) ?></strong>
+            </label>
+        </form>
+    </div>
+
+    <div class="table-responsive shadow-sm rounded border">
+        <table class="table table-bordered table-hover text-center align-middle mb-0">
+            <thead class="table-light">
+            <tr>
+                <th>ردیف</th>
+
+
+                <!-- ستون سورت‌شونده زیرفصل -->
+                <th class="text-center align-middle">
+
+                        <span>زیرفصل</span>
+
+
+                </th>
+
+                <th>
+
+                        <span>سرفصل</span>
+
+
+                </th>
+
+                <!-- ستون سورت‌شونده مبلغ برداشت -->
+
+                <th class="text-center align-middle">
+                    هزینه
+                </th>
+
+                <th>بابت</th>
+                <th>دریافت کننده</th>
+                <th>کد ملی دریافت مننده</th>
+                <?php
+                $orderDirCurrent = strtolower($orderDir ?? ($_GET['order_dir'] ?? 'desc'));
+                $toggleDir = ($orderDirCurrent === 'asc') ? 'desc' : 'asc';
+
+                $queryParams = $_GET ?? [];
+                $queryParams['order_by']  = 'check_amount';
+                $queryParams['order_dir'] = $toggleDir;
+                $sortDateUrl = '?' . http_build_query($queryParams);
+                ?>
+                <th>
+
+                    <a href="<?= htmlspecialchars($sortDateUrl, ENT_QUOTES, 'UTF-8') ?>" class="text-decoration-none text-dark d-inline-flex align-items-center justify-content-center gap-1 w-100">
+                        <span>مبلغ چک</span>
+                        <?php if (($orderBy ?? '') === 'check_amount'): ?>
+                            <i class="bi <?= strtolower($orderDir ?? 'desc') === 'asc' ? 'bi-sort-numeric-down text-primary' : 'bi-sort-numeric-up-alt text-primary' ?> fs-6"></i>
+                        <?php else: ?>
+                            <i class="bi bi-arrow-down-up text-muted opacity-50 fs-6"></i>
+                        <?php endif; ?>
+                    </a>
+
+                </th>
+                <?php
+                $orderDirCurrent = strtolower($orderDir ?? ($_GET['order_dir'] ?? 'desc'));
+                $toggleDir = ($orderDirCurrent === 'asc') ? 'desc' : 'asc';
+
+                $queryParams = $_GET ?? [];
+                $queryParams['order_by']  = 'check_due_date';
+                $queryParams['order_dir'] = $toggleDir;
+                $sortDateUrl = '?' . http_build_query($queryParams);
+                ?>
+                <th>
+                    <a href="<?= htmlspecialchars($sortDateUrl, ENT_QUOTES, 'UTF-8') ?>" class="text-decoration-none text-dark d-inline-flex align-items-center justify-content-center gap-1 w-100">
+                        <span>موعد چک</span>
+                        <?php if (($orderBy ?? '') === 'check_due_date'): ?>
+                            <i class="bi <?= strtolower($orderDir ?? 'desc') === 'asc' ? 'bi-sort-numeric-down text-primary' : 'bi-sort-numeric-up-alt text-primary' ?> fs-6"></i>
+                        <?php else: ?>
+                            <i class="bi bi-arrow-down-up text-muted opacity-50 fs-6"></i>
+                        <?php endif; ?>
+                    </a>
+                    </th>
+                <th>شماره چک</th>
+                <th>بانک</th>
+                <th>نام پروژه</th>
+                <th>پاس شده/نشده</th>
+                <th>از کجا پاس شده</th>
+
+            </tr>
+            </thead>
+            <tbody>
+            <?php if (!empty($checks)): ?>
+                <?php foreach ($checks as $index => $row): ?>
+                    <tr>
+                        <td><?= $index + 1 ?></td>
+                        <td><?= htmlspecialchars($row['subchapter'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($row['transaction'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($row['cost'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($row['behalf'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($row['recipient'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($row["recipient's_national_iD"] ?? '') ?></td>
+
+                        <td><?= htmlspecialchars(number_format((float)$row["check_amount"] ?? '')) ?></td>
+                        <td><?= htmlspecialchars($row["check_due_date"] ?? '') ?></td>
+                        <td><?= htmlspecialchars($row["check_number"] ?? '') ?></td>
+                        <td><?= htmlspecialchars($row["bank"] ?? '') ?></td>
+                        <td><?= htmlspecialchars($row["project"] ?? '') ?></td>
+                        <td><?= htmlspecialchars($row["passed/failed"] ?? '') ?></td>
+                        <td><?= htmlspecialchars($row["Where_did_it_get_approved?"] ?? '') ?></td>
+                        <!-- سایر ستون‌های جدول -->
+                    </tr>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-3">داده‌ای برای این پروژه یافت نشد.</td>
+                </tr>
+            <?php endif; ?>
+
+            </tbody>
+        </table>
+
+        <!-- نوار صفحه‌بندی -->
+        <?php if (!empty($totalPages) && $totalPages > 1): ?>
+            <div class="d-flex justify-content-between align-items-center p-3 flex-wrap gap-2 border-top bg-light">
+                <div class="text-muted small">
+                    نمایش <?= count($check_output_rows ?? []) ?> از <?= number_format($totalRecords ?? 0) ?> ردیف (صفحه <?= $page ?? 1 ?> از <?= $totalPages ?>)
+                </div>
+
+                <nav aria-label="صفحه‌بندی">
+                    <ul class="pagination pagination-sm mb-0">
+                        <?php $pageParams = $_GET; ?>
+
+                        <!-- دکمه قبلی -->
+                        <li class="page-item <?= (($page ?? 1) <= 1) ? 'disabled' : '' ?>">
+                            <?php $pageParams['page'] = max(1, ($page ?? 1) - 1); ?>
+                            <a class="page-link" href="?<?= htmlspecialchars(http_build_query($pageParams), ENT_QUOTES, 'UTF-8') ?>">قبلی</a>
+                        </li>
+
+                        <!-- شماره صفحات -->
+                        <?php for ($p = max(1, ($page ?? 1) - 2); $p <= min($totalPages, ($page ?? 1) + 2); $p++): ?>
+                            <?php $pageParams['page'] = $p; ?>
+                            <li class="page-item <?= ($p === ($page ?? 1)) ? 'active' : '' ?>">
+                                <a class="page-link" href="?<?= htmlspecialchars(http_build_query($pageParams), ENT_QUOTES, 'UTF-8') ?>"><?= $p ?></a>
+                            </li>
+                        <?php endfor; ?>
+
+                        <!-- دکمه بعدی -->
+                        <li class="page-item <?= (($page ?? 1) >= $totalPages) ? 'disabled' : '' ?>">
+                            <?php $pageParams['page'] = min($totalPages, ($page ?? 1) + 1); ?>
+                            <a class="page-link" href="?<?= htmlspecialchars(http_build_query($pageParams), ENT_QUOTES, 'UTF-8') ?>">بعدی</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- مودال جست‌وجوی پیشرفته -->
+    <!-- Modal جست‌وجوی پیشرفته چک‌ها -->
+    <div class="modal fade"
+         id="advancedSearchModal"
+         tabindex="-1"
+         aria-labelledby="advancedSearchModalLabel"
+         aria-hidden="true"
+         dir="rtl">
+
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header d-flex justify-content-between align-items-center">
+                    <h5 class="modal-title m-0" id="advancedSearchModalLabel">
+                        <i class="bi bi-funnel-fill text-primary ms-2"></i>
+                        جست‌وجوی پیشرفته چک‌ها
+                    </h5>
+                    <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="بستن"></button>
+                </div>
+
+                <form method="GET" action="">
+                    <div class="modal-body">
+                        <!-- فیلدهای مخفی -->
+                        <input type="hidden" name="tab" value="check_out">
+                        <input type="hidden" name="page" value="1">
+                        <input type="hidden" name="order_by" value="<?= htmlspecialchars($orderBy ?? 'history', ENT_QUOTES, 'UTF-8') ?>">
+                        <input type="hidden" name="order_dir" value="<?= htmlspecialchars(strtolower($orderDir ?? 'DESC'), ENT_QUOTES, 'UTF-8') ?>">
+
+                        <?php if (!empty($selectedProjectId)): ?>
+                            <input type="hidden" name="project_id" value="<?= htmlspecialchars((string)$selectedProjectId, ENT_QUOTES, 'UTF-8') ?>">
+                        <?php else : ?>
+                            <div class="alert alert-danger p-2 mb-3">پروژه مورد نظر را انتخاب کنید</div>
+                        <?php endif; ?>
+
+                        <!-- شروع گرید اصلی -->
+                        <div class="row g-3">
+
+                            <!-- دریافت کننده -->
+                            <div class="col-md-6">
+                                <label class="form-label">دریافت کننده</label>
+                                <select name="recipient" id="filterrecipient" class="form-select select2-searchable">
+                                    <option value="">-- همه دریافت کننده‌ها --</option>
+                                    <?php if (!empty($recipientList)): ?>
+                                        <?php foreach ($recipientList as $account): ?>
+                                            <option value="<?= htmlspecialchars((string)$account, ENT_QUOTES, 'UTF-8') ?>"
+                                                    <?= (isset($_GET['recipient']) && $_GET['recipient'] === (string)$account) ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars((string)$account, ENT_QUOTES, 'UTF-8') ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                            </div>
+
+                            <!-- شماره چک -->
+                            <div class="col-md-6">
+                                <label for="modalcheck_number" class="form-label">شماره چک</label>
+                                <select id="modalcheck_number" name="check_number" class="form-select">
+                                    <option value="">-- همه شماره چک‌ها --</option>
+                                    <?php if (!empty($check_numberList)): ?>
+                                        <?php foreach ($check_numberList as $account): ?>
+                                            <option value="<?= htmlspecialchars((string)$account, ENT_QUOTES, 'UTF-8') ?>"
+                                                    <?= (isset($_GET['check_number']) && $_GET['check_number'] === (string)$account) ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars((string)$account, ENT_QUOTES, 'UTF-8') ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                            </div>
+
+                            <!-- مبالغ -->
+                            <div class="col-md-6">
+                                <label for="modalMinAmount" class="form-label">حداقل مبلغ</label>
+                                <input type="text" id="modalMinAmount" name="min_amount" class="form-control" inputmode="decimal"
+                                       value="<?= htmlspecialchars($_GET['min_amount'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="حداقل مبلغ">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modalMaxAmount" class="form-label">حداکثر مبلغ</label>
+                                <input type="text" id="modalMaxAmount" name="max_amount" class="form-control" inputmode="decimal"
+                                       value="<?= htmlspecialchars($_GET['max_amount'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="حداکثر مبلغ">
+                            </div>
+
+                            <!-- سرفصل و زیرفصل -->
+                            <!-- انتخاب سرفصل -->
+                            <div class="col-md-6 position-relative">
+                                <label class="form-label">سرفصل</label>
+
+                                <input type="hidden" name="transaction" id="selectedTransactionInput"
+                                       value="<?= htmlspecialchars($currentTransaction, ENT_QUOTES, 'UTF-8') ?>">
+
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-end d-flex justify-content-between align-items-center bg-white"
+                                            type="button" id="transactionDropdownBtn"
+                                            data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+            <span id="transactionBtnText" class="text-truncate">
+                <?= $currentTransaction !== '' ? htmlspecialchars($currentTransaction, ENT_QUOTES, 'UTF-8') : '-- همه سرفصل‌ها --' ?>
+            </span>
+                                    </button>
+
+                                    <div class="dropdown-menu w-100 p-2 shadow" aria-labelledby="transactionDropdownBtn" style="max-height: 280px;">
+                                        <input type="text" class="form-control form-control-sm mb-2" id="transactionSearchInput"
+                                               placeholder="تایپ کنید تا فیلتر شود..." autocomplete="off">
+
+                                        <div class="overflow-auto" style="max-height: 200px;" id="transactionItemsList">
+                                            <a class="dropdown-item py-2 rounded text-muted" href="javascript:void(0)" data-val="">-- همه سرفصل‌ها --</a>
+                                            <?php foreach (array_keys($transactionSubMap) as $tr): ?>
+                                                <a class="dropdown-item py-2 rounded <?= ($currentTransaction === $tr) ? 'active bg-primary text-white' : '' ?>"
+                                                   href="javascript:void(0)"
+                                                   data-val="<?= htmlspecialchars($tr, ENT_QUOTES, 'UTF-8') ?>">
+                                                    <?= htmlspecialchars($tr, ENT_QUOTES, 'UTF-8') ?>
+                                                </a>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- انتخاب زیرفصل -->
+                            <div class="col-md-6">
+                                <label class="form-label" for="filterSubchapter">زیرفصل</label>
+                                <select name="subchapter" id="filterSubchapter" class="form-select" <?= empty($currentTransaction) ? 'disabled' : '' ?>>
+                                    <option value="">-- همه زیرفصل‌ها --</option>
+                                    <?php if (!empty($currentTransaction) && !empty($transactionSubMap[$currentTransaction])): ?>
+                                        <?php foreach ($transactionSubMap[$currentTransaction] as $sub): ?>
+                                            <option value="<?= htmlspecialchars($sub, ENT_QUOTES, 'UTF-8') ?>"
+                                                    <?= ($currentSubchapter === $sub) ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars($sub, ENT_QUOTES, 'UTF-8') ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                            </div>
+
+
+                            <!-- تاریخ‌ها -->
+                            <div class="col-md-6">
+                                <label for="modalDateFrom" class="form-label">از تاریخ</label>
+                                <input type="text" id="modalDateFrom" name="date_from" class="form-control persian-date"
+                                       autocomplete="off" value="<?= htmlspecialchars($_GET['date_from'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="مثال: ۱۴۰۳/۰۱/۰۱">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modalDateTo" class="form-label">تا تاریخ</label>
+                                <input type="text" id="modalDateTo" name="date_to" class="form-control persian-date"
+                                       autocomplete="off" value="<?= htmlspecialchars($_GET['date_to'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="مثال: ۱۴۰۳/۱۲/۲۹">
+                            </div>
+                            <!-- وضعیت -->
+                            <div class="col-md-6">
+                                <label class="form-label" for="modalPassedFailed">وضعیت</label>
+                                <select id="modalPassedFailed" name="passed/failed" class="form-select">
+                                    <option value="">-- همه وضعیت --</option>
+
+                                    <?php if (!empty($passedFailedList)): ?>
+                                        <?php foreach ($passedFailedList as $st): ?>
+                                            <?php $st = trim((string)$st); if ($st === '') continue; ?>
+                                            <option value="<?= htmlspecialchars($st, ENT_QUOTES, 'UTF-8') ?>"
+                                                    <?= (isset($_GET['passed/failed']) && (string)$_GET['passed/failed'] === $st) ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars($st, ENT_QUOTES, 'UTF-8') ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                            </div>
+
+                        </div> <!-- پایان row -->
+                    </div>
+
+                    <div class="modal-footer">
+                        <a href="?<?= htmlspecialchars(http_build_query([
+                                'tab' => 'check_out',
+                                'order_by' => $orderBy ?? 'history',
+                                'order_dir' => strtolower($orderDir ?? 'DESC'),
+                                'project_id' => $selectedProjectId ?? ''
+                        ]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-secondary">
+                            پاک‌کردن فیلترها
+                        </a>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i> اعمال فیلتر</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 <?php endif; ?>
 <script id="php-vars">
     window.PHP_VARS = {
@@ -1783,50 +3283,415 @@ ob_start();
     };
 </script>
 <input type="hidden" id="csrfTokenInput" value="<?php echo htmlspecialchars($csrfToken); ?>">
-<!-- jQuery اول -->
+ <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+ <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+ <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+ <script src="../js/memberSearch.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- ۱. ابتدا جی‌کوئری (فقط یک بار در کل پروژه!) -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-<!-- memberSearch -->
-<script src="../js/memberSearch.js"></script>
+<!-- ۲. سپس اسکریپت بوت‌استرپ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- SweetAlert -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+<!-- ۳. سپس فایل JS مربوط به Select2 -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <!-- Bootstrap -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 
 <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('bankSearchInput');
+        const itemsList = document.getElementById('bankItemsList');
+        const hiddenInput = document.getElementById('selectedBankInput');
+        const btnText = document.getElementById('bankBtnText');
+
+        if (searchInput && itemsList) {
+            // فیلتر آنی هنگام تایپ
+            searchInput.addEventListener('input', function () {
+                const filter = this.value.toLowerCase().trim();
+                const items = itemsList.querySelectorAll('.dropdown-item');
+
+                items.forEach(function (item) {
+                    const text = item.textContent.toLowerCase();
+                    item.style.display = text.includes(filter) ? '' : 'none';
+                });
+            });
+
+            // کلیک روی یکی از آیتم‌ها
+            itemsList.addEventListener('click', function (e) {
+                const target = e.target.closest('.dropdown-item');
+                if (!target) return;
+                e.preventDefault();
+
+                const val = target.getAttribute('data-val');
+                hiddenInput.value = val;
+                btnText.textContent = val ? target.textContent.trim() : 'انتخاب یا جست‌وجوی حساب...';
+
+                itemsList.querySelectorAll('.dropdown-item').forEach(el => el.classList.remove('active'));
+                target.classList.add('active');
+
+                // بستن خودکار دراپ‌داون پس از انتخاب
+                const dropdownEl = bootstrap.Dropdown.getInstance(document.getElementById('bankDropdownBtn'));
+                if (dropdownEl) dropdownEl.hide();
+            });
+        }
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+        // دریافت امن مپ داده‌ها
+        const bankMap = <?= json_encode($bank_hesabMap ?? [], JSON_UNESCAPED_UNICODE) ?>;
+
+        const savedBank = "<?= htmlspecialchars($current_bank_hesab ?? '', ENT_QUOTES, 'UTF-8') ?>";
+        const savedBen  = "<?= htmlspecialchars($current_beneficiary ?? '', ENT_QUOTES, 'UTF-8') ?>";
+
+        const $bankList   = $('#bankItemsList');
+        const $benList    = $('#beneficiaryItemsList');
+        const $bankHidden = $('#selectedBankInput');
+        const $benHidden  = $('#selectedbeneficiaryInput');
+
+        // ---------- ۱. فیلتر جست‌وجوی آنی متنی ----------
+        function bindSearch(searchId, listId) {
+            $(document).on('input', '#' + searchId, function () {
+                const q = $(this).val().trim().toLowerCase();
+                $('#' + listId + ' .dropdown-item').each(function () {
+                    const text = $(this).text().trim().toLowerCase();
+                    $(this).toggle(text.includes(q));
+                });
+            });
+        }
+        bindSearch('bankSearchInput', 'bankItemsList');
+        bindSearch('beneficiarySearchInput', 'beneficiaryItemsList');
+
+        // ---------- ۲. پر کردن لیست ذی‌نفع‌ها ----------
+        function populateBeneficiaries(bank, selectedBen) {
+            $benList.empty();
+            $benList.append('<a class="dropdown-item py-2 rounded ' + (!selectedBen ? 'active' : '') + '" href="javascript:void(0)" data-val="">-- همه ذی‌نفع‌ها --</a>');
+
+            const items = (bank && bankMap[bank]) ? bankMap[bank] : [];
+
+            if (items.length > 0) {
+                items.forEach(function (b) {
+                    const isSelected = (String(b).trim() === String(selectedBen).trim());
+                    const cls = isSelected ? ' active' : '';
+                    $benList.append(
+                        $('<a/>', {
+                            class: 'dropdown-item py-2 rounded' + cls,
+                            href: 'javascript:void(0)',
+                            'data-val': b,
+                            text: b
+                        })
+                    );
+                });
+            } else {
+                $benList.append('<span class="dropdown-item-text text-muted small">موردی یافت نشد</span>');
+            }
+
+            // اگر ذی‌نفع انتخاب شده در لیست جدید نبود، ریست شود
+            if (selectedBen && !items.includes(selectedBen)) {
+                $benHidden.val('');
+                $('#beneficiaryBtnText').text('انتخاب یا جست‌وجوی ذینفع...');
+            } else if (selectedBen) {
+                $('#beneficiaryBtnText').text(selectedBen);
+                $benHidden.val(selectedBen);
+            }
+        }
+
+        // ---------- ۳. کلیک روی آیتم‌های بانک (سراسری با Document Delegation) ----------
+        $(document).on('click', '#bankItemsList .dropdown-item', function (e) {
+            e.preventDefault();
+            const val = $(this).attr('data-val') || '';
+
+            $('#bankItemsList .dropdown-item').removeClass('active');
+            $(this).addClass('active');
+
+            $bankHidden.val(val);
+            $('#bankBtnText').text(val ? val : 'انتخاب یا جست‌وجوی حساب...');
+
+            // ریست و پر کردن لیست ذی‌نفع‌ها
+            $benHidden.val('');
+            $('#beneficiaryBtnText').text('انتخاب یا جست‌وجوی ذینفع...');
+            populateBeneficiaries(val, '');
+
+            // بستن دراپ‌داون بانک بعد از انتخاب
+            const bankDropdown = bootstrap.Dropdown.getInstance(document.getElementById('bankDropdownBtn'));
+            if (bankDropdown) bankDropdown.hide();
+        });
+
+        // ---------- ۴. کلیک روی آیتم‌های ذی‌نفع (سراسری با Document Delegation) ----------
+        $(document).on('click', '#beneficiaryItemsList .dropdown-item', function (e) {
+            e.preventDefault();
+            const val = $(this).attr('data-val') || '';
+
+            $('#beneficiaryItemsList .dropdown-item').removeClass('active');
+            $(this).addClass('active');
+
+            $benHidden.val(val);
+            $('#beneficiaryBtnText').text(val ? val : 'انتخاب یا جست‌وجوی ذینفع...');
+
+            // بستن دراپ‌داون ذی‌نفع بعد از انتخاب
+            const benDropdown = bootstrap.Dropdown.getInstance(document.getElementById('beneficiaryDropdownBtn'));
+            if (benDropdown) benDropdown.hide();
+        });
+
+        // ---------- ۵. مقداردهی اولیه پس از لود صفحه ----------
+        if (savedBank) {
+            populateBeneficiaries(savedBank, savedBen);
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // مپ سرفصل به زیرفصل که مستقیماً از PHP به JSON تبدیل شده
+        const subMap = <?= json_encode($transactionSubMap ?? [], JSON_UNESCAPED_UNICODE) ?> || {};
+
+        const $t = $('#filterTransaction');
+        const $s = $('#filterSubchapter');
+
+        const savedTransaction = <?= json_encode($currentTransaction ?? '', JSON_UNESCAPED_UNICODE) ?>;
+        const savedSubchapter  = <?= json_encode($currentSubchapter ?? '', JSON_UNESCAPED_UNICODE) ?>;
+
+        // تابع اصلی پر کردن گزینه‌های زیرفصل
+        function populateSubchapters(selectedTrans, selectedSub) {
+            $s.empty();
+            $s.append('<option value="">-- همه زیرفصل‌ها --</option>');
+
+            if (!selectedTrans || !subMap[selectedTrans] || subMap[selectedTrans].length === 0) {
+                $s.prop('disabled', true);
+            } else {
+                $s.prop('disabled', false);
+                subMap[selectedTrans].forEach(function (item) {
+                    const isSelected = (item === selectedSub) ? 'selected' : '';
+                    $s.append(`<option value="${item}" ${isSelected}>${item}</option>`);
+                });
+            }
+
+            // اگر Select2 فعال است، بروزرسانی شود
+            if ($s.hasClass('select2-hidden-accessible')) {
+                $s.trigger('change.select2');
+            }
+        }
+
+        // رویداد تغییر سرفصل توسط کاربر
+        $t.on('change', function () {
+            const transVal = $(this).val();
+            populateSubchapters(transVal, '');
+        });
+
+        // ۱. لود اولیه در زمان باز شدن صفحه با فیلتر قبلی
+        if (savedTransaction) {
+            populateSubchapters(savedTransaction, savedSubchapter);
+        }
+
+        // ۲. حل مشکل باز شدن مجدد مودال (اگر فرم داخل مودال بوت‌استرپ است)
+        $('.modal').on('shown.bs.modal', function () {
+            const currentT = $t.val();
+            if (currentT) {
+                populateSubchapters(currentT, $s.val() || savedSubchapter);
+            }
+        });
+
+        // اعمال Select2 در صورت لود بودن کتابخانه
+        if (typeof $.fn.select2 !== 'undefined') {
+            $('.select2-searchable').each(function() {
+                $(this).select2({
+                    theme: 'bootstrap-5',
+                    dir: 'rtl',
+                    width: '100%',
+                    dropdownParent: $(this).closest('.modal').length ? $(this).closest('.modal') : null
+                });
+            });
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // استفاده از json_encode روی متغیر با پیش‌فرض آرایه خالی
+        const transactionSubMap = <?= json_encode($transactionSubMap ?? [], JSON_UNESCAPED_UNICODE) ?>;
+        const currentSubchapter = <?= json_encode($currentSubchapter ?? '', JSON_UNESCAPED_UNICODE) ?>;
+
+        const hiddenInput      = document.getElementById('selectedTransactionInput');
+        const btnText          = document.getElementById('transactionBtnText');
+        const searchInput      = document.getElementById('transactionSearchInput');
+        const itemsList        = document.getElementById('transactionItemsList');
+        const subchapterSelect = document.getElementById('filterSubchapter');
+
+        if (!itemsList || !subchapterSelect) {
+            return; // اگر این عناصر در تب فعلی نبودند اسکریپت اجرا نشود
+        }
+
+        function updateSubchapters(selectedTr, preselectedSub = '') {
+            subchapterSelect.innerHTML = '<option value="">-- همه زیرفصل‌ها --</option>';
+
+            if (!selectedTr || !transactionSubMap[selectedTr] || transactionSubMap[selectedTr].length === 0) {
+                subchapterSelect.disabled = true;
+                return;
+            }
+
+            subchapterSelect.disabled = false;
+            transactionSubMap[selectedTr].forEach(function (sub) {
+                const opt = document.createElement('option');
+                opt.value = sub;
+                opt.textContent = sub;
+                if (preselectedSub && sub === preselectedSub) {
+                    opt.selected = true;
+                }
+                subchapterSelect.appendChild(opt);
+            });
+
+            if (typeof jQuery !== 'undefined' && jQuery(subchapterSelect).hasClass('select2-hidden-accessible')) {
+                jQuery(subchapterSelect).trigger('change');
+            }
+        }
+
+        itemsList.addEventListener('click', function (e) {
+            const target = e.target.closest('a[data-val]');
+            if (!target) return;
+            e.preventDefault();
+
+            const val = target.getAttribute('data-val');
+            if (hiddenInput) hiddenInput.value = val;
+            if (btnText) btnText.textContent = val !== '' ? val : '-- همه سرفصل‌ها --';
+
+            itemsList.querySelectorAll('a').forEach(a => a.classList.remove('active', 'bg-primary', 'text-white'));
+            if (val !== '') {
+                target.classList.add('active', 'bg-primary', 'text-white');
+            }
+
+            const dropdownBtn = document.getElementById('transactionDropdownBtn');
+            if (dropdownBtn && typeof bootstrap !== 'undefined') {
+                const dropdownInstance = bootstrap.Dropdown.getInstance(dropdownBtn);
+                if (dropdownInstance) {
+                    dropdownInstance.hide();
+                }
+            }
+
+            if (searchInput) {
+                searchInput.value = '';
+                filterDropdownItems('');
+            }
+
+            updateSubchapters(val);
+        });
+
+        function filterDropdownItems(query) {
+            const q = query.trim().toLowerCase();
+            itemsList.querySelectorAll('a[data-val]').forEach(function (item) {
+                const text = item.textContent.toLowerCase();
+                if (item.getAttribute('data-val') === '' || text.includes(q)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                filterDropdownItems(this.value);
+            });
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // انتقال تمام مودال‌ها به انتهای body جهت جلوگیری از مشکل Stacking Context
+        document.querySelectorAll('.modal').forEach(function (modalEl) {
+            if (modalEl.parentNode !== document.body) {
+                document.body.appendChild(modalEl);
+            }
+        });
+    });
+
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggleBtn = document.getElementById('expenseToggleBtn');
+        const submenu = document.getElementById('expenseSubmenuContent');
+        const icon = toggleBtn.querySelector('.toggle-icon');
+
+        if (toggleBtn && submenu) {
+        toggleBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        submenu.classList.toggle('open');
+        if (icon) {
+        icon.classList.toggle('rotated');
+    }
+    });
+    }
+  })
+        // تابع باز کردن مودال با اطلاعات سطر مربوطه
+        function showDocumentDetails(button) {
+            const modalEl = document.getElementById('documentDetailModal');
+            if (!modalEl) return;
+
+            // اگر مودال درون لایه‌های تودرتو است، آن را مستقیم به انتهای body منتقل کن
+            if (modalEl.parentElement !== document.body) {
+                document.body.appendChild(modalEl);
+            }
+
+            // استخراج اطلاعات
+            const doc = button.getAttribute('data-doc') || '-';
+            const history = button.getAttribute('data-history') || '-';
+            const amount = button.getAttribute('data-amount') || '-';
+            const beneficiary = button.getAttribute('data-beneficiary') || '-';
+            const chapter = button.getAttribute('data-transaction') || '-';
+            const subchapter = button.getAttribute('data-subchapter') || '-';
+            const desc = button.getAttribute('data-description') || '';
+
+            // ست کردن مقادیر
+            document.getElementById('modalDocTitle').textContent = doc;
+            document.getElementById('modalDocDate').textContent = history;
+            document.getElementById('modalDocAmount').textContent = amount;
+            document.getElementById('modalDocBeneficiary').textContent = beneficiary;
+            document.getElementById('modalDocChapter').textContent = chapter;
+            document.getElementById('modalDocSubchapter').textContent = subchapter;
+
+            const descBox = document.getElementById('modalDocDescription');
+            if (desc && desc.trim() !== '') {
+                descBox.textContent = desc;
+                descBox.classList.remove('text-muted');
+            } else {
+                descBox.textContent = 'توضیحات و شرحی برای این سند ثبت نشده است.';
+                descBox.classList.add('text-muted');
+            }
+
+            // نمایش قطعی مودال با Bootstrap
+            const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modalInstance.show();
+        }
+
     function toggleCollapse(elementId, toggler) {
+        // 1. بررسی لود بودن Bootstrap و وجود المان
+        if (typeof bootstrap === 'undefined' || !elementId) return;
         const myCollapse = document.getElementById(elementId);
-        const bsCollapse = new bootstrap.Collapse(myCollapse, {
-            toggle: true // این پارامتر باعث می‌شود با هر بار کلیک وضعیت برعکس شود
+        if (!myCollapse) return;
+
+        // 2. یافتن یا ایجاد نمونه Collapse بدون ساخت مجدد
+        const bsCollapse = bootstrap.Collapse.getOrCreateInstance(myCollapse, {
+            toggle: false
         });
 
-        // تغییر آیکون
-        const icon = toggler.querySelector('.bi-plus-lg');
-        myCollapse.addEventListener('shown.bs.collapse', function () {
-            icon.classList.add('rotate-45');
-        });
-        myCollapse.addEventListener('hidden.bs.collapse', function () {
-            icon.classList.remove('rotate-45');
-        });
-    }
-    function toggleCollapse1(elementId, toggler) {
-        const myCollapse = document.getElementById(elementId);
-        const bsCollapse = new bootstrap.Collapse(myCollapse, {
-            toggle: true // این پارامتر باعث می‌شود با هر بار کلیک وضعیت برعکس شود
-        });
+        // 3. ثبت Listener فقط برای یک‌بار (جلوگیری از تکثیر رویدادها)
+        if (!myCollapse.dataset.hasCollapseListener) {
+            myCollapse.dataset.hasCollapseListener = 'true';
 
-        // تغییر آیکون
-        const icon = toggler.querySelector('.bi-plus-lg');
-        myCollapse.addEventListener('shown.bs.collapse', function () {
-            icon.classList.add('rotate-45');
-        });
-        myCollapse.addEventListener('hidden.bs.collapse', function () {
-            icon.classList.remove('rotate-45');
-        });
+            myCollapse.addEventListener('shown.bs.collapse', function () {
+                const currentToggler = document.querySelector(`[onclick*="${elementId}"]`) || toggler;
+                const icon = currentToggler?.querySelector('.bi-plus-lg');
+                if (icon) icon.classList.add('rotate-45');
+            });
+
+            myCollapse.addEventListener('hidden.bs.collapse', function () {
+                const currentToggler = document.querySelector(`[onclick*="${elementId}"]`) || toggler;
+                const icon = currentToggler?.querySelector('.bi-plus-lg');
+                if (icon) icon.classList.remove('rotate-45');
+            });
+        }
+
+        // 4. تغییر وضعیت (Toggle)
+        bsCollapse.toggle();
     }
+
+    // جهت سازگاری با کدهای قبلی که ممکن است toggleCollapse1 را صدا زده باشند:
+    const toggleCollapse1 = toggleCollapse;
+
     $(document).ready(function () {
 
         console.log('jQuery:', typeof $);
@@ -2293,5 +4158,4 @@ ob_end_flush();
 $content = ob_get_clean();
 $title = "گروه مسکن سازان";
 include '../partials/layout.php';
-include '../partials/slider.php';
 ?>

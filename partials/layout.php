@@ -1,47 +1,37 @@
-
 <?php
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-// مسیر پروژه (اگر در روت هست خالی بگذار)
+
 $baseUrl = '/maskansazan';
 $currentPage = basename($_SERVER['PHP_SELF']);
 
 $projectPages = [
-        'mehr.php'       => 'مهرپادین',
-        'toranj.php'     => 'ترنج',
-        'garmdareh1.php' => 'نقشه‌برداری ۱',
-        'garmdareh2.php' => 'نقشه‌برداری ۲',
-        'ordibehesht.php'=> 'اردیبهشت',
-        'sabat.php'      => 'ساباط',
-        'polaris.php'    => 'پلاریس'
+        'mehr.php'        => 'مهرپادین',
+        'toranj.php'      => 'ترنج',
+        'garmdareh1.php'  => 'نقشه‌برداری ۱',
+        'garmdareh2.php'  => 'نقشه‌برداری ۲',
+        'ordibehesht.php' => 'اردیبهشت',
+        'sabat.php'       => 'ساباط',
+        'polaris.php'     => 'پلاریس'
 ];
 
-// همیشه صفحه اصلی استارت breadcrumb است
 $breadcrumb = [
         'صفحه اصلی' => $baseUrl . '/index.php'
 ];
 
-// اگر صفحه فعلی یکی از پروژه‌هاست
 if (array_key_exists($currentPage, $projectPages)) {
-
-    // سطح دوم → پروژه‌ها
-    $breadcrumb['پروژه‌ها'] = ''; // بدون لینک
-
-    // سطح سوم → پروژه مربوطه
+    $breadcrumb['پروژه‌ها'] = '';
     $breadcrumb[$projectPages[$currentPage]] = $baseUrl . '/pages/' . $currentPage;
-}
-
-else {
-    // صفحات غیر پروژه‌ای
+} else {
     $pages = [
-            'goals.php'            => 'اهداف',
-            'groupIntroduction.php'=> 'معرفی گروه',
-            'garmdareh1.php'       => 'نقشه‌برداری ۱',
-            'garmdareh2.php'       => 'نقشه‌برداری ۲',
-            'ordibehesht.php'      => 'اردیبهشت',
-            'sabat.php'            => 'ساباط',
-            'polaris.php'          => 'پلاریس'
+            'goals.php'             => 'اهداف',
+            'groupIntroduction.php' => 'معرفی گروه',
+            'garmdareh1.php'        => 'نقشه‌برداری ۱',
+            'garmdareh2.php'        => 'نقشه‌برداری ۲',
+            'ordibehesht.php'       => 'اردیبهشت',
+            'sabat.php'             => 'ساباط',
+            'polaris.php'           => 'پلاریس'
     ];
 
     if (isset($pages[$currentPage])) {
@@ -61,24 +51,42 @@ else {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        body { font-family: 'Vazir', Tahoma, sans-serif; background-color: #F4F4FC; }
-
-        /* چیدمان اصلی */
-        .wrapper { display: flex; min-height: 100vh; }
-        .main-content .row {
-            margin-left: 0 !important;
-            margin-right: 0 !important;
-            margin-top: 50px;
+        body {
+            font-family: 'Vazir', Tahoma, sans-serif;
+            background-color: #F4F4FC;
+            padding-top: 110px; /* فضای لازم برای هدر ثابت بالای صفحه */
+            margin: 0;
         }
 
-        .main-content .col-lg-10 {
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-            margin-left: auto !important;
-            margin-right: auto !important;
-            margin-top: auto !important;
+        .page-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            width: 100%;
         }
 
+        /* ثابت کردن محفظه اسلایدر در پس‌زمینه */
+        .fixed-slider-container {
+            position: fixed;
+            top: 110px; /* شروع دقیقاً از زیر هدر */
+            left: 0;
+            right: 0;
+            height: 440px; /* هم‌اندازه با ارتفاع تعریف‌شده در slider.php */
+            z-index: 1; /* زیر منو و روی بادی */
+            width: 100%;
+        }
+
+        /* محتوای اصلی سایت که روی اسلایدر اسکرول می‌شود */
+        .main-content {
+            position: relative;
+            z-index: 2; /* قرارگیری روی اسلایدر */
+            background-color: #F4F4FC; /* جلوگیری از شفاف بودن پس‌زمینه جهت پوشاندن اسلایدر */
+            width: 100%;
+            /* ایجاد فاصله اولیه در صفحه اصلی تا اسلایدرِ ثابت زیرین دیده شود */
+            margin-top: <?= ($currentPage === 'index.php' || $currentPage === '') ? '460px' : '0' ?>;
+            padding-bottom: 50px;
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.05); /* ایجاد سایه ملایم هنگام عبور روی اسلایدر */
+        }
 
         /* استایل سایدبار عمودی */
         .sidebar {
@@ -89,14 +97,13 @@ else {
             right: 0;
             top: 0;
             bottom: 0;
-            z-index: 1000;
+            z-index: 1050; /* بالاتر از هدر و اسلایدر */
             display: flex;
             flex-direction: column;
             transition: all 0.3s;
         }
 
-
-        /* لوگو در سایدبار */
+        /* سایر استایل‌ها بدون تغییر جهت پایداری قالب */
         .sidebar-header {
             padding: 20px;
             text-align: center;
@@ -106,7 +113,6 @@ else {
         .logo-text { color: #1a2d50; font-weight: bold; }
         .bottom-text { color: #f9b115; display: block; font-size: 1.1rem; }
 
-        /* منوی عمودی */
         .sidebar-nav { padding: 15px 0; overflow-y: auto; }
         .nav-link {
             color: #1a2d50 !important;
@@ -124,7 +130,6 @@ else {
             color: #0056b3 !important;
         }
 
-        /* زیرمنوها در حالت عمودی */
         .dropdown-menu {
             position: static !important;
             width: 100%;
@@ -141,7 +146,6 @@ else {
         }
         .dropdown-item:hover { background: #f1ad1d; color: white; }
 
-        /* دکمه جستجوی پایین سایدبار */
         .sidebar-footer {
             margin-top: auto;
             padding: 20px;
@@ -157,6 +161,18 @@ else {
             cursor: pointer;
         }
 
+        .custom-breadcrumb {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        footer {
+            width: 100%;
+        }
+
         /* رسپانسیو برای موبایل */
         @media (max-width: 991px) {
             .sidebar { transform: translateX(100%); }
@@ -169,18 +185,19 @@ else {
             .mobile-toggle { display: none; }
         }
 
-        /* استایل Breadcrumb */
-        .custom-breadcrumb {
-            background: white;
-            padding: 10px 20px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        footer {
-            width: 100%;
-        }
         @media (max-width: 768px) {
+            body { padding-top: 90px; }
+            .fixed-slider-container {
+                top: 90px;
+                height: 230px; /* کاهش ارتفاع اسلایدر در موبایل */
+            }
+            .main-content {
+                margin-top: <?= ($currentPage === 'index.php' || $currentPage === '') ? '250px' : '0' ?>;
+                width: 100% !important;
+                margin-right: 0 !important;
+                padding: 15px !important;
+            }
+
             .sidebar-container {
                 width: 100% !important;
                 height: auto !important;
@@ -189,18 +206,6 @@ else {
                 justify-content: space-between !important;
                 align-items: center !important;
                 padding: 10px 15px !important;
-            }
-
-            .sidebar-container .logo,
-            .sidebar-container img {
-                max-width: 60px !important;
-                height: auto !important;
-            }
-
-            .main-content {
-                width: 100% !important;
-                margin: 0 !important;
-                padding: 15px !important;
             }
 
             .content-wrapper {
@@ -232,28 +237,35 @@ else {
                 display: none !important;
             }
         }
-
     </style>
 </head>
 <body class="d-flex flex-column min-vh-100">
-<div class="wrapper">
-    <!-- سایدبار که معمولاً در header یا جداگانه است -->
-    <?php
-       include 'header.php';
-    ?>
 
-    <main class="main-content py-4" style="margin-top: 200px;width:100%">
+<div class="page-container">
+
+    <!-- ۱. هدر ثابت سایت -->
+    <?php include 'header.php'; ?>
+
+    <!-- ۲. اسلایدر ثابت پس‌زمینه (فقط در صفحه اصلی) -->
+    <?php if ($currentPage === 'index.php' || $currentPage === ''): ?>
+        <div class="fixed-slider-container">
+            <?php include 'slider.php'; ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- ۳. محتوای اصلی صفحه (که روی اسلایدر اسکرول می‌شود) -->
+    <main class="main-content py-3">
         <div class="container">
-            <div class="row col-lg-10">
-                <div class="col-lg-10">
-                    <?php echo isset($content) ? $content : '<p>محتوایی یافت نشد.</p>'; ?>
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-10">
+                    <?= isset($content) ? $content : '<p>محتوایی یافت نشد.</p>'; ?>
                 </div>
             </div>
         </div>
     </main>
 
-
 </div>
+
 <!-- Modal Search -->
 <div class="modal fade" id="searchModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -269,55 +281,10 @@ else {
         </div>
     </div>
 </div>
-
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="<?= $baseUrl ?>/js/site.js"></script>
 
-<script>
-    // فقط در صفحه اصلی site.js کامل را بارگیری کن
-    <?php if ($currentPage == 'index.php'): ?>
-    setTimeout(function() {
-        var script = document.createElement('script');
-        script.src = '<?= $baseUrl ?>/js/site.js';
-        script.onload = function() {
-            console.log('site.js با موفقیت بارگیری شد');
-        };
-        script.onerror = function() {
-            console.error('خطا در بارگیری site.js');
-        };
-        document.body.appendChild(script);
-    }, 800);
-    <?php else: ?>
-    setTimeout(function() {
-        if (typeof jQuery !== 'undefined') {
-            jQuery(function($) {
-                if ($(window).width() < 992) {
-                    $('.dropdown-toggle').on('click', function(e) {
-                        e.preventDefault();
-                        $(this).next('.dropdown-menu').toggleClass('show');
-                    });
-
-                    $(document).on('click', function(e) {
-                        if (!$(e.target).closest('.dropdown').length) {
-                            $('.dropdown-menu').removeClass('show');
-                        }
-                    });
-                } else {
-                    $('.navbar .dropdown').hover(
-                        function() { $(this).addClass('show').find('.dropdown-menu').addClass('show'); },
-                        function() { $(this).removeClass('show').find('.dropdown-menu').removeClass('show'); }
-                    );
-                }
-            });
-        }
-    }, 300);
-    <?php endif; ?>
-</script>
-
-
-
-<?php if(isset($extraScripts)) echo $extraScripts; ?>
-<!-- Modal Search -->
 
 </body>
 </html>

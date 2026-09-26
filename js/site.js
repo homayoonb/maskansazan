@@ -1,82 +1,99 @@
-// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+document.addEventListener('DOMContentLoaded', function () {
+    // راه‌اندازی اسلایدر اصلی
+    const carouselEl = document.getElementById('mainHeroCarousel');
 
-// Write your JavaScript code.
+    let myCarousel = null;
 
-$(document).ready(function () {
-    // راه‌اندازی carousel
-    var myCarousel = new bootstrap.Carousel('#mainCarousel', {
-        interval: 3000,
-        wrap: true,
-        pause: false
+    if (carouselEl && typeof bootstrap !== 'undefined' && bootstrap.Carousel) {
+        myCarousel = bootstrap.Carousel.getOrCreateInstance(carouselEl, {
+            interval: 4500,
+            wrap: true,
+            pause: 'hover',
+            keyboard: true,
+            touch: true
+        });
+    }
+
+    // مدیریت دکمه ورود
+    const loginButton = document.getElementById('loginButton');
+    if (loginButton) {
+        loginButton.addEventListener('click', function () {
+            if (carouselEl) {
+                carouselEl.classList.add('hidden');
+            }
+
+            const mainContent = document.getElementById('mainContent');
+            if (mainContent) {
+                setTimeout(function () {
+                    mainContent.classList.add('visible');
+                }, 500);
+            }
+
+            this.style.display = 'none';
+
+            if (myCarousel) {
+                myCarousel.pause();
+            }
+        });
+    }
+
+    // افکت ورودی‌ها
+    document.querySelectorAll('input').forEach(function (input) {
+        input.addEventListener('focus', function () {
+            this.style.transform = 'scale(1.02)';
+            this.style.transition = 'transform 0.2s ease';
+        });
+
+        input.addEventListener('blur', function () {
+            this.style.transform = 'scale(1)';
+        });
     });
 
-    // مدیریت کلیک دکمه ورود
-    $('#loginButton').click(function () {
-        // مخفی کردن اسلایدر با انیمیشن
-        $('#mainCarousel').addClass('hidden');
+    // dropdown موبایل
+    document.querySelectorAll('.navbar .dropdown-toggle').forEach(function (toggle) {
+        toggle.addEventListener('click', function (e) {
+            if (window.innerWidth < 992) {
+                e.preventDefault();
 
-        // نمایش محتوای اصلی
-        setTimeout(function () {
-            $('#mainContent').addClass('visible');
-        }, 500);
+                const menu = this.nextElementSibling;
+                if (!menu || !menu.classList.contains('dropdown-menu')) return;
 
-        // مخفی کردن دکمه
-        $(this).hide();
+                document.querySelectorAll('.navbar .dropdown-menu.show').forEach(function (openMenu) {
+                    if (openMenu !== menu) {
+                        openMenu.classList.remove('show');
+                    }
+                });
 
-        // توقف carousel
-        myCarousel.pause();
+                menu.classList.toggle('show');
+            }
+        });
     });
 
-
-    // افزودن effect برای بهبود UX
-    $('input').focus(function () {
-        $(this).css('transform', 'scale(1.02)');
-    }).blur(function () {
-        $(this).css('transform', 'scale(1)');
-    });
-});
-
-    document.addEventListener('DOMContentLoaded', function() {
-    const dropdowns = document.querySelectorAll('.navbar .dropdown-toggle');
-
-    dropdowns.forEach(function(dropdown) {
-    dropdown.addEventListener('click', function (e) {
-    if (window.innerWidth < 992) {
-    e.preventDefault();
-    let menu = this.nextElementSibling;
-
-    // بستن سایر منوهای باز
-    document.querySelectorAll('.dropdown-menu.show').forEach(m => {
-    if (m !== menu) m.classList.remove('show');
-});
-
-    // باز یا بسته کردن منوی فعلی
-    menu.classList.toggle('show');
-}
-});
-});
-
-    // کلیک بیرون منو => همه بسته شوند
-    document.addEventListener('click', function(e) {
-    if (!e.target.closest('.navbar')) {
-    document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
-}
-});
-});
-$(document).ready(function(){
-    // موبایل: کلیک روی dropdown-toggle برای باز کردن زیرمنو
-    $('.dropdown-toggle').click(function(e){
-        if(window.innerWidth < 992){
-            e.preventDefault();
-            var $submenu = $(this).next('.dropdown-menu');
-            $('.dropdown-menu').not($submenu).slideUp();
-            $submenu.slideToggle();
+    // بستن منو با کلیک بیرون
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('.navbar')) {
+            document.querySelectorAll('.navbar .dropdown-menu.show').forEach(function (menu) {
+                menu.classList.remove('show');
+            });
         }
     });
-});
-// نمایش زیرمنو با hover در دسکتاپ
-document.querySelectorAll('.navbar .dropdown').forEach(function(drop){
-    drop.addEventListener('mouseenter', function(){ if(window.innerWidth>991) this.classList.add('show'); });
-    drop.addEventListener('mouseleave', function(){ if(window.innerWidth>991) this.classList.remove('show'); });
+
+    // hover دسکتاپ
+    document.querySelectorAll('.navbar .dropdown').forEach(function (drop) {
+        drop.addEventListener('mouseenter', function () {
+            if (window.innerWidth > 991) {
+                this.classList.add('show');
+                const menu = this.querySelector('.dropdown-menu');
+                if (menu) menu.classList.add('show');
+            }
+        });
+
+        drop.addEventListener('mouseleave', function () {
+            if (window.innerWidth > 991) {
+                this.classList.remove('show');
+                const menu = this.querySelector('.dropdown-menu');
+                if (menu) menu.classList.remove('show');
+            }
+        });
+    });
 });

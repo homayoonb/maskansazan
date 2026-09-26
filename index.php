@@ -116,5 +116,4 @@ ob_start();
 $content = ob_get_clean();
 $title = "گروه مسکن سازان";
 include 'partials/layout.php';
-include 'partials/slider.php';
 ?>

@@ -1,7 +1,8 @@
 <?php
 // header.php - هدر شرکت مسکن سازان
 $baseUrl = $baseUrl ?? '/maskansazan';
-$logoUrl = $logoUrl ?? $baseUrl . '/images/logo.png';
+$logoUrl = $logoUrl ?? $baseUrl . '/images/logo.jpg';
+$showSlider = $showSlider ?? true; // در صورت نیاز در صفحات دیگر می‌توانید false کنید
 ?>
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -19,9 +20,7 @@ $logoUrl = $logoUrl ?? $baseUrl . '/images/logo.png';
             font-family: system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif;
             background: #f8fafc;
             margin: 0;
-        }
-        @media (max-width: 991.98px) {
-            body { padding-top: 100px; }
+            padding-top: 110px; /* ایجاد فضای کافی برای هدر ثابت دسکتاپ (45px + 65px) */
         }
 
         .site-header {
@@ -47,29 +46,15 @@ $logoUrl = $logoUrl ?? $baseUrl . '/images/logo.png';
             z-index: 1;
         }
         .top-bar * { color: #fff; }
+
         .top-bar .right-group {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        .top-bar .date-display { white-space: nowrap; }
-        /* والد نوار بالا */
-
-        .topbar{
-            display: flex;
-            align-items: center;
-        }
-
-        /* این گروه بره سمت چپ */
-        .right-group{
-            margin-right: auto;   /* در RTL یعنی بچسب به چپ */
+            margin-right: auto; /* در RTL یعنی چسبیدن به سمت چپ */
             display: flex;
             align-items: center;
             gap: 12px;
         }
 
-        /* فقط برای زیبایی تاریخ/ساعت */
-        .date-display{
+        .date-display {
             white-space: nowrap;
         }
 
@@ -87,45 +72,28 @@ $logoUrl = $logoUrl ?? $baseUrl . '/images/logo.png';
         }
         .btn-complaints:hover { background: #cc0000; color: #fff; }
 
-        .top-search {
-            position: relative;
-            width: 200px;
-        }
-        .top-search input {
-            width: 100%;
-            background: #000154;
-            border: 1px solid rgba(255,255,255,0.2);
-            color: #fff;
-            border-radius: 20px;
-            padding: 4px 12px 4px 30px;
-            font-size: 0.8rem;
-            outline: none;
-        }
-        .top-search input::placeholder { color: #d0d0d0; }
-        .top-search button {
-            position: absolute;
-            left: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: 0;
-            color: #fff;
-            font-size: 0.75rem;
-            cursor: pointer;
-        }
-
-        /* ===== نوار اصلی ===== */
+        /* ===== نوار اصلی منو ===== */
         .main-nav {
             position: relative;
             background: #ffffff;
             border-bottom: 1px solid #e2e8f0;
             height: 65px;
-            padding: 0 24px;
+            padding: 0 30px;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            direction: rtl;
+            width: 100%;
             z-index: 2;
         }
+
+        .nav-right-group,
+        .left-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
         .nav-menu {
             display: flex;
             align-items: center;
@@ -134,6 +102,7 @@ $logoUrl = $logoUrl ?? $baseUrl . '/images/logo.png';
             margin: 0;
             padding: 0;
         }
+
         .nav-menu a {
             color: #2b2b2b;
             font-size: 0.88rem;
@@ -144,7 +113,7 @@ $logoUrl = $logoUrl ?? $baseUrl . '/images/logo.png';
         .nav-menu a:hover { color: #000282; }
         .nav-menu .sep { color: #cbd5e1; font-size: 0.8rem; }
 
-        /* ===== لوگو بدون دایره و زمینه سفید ===== */
+        /* ===== لوگوی وسط ===== */
         .center-logo-wrapper {
             position: absolute;
             left: 50%;
@@ -155,30 +124,29 @@ $logoUrl = $logoUrl ?? $baseUrl . '/images/logo.png';
             text-decoration: none;
         }
         .center-logo-circle {
-            width: 80px;
-            height: 80px;
+            width: 75px;
+            height: 75px;
             margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: transparent; /* حذف پس‌زمینه سفید */
-            border: none;             /* حذف حاشیه */
+            background: #fff;
             border-radius: 50%;
-            box-shadow: none;         /* حذف سایه */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             transition: transform 0.2s;
         }
         .center-logo-wrapper:hover .center-logo-circle {
             transform: scale(1.05);
         }
         .center-logo-circle img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain; /* حفظ تناسبات تصویر اصلی بدون برش */
+            max-width: 85%;
+            max-height: 85%;
+            object-fit: contain;
             border-radius: 50%;
         }
         .center-logo-title {
             margin-top: 2px;
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             font-weight: 800;
             color: #000154;
             white-space: nowrap;
@@ -264,44 +232,29 @@ $logoUrl = $logoUrl ?? $baseUrl . '/images/logo.png';
         }
         body.no-scroll { overflow: hidden; }
 
-        /* ===== حالت موبایل ===== */
-        /* ===== حالت موبایل (لوگو سمت چپ، دکمه منو سمت راست) ===== */
+        /* ===== حالت ریسپانسیو موبایل و تبلت ===== */
         @media (max-width: 991.98px) {
-            /* ۱. نوار سورمه‌ای بالا */
+            body { padding-top: 90px; }
+
             .top-bar {
                 height: 38px !important;
                 padding: 0 12px !important;
-                display: flex !important;
-                align-items: center !important;
                 justify-content: flex-end !important;
             }
-            .top-bar .date-display,
-            .top-search {
+            .top-bar .date-display {
                 display: none !important;
             }
-            .btn-complaints-wrapper {
-                margin: 0 !important;
-            }
-            .btn-complaints {
-                padding: 3px 12px !important;
-                font-size: 0.75rem !important;
-            }
 
-            /* ۲. نوار اصلی (معکوس کردن جهت چیدمان) */
             .main-nav {
                 height: 52px !important;
                 padding: 0 12px !important;
-                display: flex !important;
-                flex-direction: row-reverse !important; /* معکوس کردن جهت: دکمه راست، لوگو چپ */
-                align-items: center !important;
-                justify-content: space-between !important;
+                flex-direction: row-reverse !important;
             }
 
             .nav-menu {
                 display: none !important;
             }
 
-            /* ۳. لوگو و متن شرکت (هدایت به سمت چپ) */
             .center-logo-wrapper {
                 position: static !important;
                 transform: none !important;
@@ -309,45 +262,19 @@ $logoUrl = $logoUrl ?? $baseUrl . '/images/logo.png';
                 align-items: center !important;
                 gap: 8px !important;
                 margin: 0 !important;
-                text-decoration: none !important;
             }
             .center-logo-circle {
-                width: 32px !important;
-                height: 32px !important;
-                margin: 0 !important;
-                background: transparent !important;
-                border: none !important;
+                width: 36px !important;
+                height: 36px !important;
                 box-shadow: none !important;
-                border-radius: 0 !important;
-            }
-            .center-logo-circle img {
-                width: 100% !important;
-                height: 100% !important;
-                object-fit: contain !important;
             }
             .center-logo-title {
                 margin: 0 !important;
                 font-size: 0.8rem !important;
-                font-weight: 700 !important;
-                color: #000154 !important;
-                white-space: nowrap !important;
             }
 
-            /* ۴. دکمه همبرگری منو (هدایت به سمت راست) */
             .mobile-btns {
                 display: flex !important;
-                align-items: center !important;
-                margin: 0 !important;
-            }
-            .mobile-btns button {
-                background: none !important;
-                border: 0 !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                line-height: 1 !important;
-                font-size: 1.4rem !important;
-                color: #000154 !important;
-                cursor: pointer !important;
             }
         }
     </style>
@@ -358,9 +285,8 @@ $logoUrl = $logoUrl ?? $baseUrl . '/images/logo.png';
     <!-- نوار بالایی -->
     <div class="top-bar">
         <div class="right-group text-start">
-            <span class="date-display"><?php include 'datetime.php'?></span>
+            <span class="date-display"><?php include 'datetime.php'; ?></span>
         </div>
-
     </div>
 
     <!-- لوگوی مستقیم و شفاف -->
@@ -373,13 +299,19 @@ $logoUrl = $logoUrl ?? $baseUrl . '/images/logo.png';
 
     <!-- نوار اصلی منو -->
     <nav class="main-nav">
-        <ul class="nav-menu">
-            <li><a href="<?= $baseUrl ?>/">صفحه اصلی</a></li>
-            <li class="sep">|</li>
-            <li><a href="<?= $baseUrl ?>/projects">پروژه‌ها</a></li>
-            <li class="sep">|</li>
-            <li><a href="<?= $baseUrl ?>/groupmembers.php">اعضا</a></li>
-            <li class="sep">|</li>
+        <!-- بخش راست: منوی سمت راست -->
+        <div class="nav-right-group" style="margin-right: 220px">
+            <ul class="nav-menu">
+                <li><a href="<?= $baseUrl ?>/">صفحه اصلی</a></li>
+                <li class="sep">|</li>
+                <li><a href="<?= $baseUrl ?>/projects.php">پروژه‌ها</a></li>
+                <li class="sep">|</li>
+                <li><a href="<?= $baseUrl ?>/groupmembers.php">اعضا</a></li>
+            </ul>
+        </div>
+
+        <!-- بخش چپ: منوی سمت چپ -->
+        <ul class="nav-menu left-section" style="margin-left: 220px">
             <li><a href="<?= $baseUrl ?>/peymankaran_taminkonandegan_login.php">پیمانکاران</a></li>
             <li class="sep">|</li>
             <li><a href="<?= $baseUrl ?>/admin/loginAdmin.php">مدیریت</a></li>
@@ -388,7 +320,9 @@ $logoUrl = $logoUrl ?? $baseUrl . '/images/logo.png';
         </ul>
 
         <div class="mobile-btns">
-            <button type="button" id="mobileMenuBtn" aria-label="منو" aria-controls="mobileDrawer" aria-expanded="false"><i class="fa fa-bars"></i></button>
+            <button type="button" id="mobileMenuBtn" aria-label="منو" aria-controls="mobileDrawer" aria-expanded="false">
+                <i class="fa fa-bars"></i>
+            </button>
         </div>
     </nav>
 </header>
@@ -403,7 +337,7 @@ $logoUrl = $logoUrl ?? $baseUrl . '/images/logo.png';
     </div>
     <ul>
         <li><a href="<?= $baseUrl ?>/">صفحه اصلی</a></li>
-        <li><a href="<?= $baseUrl ?>/projects">پروژه‌ها</a></li>
+        <li><a href="<?= $baseUrl ?>/projects.php">پروژه‌ها</a></li>
         <li><a href="<?= $baseUrl ?>/groupmembers.php">اعضا</a></li>
         <li><a href="<?= $baseUrl ?>/peymankaran_taminkonandegan_login.php">پیمانکاران</a></li>
         <li><a href="<?= $baseUrl ?>/admin/loginAdmin.php">مدیریت</a></li>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="JavaScriptLibraryMappings">
-    <file url="PROJECT" libraries="{@majidh1/jalalidatepicker, Vazirmatn-font-face, bootstrap-icons, dataTables.bootstrap5, jquery, jquery-3.6.0, jquery-ui, jquery.dataTables, moment.js, persian-date, persian-datepicker, sweetalert2}" />
+    <file url="PROJECT" libraries="{@majidh1/jalalidatepicker, Vazirmatn-font-face, bootstrap-icons, dataTables.bootstrap5, jquery, jquery-3.6.0, jquery-ui, jquery.dataTables, moment.js, persian-date, persian-datepicker, persiandate, select2, select2-bootstrap-5-theme, sweetalert2}" />
   </component>
 </project>

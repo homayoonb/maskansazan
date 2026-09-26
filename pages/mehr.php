@@ -338,7 +338,7 @@ ob_start();
 <body>
 <div class="container">
     <div class="row flex-row-reverse">
-        <div class="col-lg-4">
+        <div class="col-lg-10">
             <div class="card shadow border-0 rounded-4 overflow-hidden h-100">
                 <div class="position-relative h-100" style="min-height: 350px;">
                     <div id="map" class="h-100 w-100" style="position: absolute; top: 0; bottom: 0;"></div>

@@ -132,7 +132,7 @@ ob_start();
     </div>
 <?php endif; ?>
 
-<div class="container-fluid">
+<div class="container-fluid" >
     <div class="row">
 
         <main class="col-md-9 col-lg-10 px-md-4">
@@ -236,6 +236,11 @@ ob_start();
                                 <i class="bi bi-file-earmark-pdf fs-5 me-2"></i> خروجی اقساط پرداخت‌شده
                             </a>
                         </div>
+                        <!-- دکمه خروجی اکسل -->
+                        <a href="export_paid_installments_excel.php?user_project_id=<?= urlencode((string)$user_project_id) ?>&project_id=<?= urlencode((string)$project_id) ?>"
+                           class="btn btn-success fw-bold py-2 w-100 shadow-sm d-flex align-items-center justify-content-center">
+                            <i class="bi bi-file-earmark-excel fs-5 me-2"></i> خروجی اکسل اقساط
+                        </a>
                     </div>
                 </div>
 
@@ -243,7 +248,7 @@ ob_start();
 
 
 
-            <div class="table-responsive mt-4">
+            <div class="table-responsive mt-4" >
                 <table class="table table-bordered table-hover shadow-sm align-middle" style="direction: rtl">
                     <thead class="table-light">
                     <tr style="text-align: right">
@@ -306,5 +311,4 @@ ob_start();
 $content = ob_get_clean();
 $title = "گروه مسکن سازان";
 include '../partials/layout.php';
-include '../partials/slider.php';
 ?>

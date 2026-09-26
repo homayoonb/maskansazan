@@ -140,13 +140,7 @@ ob_start();
 
             <div id="ticket" class="tab-pane fade">
                 <h4>تیکت</h4>
-                <?php
-                if (file_exists('ticket.php')) {
-                    include 'ticket.php';
-                } else {
-                    echo '<div class="alert alert-danger text-center">فایل ticket.php یافت نشد.</div>';
-                }
-                ?>
+
             </div>
         </div>
 
