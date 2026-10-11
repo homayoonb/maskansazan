@@ -11,7 +11,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // اطلاعات دیتابیس هاست
-$DB_HOST = 'localhost';
+$DB_HOST = '127.0.0.1';
 $DB_NAME = 'maskanhb_maskansazan';
 $DB_USER = 'root';
 $DB_PASS = '';
@@ -80,7 +80,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else if (!verify_human(['human_check' => $human_check])) {
         $error = "لطفاً تأیید کنید که ربات نیستید";
     } else {
-        $mysqli = @new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
+        try {
+            // برای لوکال معمولاً 127.0.0.1 سریع‌تر و مطمئن‌تر از localhost است
+            $host = ($DB_HOST === 'localhost') ? '127.0.0.1' : $DB_HOST;
+
+            $mysqli = new mysqli($host, $DB_USER, $DB_PASS, $DB_NAME);
+            $mysqli->set_charset("utf8mb4");
+        } catch (mysqli_sql_exception $e) {
+            // اگر در اتصال مشکلی بود، بدون کرش کردن اسکریپت پیام مناسب نشان داده شود
+            die("خطا در اتصال به پایگاه داده: لطفاً مطمئن شوید سرویس MySQL در XAMPP روشن (Start) است.<br><small dir='ltr'>" . htmlspecialchars($e->getMessage()) . "</small>");
+        }
 
         if ($mysqli->connect_error) {
             $error = "خطا در اتصال به پایگاه داده";
@@ -152,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         // تبدیل رمز قدیمی به hash
                         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                        $update_stmt = $mysqli->prepare("UPDATE admins SET password = ? WHERE id = ?");
+                        $update_stmt = $mysqli->prepare("UPDATE admins SET password_hash = ? WHERE id = ?");
                         if ($update_stmt) {
                             $update_stmt->bind_param("si", $hashed_password, $admin['id']);
                             $update_stmt->execute();
@@ -184,30 +193,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             if ($remember) {
                                 $token = bin2hex(random_bytes(32));
 
-                                $update_token = $mysqli->prepare("UPDATE admins SET remember_token = ? WHERE id = ?");
+// محاسبه تاریخ انقضا برای ۳۰ روز بعد
+                                $expires_time = time() + (60 * 60 * 24 * 30);
+                                $expiry_date = date('Y-m-d H:i:s', $expires_time);
+
+// هش کردن توکن برای امنیت بیشتر و هماهنگی با نام فیلد remember_token_hash
+                                $token_hash = hash('sha256', $token);
+
+                                $update_token = $mysqli->prepare("UPDATE admins SET remember_token_hash = ?, remember_token_expiry = ? WHERE id = ?");
                                 if ($update_token) {
-                                    $update_token->bind_param("si", $token, $admin['id']);
+                                    $update_token->bind_param("ssi", $token_hash, $expiry_date, $admin['id']);
                                     $update_token->execute();
                                     $update_token->close();
 
-                                    // ذخیره کوکی به مدت 30 روز
+                                    // ذخیره کوکی به مدت 30 روز (path را روی '/' یا '/admin/' بسته به نیاز پروژه بگذارید)
                                     setcookie('admin_remember_token', $token, [
-                                        'expires' => time() + 60*60*24*30,
-                                        'path' => '/admin/',
-                                        'secure' => isset($_SERVER['HTTPS']),
-                                        'httponly' => true,
-                                        'samesite' => 'Lax'
+                                            'expires' => $expires_time,
+                                            'path' => '/',
+                                            'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+                                            'httponly' => true,
+                                            'samesite' => 'Lax'
                                     ]);
 
                                     setcookie('admin_id', $admin['id'], [
-                                        'expires' => time() + 60*60*24*30,
-                                        'path' => '/admin/',
-                                        'secure' => isset($_SERVER['HTTPS']),
-                                        'samesite' => 'Lax'
+                                            'expires' => $expires_time,
+                                            'path' => '/',
+                                            'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+                                            'httponly' => true,
+                                            'samesite' => 'Lax'
                                     ]);
 
                                     error_log("Remember me token set for user: $username");
                                 }
+
                             }
 
                             $stmt->close();

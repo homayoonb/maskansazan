@@ -169,7 +169,18 @@ ob_start();
                             <span class="badge bg-light text-warning fs-5 border border-warning text-dark w-100 py-2">
                 <?= number_format($target_amount) ?> <small class="fs-6">ریال</small>
             </span>
+                            <button type="button"
+                                    class="btn btn-outline-warning btn-sm w-100 d-flex align-items-center justify-content-center gap-1"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editTargetInstallmentModal"
+                                    data-target-amount="<?= (float)$target_amount ?>"
+                                    data-target-date="<?= htmlspecialchars($target_date ?? '1405/05/15') ?>">
+                                <i class="bi bi-pencil-square"></i>
+                                ویرایش جمع اقساط
+                            </button>
                         </div>
+                        <!-- دکمه باز کردن مودال ویرایش -->
+
                     </div>
                 </div>
 
@@ -306,7 +317,150 @@ ob_start();
         </main>
     </div>
 </div>
+<div class="modal fade" id="editTargetInstallmentModal" tabindex="-1" aria-labelledby="editTargetInstallmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning text-dark py-3">
+                <h5 class="modal-title fs-6 fw-bold" id="editTargetInstallmentModalLabel">
+                    <i class="bi bi-pencil-square me-2"></i> ویرایش جمع اقساط و تاریخ هدف
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
+            </div>
+            <form id="editTargetInstallmentForm" method="POST" action="update_target_installment.php">
+                <div class="modal-body py-3">
+                    <input type="hidden" name="project_id" value="<?= (int)($project_id ?? 0) ?>">
 
+                    <!-- مبلغ هدف -->
+                    <div class="mb-3">
+                        <label for="modal_target_amount" class="form-label fw-medium small">مبلغ کل اقساط (ریال) <span class="text-danger">*</span></label>
+                        <input type="text"
+                               name="target_amount"
+                               id="modal_target_amount"
+                               class="form-control text-start font-monospace"
+                               dir="ltr"
+                               required
+                               placeholder="مثال: ۱۷,۵۰۰,۰۰۰,۰۰۰">
+                    </div>
+
+                    <!-- تاریخ سررسید/هدف -->
+                    <div class="mb-3">
+                        <label for="modal_target_date" class="form-label fw-medium small">تاریخ هدف <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                            <input type="text"
+                                   name="target_date"
+                                   id="modal_target_date"
+                                   class="form-control text-center pwt-datepicker"
+                                   data-jdp
+                                   placeholder="۱۴۰۵/۰۵/۱۵"
+                                   required
+                                   autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">انصراف</button>
+                    <button type="submit" class="btn btn-warning px-4 fw-bold" id="saveTargetInstallmentBtn">
+                        <i class="bi bi-check-lg me-1"></i> ذخیره تغییرات
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const editModalEl = document.getElementById('editTargetInstallmentModal');
+        const editForm = document.getElementById('editTargetInstallmentForm');
+        const amountInput = document.getElementById('modal_target_amount');
+
+        if (!editModalEl) return;
+
+        // فرمت ۳ رقم ۳ رقم هنگام تایپ مبلغ
+        if (amountInput) {
+            amountInput.addEventListener('input', function () {
+                let val = this.value.replace(/[^0-9]/g, '');
+                this.value = val ? new Intl.NumberFormat('en-US').format(val) : '';
+            });
+        }
+
+        // باز شدن مودال و بارگذاری مقادیر فعلی
+        editModalEl.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            if (!button) return;
+
+            const rawAmount = button.getAttribute('data-target-amount') || '0';
+            const rawDate = button.getAttribute('data-target-date') || '';
+
+            if (amountInput) {
+                amountInput.value = rawAmount !== '0' ? new Intl.NumberFormat('en-US').format(rawAmount) : '';
+            }
+            const dateInput = document.getElementById('modal_target_date');
+            if (dateInput) {
+                dateInput.value = rawDate;
+            }
+        });
+
+        // ارسال فرم با AJAX
+        if (editForm) {
+            editForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const submitBtn = document.getElementById('saveTargetInstallmentBtn');
+                const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> در حال ذخیره...';
+                }
+
+                const formData = new FormData(editForm);
+
+                fetch(editForm.getAttribute('action') || 'update_target_installment.php', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                    .then(async response => {
+                        const text = await response.text();
+                        try {
+                            return JSON.parse(text);
+                        } catch {
+                            if (response.ok) return { success: true };
+                            throw new Error('خطا در پردازش پاسخ سرور');
+                        }
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            bootstrap.Modal.getInstance(editModalEl)?.hide();
+                            location.reload();
+                        } else {
+                            alert(data.message || 'خطا در ثبت اطلاعات.');
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('خطا در برقراری ارتباط با سرور.');
+                    })
+                    .finally(() => {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalBtnHtml;
+                        }
+                    });
+            });
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const editModal = document.getElementById('editTargetInstallmentModal');
+        if (editModal && editModal.parentElement !== document.body) {
+            document.body.appendChild(editModal);
+        }
+    });
+
+</script>
 <?php
 $content = ob_get_clean();
 $title = "گروه مسکن سازان";

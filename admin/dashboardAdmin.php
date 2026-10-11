@@ -1515,6 +1515,47 @@ if ($activeTab === 'check_out' && $selectedProjectId > 0) {
             return str_replace($arabic, $english, $value);
         }
     }
+    /**
+     * تبدیل اعداد با فرمت پول (دارای کاما یا ارقام فارسی/عربی) به عدد صحیح قابل درج در دیتابیس
+     *
+     * @param mixed $val
+     * @return int
+     */
+    if (!function_exists('cleanMoneyToInt')) {
+        function cleanMoneyToInt($val): int {
+            if ($val === null || $val === '') {
+                return 0;
+            }
+
+            $val = (string)$val;
+
+            // تبدیل ارقام فارسی به انگلیسی
+            $persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+            $arabicDigits  = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+            $englishDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+
+            $val = str_replace($persianDigits, $englishDigits, $val);
+            $val = str_replace($arabicDigits, $englishDigits, $val);
+
+            // حذف کاما، فاصله و هر کاراکتر غیر عددی به جز علامت منفی
+            $val = preg_replace('/[^\d-]/', '', $val);
+
+            return (int)$val;
+        }
+    }
+
+    /**
+     * پاک‌سازی ورودی‌های رشته‌ای
+     */
+    if (!function_exists('cleanInput')) {
+        function cleanInput($data) {
+            if (is_array($data)) {
+                return array_map('cleanInput', $data);
+            }
+            return ($data !== null) ? trim((string)$data) : '';
+        }
+    }
+
 
     /*
     |--------------------------------------------------------------------------
@@ -1804,12 +1845,219 @@ if ($activeTab === 'check_out' && $selectedProjectId > 0) {
         $page = 1;
         $offset = 0;
     }
+
+// پردازش فرم ثبت چک
+
+
+
 }
 
 
 
 
+if ($activeTab === 'remittance_input' && $selectedProjectId > 0)
+{
+    // ۱. تابع نرمال‌سازی ارقام فارسی/عربی به انگلیسی
+    if (!function_exists('toEnglishDigits')) {
+        function toEnglishDigits($str)
+        {
+            $persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+            $arabic  = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+            $english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+            $str = str_replace($persian, $english, (string)$str);
+            return str_replace($arabic, $english, $str);
+        }
+    }
 
+    // ۲. تابع کمکی استخراج لیست‌های متمایز (جلوگیری از تکرار کد و امنیت Prepared Statement)
+    if (!function_exists('fetchDistinctColumn')) {
+        function fetchDistinctColumn(PDO $pdo, string $column, int $projectId): array
+        {
+            $allowedColumns = ['bank_account', 'sub_account', 'transaction_type', 'beneficiary', 'document_number', 'direction'];
+            if (!in_array($column, $allowedColumns, true)) {
+                return [];
+            }
+            $stmt = $pdo->prepare("SELECT DISTINCT `{$column}` FROM `remittance_output` 
+                                  WHERE `{$column}` IS NOT NULL AND `{$column}` != '' 
+                                    AND `project_id` = :pid 
+                                  ORDER BY `{$column}` ASC");
+            $stmt->execute([':pid' => $projectId]);
+            return $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
+        }
+    }
+
+    // تنظیمات صفحه‌بندی
+    $allowedLimits = [10, 25, 50, 100];
+    $perPage = (int)($_GET['per_page'] ?? 25);
+    if (!in_array($perPage, $allowedLimits, true)) {
+        $perPage = 25;
+    }
+    $page = max(1, (int)($_GET['page'] ?? 1));
+
+    // تنظیمات مرتب‌سازی (Sort Whitelist)
+    $allowedSort = ['id', 'transaction_date', 'deposit', 'receipt_number', 'document_number'];
+    $orderBy = in_array($_GET['order_by'] ?? '', $allowedSort, true) ? $_GET['order_by'] : 'id';
+    $orderDir = strtolower($_GET['order_dir'] ?? 'desc') === 'asc' ? 'ASC' : 'DESC';
+    $toggleDir = ($orderDir === 'ASC') ? 'desc' : 'asc';
+
+    // ۴. دریافت لیست‌های دراپ‌داون
+    $bank_accountList   = fetchDistinctColumn($pdo, 'bank_account', (int)$selectedProjectId);
+    $beneficiaryList = fetchDistinctColumn($pdo, 'beneficiary', (int)$selectedProjectId);
+    $transaction_typeList = fetchDistinctColumn($pdo, 'transaction_type', (int)$selectedProjectId);
+    $sub_accountList  = fetchDistinctColumn($pdo, 'sub_account', (int)$selectedProjectId);
+    $document_numberList    = fetchDistinctColumn($pdo, 'document_number', (int)$selectedProjectId);
+
+    // ۵. ساخت شروط WHERE پویا
+    $whereConditions = ["`project_id` = :project_id"];
+    $queryParams = [':project_id' => (int)$selectedProjectId];
+
+    if ($bank_hesab !== '') {
+        $whereConditions[] = "`bank/hesab` LIKE :bank_hesab";
+        $queryParams[':bank_hesab'] = "%{$bank_hesab}%";
+    }
+    if ($subchapter !== '') {
+        $whereConditions[] = "`subchapter` LIKE :subchapter";
+        $queryParams[':subchapter'] = "%{$subchapter}%";
+    }
+    if ($transaction !== '') {
+        $whereConditions[] = "`transaction` LIKE :transaction";
+        $queryParams[':transaction'] = "%{$transaction}%";
+    }
+    if ($beneficiary !== '') {
+        $whereConditions[] = "`beneficiary` LIKE :beneficiary";
+        $queryParams[':beneficiary'] = "%{$beneficiary}%";
+    }
+    if ($document !== '') {
+        $whereConditions[] = "`document` LIKE :document";
+        $queryParams[':document'] = "%{$document}%";
+    }
+    if ($voroodi_khoroujy !== '') {
+        $whereConditions[] = "`voroodi/khoroujy` LIKE :voroodi_khoroujy";
+        $queryParams[':voroodi_khoroujy'] = "%{$voroodi_khoroujy}%";
+    }
+
+    if ($dateFrom !== '') {
+        $whereConditions[] = "`history` >= :date_from";
+        $queryParams[':date_from'] = $dateFrom;
+    }
+    if ($dateTo !== '') {
+        $whereConditions[] = "`history` <= :date_to";
+        $queryParams[':date_to'] = $dateTo;
+    }
+
+    if ($minAmount !== '' && is_numeric($minAmount)) {
+        $whereConditions[] = "`harvest` >= :min_amount";
+        $queryParams[':min_amount'] = (float)$minAmount;
+    }
+    if ($maxAmount !== '' && is_numeric($maxAmount)) {
+        $whereConditions[] = "`harvest` <= :max_amount";
+        $queryParams[':max_amount'] = (float)$maxAmount;
+    }
+
+    $whereSql = 'WHERE ' . implode(' AND ', $whereConditions);
+
+    // ۶. استخراج نقشه‌برداری روابط (Mapping) سرفصل به زیرفصل
+    $transactionSubMap = [];
+    try {
+        $mapStmt = $pdo->prepare("
+            SELECT DISTINCT `transaction`, `subchapter` 
+            FROM `remittance_output` 
+            WHERE `transaction` IS NOT NULL AND `transaction` != '' 
+              AND `project_id` = :pid
+            ORDER BY `transaction` ASC, `subchapter` ASC
+        ");
+        $mapStmt->execute([':pid' => (int)$selectedProjectId]);
+        $mapRows = $mapStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($mapRows as $r) {
+            $t = trim($r['transaction'] ?? '');
+            $s = trim($r['subchapter'] ?? '');
+            if ($t === '') continue;
+            if (!isset($transactionSubMap[$t])) {
+                $transactionSubMap[$t] = [];
+            }
+            if ($s !== '' && !in_array($s, $transactionSubMap[$t], true)) {
+                $transactionSubMap[$t][] = $s;
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Transaction Map Error: " . $e->getMessage());
+        $transactionSubMap = [];
+    }
+
+    // ساخت نقشه بانک به ذی‌نفع‌ها (Prepared Statement ایمن بدون var_dump)
+    $bank_hesabMap = [];
+    try {
+        $stmtMap = $pdo->prepare("
+            SELECT DISTINCT `bank/hesab`, `beneficiary` 
+            FROM `remittance_output` 
+            WHERE `bank/hesab` IS NOT NULL AND `bank/hesab` != ''
+              AND `project_id` = :pid
+        ");
+        $stmtMap->execute([':pid' => (int)$selectedProjectId]);
+        while ($row = $stmtMap->fetch(PDO::FETCH_ASSOC)) {
+            $bank = trim($row['bank/hesab']);
+            $beneficiary = trim($row['beneficiary'] ?? '');
+            if ($bank !== '') {
+                if (!isset($bank_hesabMap[$bank])) {
+                    $bank_hesabMap[$bank] = [];
+                }
+                if ($beneficiary !== '' && !in_array($beneficiary, $bank_hesabMap[$bank], true)) {
+                    $bank_hesabMap[$bank][] = $beneficiary;
+                }
+            }
+        }
+    } catch (PDOException $e) {
+        error_log("Bank Map Error: " . $e->getMessage());
+        $bank_hesabMap = [];
+    }
+
+    // ۷. اجرای کوئری تجمیع داده‌ها و صفحه‌بندی
+    try {
+        // کوئری شمارش کل و جمع مبالغ
+        $summarySql = "SELECT COUNT(*) AS total_count, COALESCE(SUM(`harvest`), 0) AS total_amount 
+                       FROM `remittance_output` {$whereSql}";
+        $summaryStmt = $pdo->prepare($summarySql);
+        $summaryStmt->execute($queryParams);
+        $summaryData = $summaryStmt->fetch(PDO::FETCH_ASSOC);
+
+        $totalRecords = (int)($summaryData['total_count'] ?? 0);
+        $totalWithdrawalAmount = (float)($summaryData['total_amount'] ?? 0);
+        $totalPages = max(1, (int)ceil($totalRecords / $perPage));
+
+        if ($page > $totalPages) {
+            $page = $totalPages;
+        }
+        $offset = ($page - 1) * $perPage;
+
+        // کوئری دریافت داده‌های صفحه جاری
+        $sql = "SELECT * FROM `remittance_output` 
+                {$whereSql} 
+                ORDER BY `{$orderBy}` {$orderDir}, `id` DESC 
+                LIMIT :limit OFFSET :offset";
+
+        $stmt = $pdo->prepare($sql);
+
+        foreach ($queryParams as $param => $val) {
+            $stmt->bindValue($param, $val);
+        }
+        $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        // ذخیره همزمان در هر دو متغیر برای هماهنگی با هر کجای جدول
+        $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $remittance_output_rows = $expenses;
+
+    } catch (PDOException $e) {
+        error_log("Remittance Output Error: " . $e->getMessage());
+        $expenses = [];
+        $remittance_output_rows = [];
+        $totalRecords = 0;
+        $totalWithdrawalAmount = 0;
+    }
+}
 
 // ========== اتمام کد PHP ==========
 ob_start();
@@ -1819,7 +2067,8 @@ ob_start();
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+
 
 <!-- ۲. استایل اصلی قالب (Bootstrap 5 RTL) -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
@@ -1829,7 +2078,9 @@ ob_start();
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.rtl.min.css" />
 
-
+    <link rel="stylesheet" href="https://unpkg.com/@majidh1/jalalidatepicker/dist/jalalidatepicker.min.css">
+    <!-- Persian Datepicker JS -->
+    <script type="text/javascript" src="https://unpkg.com/@majidh1/jalalidatepicker/dist/jalalidatepicker.min.js"></script>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
@@ -1895,6 +2146,57 @@ ob_start();
     body > .modal {
         z-index: 1060;
     }
+    .transition-icon {
+        transition: transform 0.3s ease-in-out;
+    }
+    [aria-expanded="true"] .transition-icon {
+        transform: rotate(45deg); /* تبدیل + به × */
+    }
+    /* چرخش نرم آیکون پلاس هنگام باز و بسته شدن ساب‌منو */
+    .list-group-item[data-bs-toggle="collapse"] .transition-icon {
+        transition: transform 0.25s ease-in-out;
+    }
+
+    .list-group-item[data-bs-toggle="collapse"][aria-expanded="true"] .transition-icon {
+        transform: rotate(45deg);
+    }
+    /* اصلاح قرارگیری لایه پس‌زمینه مودال */
+    .modal-backdrop {
+        display: none !important;
+    }
+
+
+    /* تنظیم تراز وسط و فاصله مناسب از هدر */
+    #addCheckModal .modal-dialog {
+        margin: 3.5rem auto !important; /* فاصله مناسب از هدر بالایی */
+        max-width: 800px; /* یا عرض دلخواه */
+    }
+
+    /* در صورت لزوم اطمینان از قرارگیری روی هدر چسبان */
+    #addCheckModal {
+        z-index: 9999 !important;
+    }
+    /* برای کتابخانه jalaliDatepicker (data-jdp) */
+    jdp-container {
+        z-index: 100050 !important;
+    }
+
+    /* برای کتابخانه persianDatepicker (کلاس pwt-datepicker) */
+    .pwt-datepicker-input-view,
+    .datepicker-container,
+    .datepicker-plot-area {
+        z-index: 100050 !important;
+    }
+    /* ✅ اطمینان از اسکرول داخل مودال */
+    .modal-dialog-scrollable .modal-body {
+        overflow-y: auto;
+        max-height: calc(100vh - 200px); /* محدودیت ارتفاع نسبت به صفحه */
+    }
+    .modal-dialog-scrollable .modal-content {
+        max-height: 100%;
+    }
+
+
 
 </style>
 
@@ -1922,13 +2224,16 @@ ob_start();
 
 
 <div class="mb-3 sidebar-menu-half">
-    <h6 class="text-black mb-3">منو</h6>
     <div class="list-group">
 
 
         <a href="dashboardAdmin.php?tab=members&project_id=<?= $selectedProjectId ?>"
-           class="list-group-item list-group-item-action <?= $activeTab === 'members' ? 'active' : '' ?>">
-            <i class="bi bi-people me-2"></i>اعضای سایت
+           class="list-group-item list-group-item-action <?= $activeTab === 'members' ? 'active' : '' ?>"
+        style="font-weight: bold"
+
+        >
+            <i class="bi bi-people me-2"></i>مدیریت اعضای
+
         </a>
         <div class="list-group">
             <div class="list-group-item p-2">
@@ -1942,8 +2247,13 @@ ob_start();
                             <i class="bi bi-receipt me-2 <?= $activeTab === 'expenses' ? 'text-primary' : '' ?>"></i>
                             <a href="dashboardAdmin.php?tab=expenses&project_id=<?= (int)$selectedProjectId ?>"
                                class="text-decoration-none <?= $activeTab === 'expenses' ? 'fw-bold text-primary' : 'text-dark' ?>"
+                               style="font-weight: bold"
                                onclick="event.stopPropagation();"> <!-- جلوگیری از بسته شدن منو هنگام کلیک روی متن -->
-                                هزینه
+                                 <b>
+
+                                مدیریت هزینه ها
+
+                                 </b>
                             </a>
                         </div>
 
@@ -1953,49 +2263,24 @@ ob_start();
                     <!-- زیرمنو -->
                     <div id="collapseExpenses"  class="collapse <?= ($activeTab === 'expenses') ? 'show' : '' ?>">
                         <div class="mx-3 mb-3 ps-3  bg-light-subtle rounded">
-                            <a href="dashboardAdmin.php?tab=expenses&project_id=<?= $selectedProjectId ?>" class="d-block py-2 text-decoration-none text-dark small border-bottom">مدیریت فاکتور</a>
-                            <a href="#" class="d-block py-2 text-decoration-none text-dark border-bottom small">پیمانکاران</a>
-                            <a href="#" class="d-block py-2 text-decoration-none text-dark border-bottom small">قراردادها</a>
-                            <a  class="d-block py-2 text-decoration-none text-dark small"></a>
                             <?php
                             $isExpenseOpen = in_array($activeTab, ['check', 'havaleh'], true);
                             ?>
+                            <a href="dashboardAdmin.php?tab=check_out&project_id=<?= (int)$selectedProjectId ?>"
+                               class="text-decoration-none d-flex align-items-center gap-2 <?= $activeTab === 'check' ? 'fw-bold text-primary' : 'text-dark' ?> border-bottom">
+                                <i class="bi bi-check2-square fs-5"></i>
+                                <span>چک</span>
+                            </a>
+                            <a href="dashboardAdmin.php?tab=remitance_out&project_id=<?= $selectedProjectId ?>"
+                               class="text-decoration-none d-flex align-items-center gap-2 <?= $activeTab === 'havaleh' ? 'fw-bold text-primary' : 'text-dark' ?> border-bottom">
+                                <i class="bi bi-receipt-cutoff fs-5"></i>
+                                <span>حواله</span>
+                            </a>
+                            <a href="dashboardAdmin.php?tab=expenses&project_id=<?= $selectedProjectId ?>" class="d-block py-2 text-decoration-none text-dark small border-bottom">مدیریت فاکتور</a>
+                            <a href="#" class="d-block py-2 text-decoration-none text-dark border-bottom small">مدیریت پیمانکاران</a>
+                            <a href="#" class="d-block py-2 text-decoration-none text-dark border-bottom small">قراردادها</a>
 
-                            <div class="expense-menu-wrapper border-bottom py-2">
-                                <!-- عنوان کلیک‌خور -->
-                                <div class="d-flex align-items-center justify-content-between cursor-pointer py-1"
-                                     id="expenseToggleBtn"
-                                     style="cursor: pointer; user-select: none;">
 
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="bi bi-wallet2 fs-5 text-secondary"></i>
-                                        <span class="fw-bold">لیست هزینه‌ها</span>
-                                    </div>
-
-                                    <i class="bi bi-plus-lg toggle-icon text-secondary <?= $isExpenseOpen ? 'rotated' : '' ?>"></i>
-                                </div>
-
-                                <!-- محتوای زیرمنو (نمایش زیر هم با flex-column) -->
-                                <div id="expenseSubmenuContent" class="expense-submenu <?= $isExpenseOpen ? 'open' : '' ?>">
-                                    <div class="d-flex flex-column gap-2 pe-4 pt-2 pb-1">
-
-                                        <!-- گزینه چک -->
-                                        <a href="dashboardAdmin.php?tab=check_out&project_id=<?= (int)$selectedProjectId ?>"
-                                           class="text-decoration-none d-flex align-items-center gap-2 <?= $activeTab === 'check' ? 'fw-bold text-primary' : 'text-dark' ?>">
-                                            <i class="bi bi-check2-square fs-5"></i>
-                                            <span>چک</span>
-                                        </a>
-
-                                        <!-- گزینه حواله -->
-                                        <a href="dashboardAdmin.php?tab=remitance_out&project_id=<?= $selectedProjectId ?>"
-                                           class="text-decoration-none d-flex align-items-center gap-2 <?= $activeTab === 'havaleh' ? 'fw-bold text-primary' : 'text-dark' ?>">
-                                            <i class="bi bi-receipt-cutoff fs-5"></i>
-                                            <span>حواله</span>
-                                        </a>
-
-                                    </div>
-                                </div>
-                            </div>
 
 
 
@@ -2013,18 +2298,18 @@ ob_start();
                 <!-- هدر منو -->
                 <div class="d-flex justify-content-between align-items-center p-3 cursor-pointer"
                      style="cursor: pointer;"
-                     onclick="toggleCollapse1('collapseincome', this)">
+                     onclick="toggleCollapse('collapseincome', this)">
 
                     <!-- ۱. آیکون + (سمت چپ) -->
 
 
                     <!-- ۲. ترکیب متن و آیکون اصلی (سمت راست) -->
-                    <div class="d-flex align-items-end">
+                    <div class="d-flex align-items-end" >
                         <a href="dashboardAdmin.php?tab=income&project_id=<?= (int)$selectedProjectId ?>"
                            class="text-decoration-none me-2 <?= $activeTab === 'income' ? 'fw-bold text-primary' : 'text-dark' ?>"
                            onclick="event.stopPropagation();">
                             <i class="bi bi-receipt-cutoff fs-5 text-primary"></i>
-                            درآمد
+                           <b> درآمد</b>
                         </a>
                         <i class="bi fs-5 <?= $activeTab === 'income' ? 'text-primary' : 'text-secondary' ?>"></i>
                     </div>
@@ -2032,13 +2317,40 @@ ob_start();
                 </div>
 
                 <!-- زیرمنو -->
-                <div id="collapseincome" class="collapse">
+                <?php
+                // آرایه‌ای از تب‌های مرتبط با زیرمنوی درآمد
+                $incomeTabs = ['check_input', 'remittance_input', 'presale_input', 'refund_input'];
+                $isIncomeOpen = in_array($activeTab, $incomeTabs, true);
+                ?>
+
+                <div id="collapseincome" class="collapse <?= $isIncomeOpen ? 'show' : '' ?>">
                     <div class="mx-3 mb-3 ps-3 bg-light-subtle rounded">
-                        <a href="#" class="d-block py-2 text-decoration-none text-dark small border-bottom text-start">قسط اعضا</a>
-                        <a href="#" class="d-block py-2 text-decoration-none text-dark small border-bottom text-start">پیش فروش</a>
-                        <a href="#" class="d-block py-2 text-decoration-none text-dark small text-start">سایر</a>
+                        <!-- چک دریافتی / ورودی -->
+                        <a href="dashboardAdmin.php?tab=check_input&project_id=<?= (int)$selectedProjectId ?>"
+                           class="d-block py-2 text-decoration-none small border-bottom text-start <?= $activeTab === 'check_input' ? 'fw-bold text-primary' : 'text-secondary' ?>">
+                            چک
+                        </a>
+
+                        <!-- حواله دریافتی (remittance_input) -->
+                        <a href="dashboardAdmin.php?tab=remittance_input&project_id=<?= (int)$selectedProjectId ?>"
+                           class="d-block py-2 text-decoration-none small border-bottom text-start <?= $activeTab === 'remittance_input' ? 'fw-bold text-primary' : 'text-secondary' ?>">
+                            حواله
+                        </a>
+
+                        <!-- پیش‌فروش -->
+                        <a href="dashboardAdmin.php?tab=presale_input&project_id=<?= (int)$selectedProjectId ?>"
+                           class="d-block py-2 text-decoration-none small border-bottom text-start <?= $activeTab === 'presale_input' ? 'fw-bold text-primary' : 'text-secondary' ?>">
+                            پیشفروش
+                        </a>
+
+                        <!-- درآمد حاصل از مرجوعی -->
+                        <a href="dashboardAdmin.php?tab=refund_input&project_id=<?= (int)$selectedProjectId ?>"
+                           class="d-block py-2 text-decoration-none small text-start <?= $activeTab === 'refund_input' ? 'fw-bold text-primary' : 'text-secondary' ?>">
+                            درآمد حاصل از مرجوعی و برگشت
+                        </a>
                     </div>
                 </div>
+
             </div>
         </div>
 
@@ -2047,10 +2359,25 @@ ob_start();
            class="list-group-item list-group-item-action <?= $activeTab === 'finance' ? 'active' : '' ?>">
             <i class="bi bi-cash-coin me-2"></i>بیلان مالی
         </a>
-        <a href="dashboardAdmin.php?tab=suppliers&project_id=<?= $selectedProjectId ?>"
-           class="list-group-item list-group-item-action <?= $activeTab === 'suppliers' ? 'active' : '' ?>">
-            <i class="bi bi-truck me-2"></i>تامین‌کنندگان/پیمانکاران
+        <a href="javascript:void(0)"
+           onclick="toggleSubmenu('suppliersSubmenu', this, event)"
+           aria-expanded="<?= $activeTab === 'suppliers' ? 'true' : 'false' ?>"
+           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center <?= $activeTab === 'suppliers' ? 'active' : '' ?>"
+           style="font-weight: bold; cursor: pointer;">
+    <span>
+        <i class="bi bi-truck me-2"></i>تامین‌کنندگان/پیمانکاران
+    </span>
+            <i class="bi bi-plus-lg transition-icon <?= $activeTab === 'suppliers' ? 'rotate-45 text-white' : 'text-secondary' ?>"></i>
         </a>
+
+        <!-- زیرمنو -->
+        <div class="collapse <?= $activeTab === 'suppliers' ? 'show' : '' ?>" id="suppliersSubmenu">
+            <div class="list-group list-group-flush ps-3">
+                <a href="dashboardAdmin.php?tab=suppliers&project_id=<?= $selectedProjectId ?>" class="list-group-item list-group-item-action d-block py-2 text-decoration-none text-dark small border-bottom text-start">
+                    قراردادها
+                </a>
+            </div>
+        </div>
 
 
         <a href="dashboardAdmin.php?tab=tickets&project_id=<?= $selectedProjectId ?>"
@@ -2373,22 +2700,36 @@ ob_start();
     </h1>
 
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <div class="d-flex gap-2">
-            <button type="button"
-                    class="btn btn-primary"
-                    data-bs-toggle="modal"
-                    data-bs-target="#advancedSearchModal">
-                <i class="bi bi-funnel me-1"></i>
-                جست‌وجوی پیشرفته
-            </button>
-        </div>
-        <!-- مجموع برداشت بر اساس فیلترهای فعال -->
-        <div class="d-flex align-items-center gap-2">
-            <div class="badge bg-danger-subtle text-danger border border-danger-subtle fs-6 py-2 px-3 fw-medium">
-                <i class="bi bi-wallet2 me-1"></i>
-                مجموع برداشت:
-                <strong><?= number_format($totalWithdrawalAmount ?? 0) ?></strong>
-                <small class="fw-normal">ریال</small>
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 my-3">
+            <!-- بخش دکمه‌های عملیاتی -->
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <!-- دکمه جست‌وجوی پیشرفته -->
+                <button type="button"
+                        class="btn btn-primary d-inline-flex align-items-center gap-1 shadow-sm"
+                        data-bs-toggle="modal"
+                        data-bs-target="#advancedSearchModal">
+                    <i class="bi bi-funnel"></i>
+                    <span>جست‌وجوی پیشرفته</span>
+                </button>
+
+                <!-- دکمه درج حواله جدید -->
+                <button type="button"
+                        class="btn btn-outline-primary d-inline-flex align-items-center gap-1 shadow-sm"
+                        data-bs-toggle="modal"
+                        data-bs-target="#addRemitanceOutModal">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    <span>درج حواله جدید</span>
+                </button>
+            </div>
+
+            <!-- مجموع برداشت بر اساس فیلترهای فعال -->
+            <div class="d-flex align-items-center">
+                <div class="badge bg-danger-subtle text-danger border border-danger-subtle fs-6 py-2 px-3 fw-medium d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-wallet2"></i>
+                    <span>مجموع برداشت:</span>
+                    <strong class="mx-1 fs-6 font-monospace"><?= number_format((float)($totalWithdrawalAmount ?? 0)) ?></strong>
+                    <small class="fw-normal">ریال</small>
+                </div>
             </div>
         </div>
 
@@ -2524,6 +2865,62 @@ ob_start();
                         <td><?= htmlspecialchars($row['subchapter'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
                         <td><?= htmlspecialchars($row['bank/hesab'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
                         <td><?= htmlspecialchars($row['voroodi/khoroujy'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+                        <td class="text-center">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-light border-0 rounded-circle p-1"
+                                        type="button"
+                                        data-bs-toggle="dropdown"
+                                        data-bs-boundary="window"
+                                        aria-expanded="false"
+                                        style="width: 32px; height: 32px;">
+                                    <i class="bi bi-three-dots-vertical text-secondary"></i>
+                                </button>
+
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 small">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-info btn-open-remittance"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#viewRemitanceOutModal"
+                                            data-remitance-out-id="<?= (int)$row['id'] ?>"
+                                            data-project-id="<?= (int)($selectedProjectId ?? 0) ?>"
+                                            title="مشاهده جزئیات">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+
+
+                                    <li><hr class="dropdown-divider my-1"></li>
+
+                                    <!-- ویرایش -->
+                                    <li>
+                                        <a class="dropdown-item py-2 btn-edit-remitance-out"
+                                           href="javascript:void(0)"
+                                           data-remitance-out-id="<?= (int)$row['id'] ?>"
+                                           data-project-id="<?= (int)($row['project_id'] ?? ($project_id ?? 0)) ?>">
+                                            <i class="bi bi-pencil-square text-warning me-2"></i> ویرایش
+                                        </a>
+
+                                    </li>
+
+                                    <li><hr class="dropdown-divider my-1"></li>
+
+                                    <!-- باز کردن مودال حذف -->
+                                    <li>
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-danger"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#deleteRemitanceOutModal"
+                                                data-remitance-out-id="<?= (int)$row['id'] ?>"
+                                                data-project-id="<?= (int)($selectedProjectId ?? $row['project_id'] ?? 0) ?>"
+                                                data-remitance-out-info="شماره سند <?= htmlspecialchars((string)($row['document'] ?: 'ثبت‌نشده')) ?> (در وجه <?= htmlspecialchars((string)(!empty($row['beneficiary']) ? $row['beneficiary'] : 'نامشخص')) ?>)">
+                                            <i class="bi bi-trash"></i>
+                                            حذف حواله
+                                        </button>
+
+
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
             <?php elseif (in_array($activeTab, ['remitance_out', 'remittance_out'],true)): ?>
@@ -2876,7 +3273,447 @@ ob_start();
             </div>
         </div>
     </div>
+    <div class="modal fade" id="addRemitanceOutModal" tabindex="-1" aria-hidden="true" dir="rtl">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content shadow-lg border-0 rounded-3">
+
+                <!-- هدر مودال -->
+                <div class="modal-header bg-light border-bottom py-3">
+                    <h5 class="modal-title fs-5 fw-bold text-dark d-flex align-items-center gap-2" id="addRemitanceOutModalLabel">
+                        <i class="bi bi-card-checklist text-danger fs-4"></i>
+                        <span>ثبت و درج حواله جدید</span>
+                    </h5>
+                    <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="بستن"></button>
+                </div>
+
+                <form action="add_remitance_output.php" method="POST" id="addRemitanceOutForm">
+                    <!-- فیلدهای سیستمی ضروری -->
+                    <input type="hidden" name="action" value="add_remitance_output">
+                    <input type="hidden" name="project_id" value="<?= htmlspecialchars((string)($selectedProjectId ?? $_GET['project_id'] ?? '')) ?>">
+
+                    <div class="modal-body p-4" id="addRemitanceModalBody">
+                        <div class="row g-3">
+
+                            <!-- کد شعبه -->
+                            <div class="col-md-6">
+                                <label for="remit_branch_code" class="form-label fw-medium text-secondary">
+                                    کد شعبه <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-folder2-open text-muted"></i></span>
+                                    <input type="text"
+                                           id="remit_branch_code"
+                                           name="branch_code"
+                                           class="form-control"
+                                           placeholder="مثال: ۱۰۲۵"
+                                           dir="ltr"
+                                           inputmode="numeric"
+                                           required>
+                                </div>
+                            </div>
+
+                            <!-- شعبه -->
+                            <div class="col-md-6">
+                                <label for="remit_branch" class="form-label fw-medium text-secondary">
+                                    شعبه <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-tag text-muted"></i></span>
+                                    <input type="text"
+                                           name="branch"
+                                           id="remit_branch"
+                                           class="form-control"
+                                           placeholder="مثال: مرکزی، آزادی"
+                                           required>
+                                </div>
+                            </div>
+
+                            <!-- تاریخ -->
+                            <div class="col-md-6">
+                                <label for="remit_history" class="form-label fw-medium text-secondary">تاریخ</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-calendar3 text-muted"></i></span>
+                                    <input type="text"
+                                           id="remit_history"
+                                           name="history"
+                                           class="form-control text-start pwt-datepicker font-monospace"
+                                           data-jdp
+                                           dir="ltr"
+                                           placeholder="۱۴۰۳/۰۱/۰۱">
+                                </div>
+                            </div>
+
+                            <!-- ساعت -->
+                            <div class="col-md-6">
+                                <label for="remit_clock" class="form-label fw-medium text-secondary">ساعت</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-clock text-muted"></i></span>
+                                    <input type="text"
+                                           id="remit_clock"
+                                           name="clock"
+                                           class="form-control text-start font-monospace"
+                                           dir="ltr"
+                                           placeholder="مثال: 14:30">
+                                </div>
+                            </div>
+
+                            <!-- سند -->
+                            <div class="col-md-6">
+                                <label for="remit_document" class="form-label fw-medium text-secondary">شماره سند</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-file-earmark-text text-muted"></i></span>
+                                    <input type="text"
+                                           id="remit_document"
+                                           name="document"
+                                           class="form-control text-start font-monospace"
+                                           dir="ltr"
+                                           placeholder="مثال: ۱۲۳۴۵">
+                                </div>
+                            </div>
+
+                            <!-- برداشت (ریال) -->
+                            <div class="col-md-6">
+                                <label for="remit_harvest" class="form-label fw-medium text-secondary">
+                                    مبلغ برداشت (ریال) <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">ریال</span>
+                                    <input type="text"
+                                           name="harvest"
+                                           id="remit_harvest"
+                                           class="form-control text-start fw-bold font-monospace"
+                                           dir="ltr"
+                                           inputmode="numeric"
+                                           placeholder="۰"
+                                           required>
+                                </div>
+                            </div>
+
+                            <!-- شماره قبض -->
+                            <div class="col-md-6">
+                                <label for="remit_invoice_number" class="form-label fw-medium text-secondary">
+                                    شماره قبض <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-receipt text-muted"></i></span>
+                                    <input type="text"
+                                           id="remit_invoice_number"
+                                           name="invoice_number"
+                                           class="form-control text-start font-monospace"
+                                           dir="ltr"
+                                           inputmode="numeric"
+                                           placeholder="مثال: ۹۸۷۶۵۴۳۲۱"
+                                           required>
+                                </div>
+                            </div>
+
+                            <!-- واریز -->
+                            <div class="col-md-3">
+                                <label for="remit_diposit" class="form-label fw-medium text-secondary">واریز</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-arrow-down-left-circle text-muted"></i></span>
+                                    <input type="text"
+                                           id="remit_diposit"
+                                           name="diposit"
+                                           class="form-control"
+                                           dir="ltr"
+                                           inputmode="numeric"
+                                           placeholder="۰">
+                                </div>
+                            </div>
+
+                            <!-- مانده -->
+                            <div class="col-md-3">
+                                <label for="remit_remainder" class="form-label fw-medium text-secondary">مانده</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-wallet2 text-muted"></i></span>
+                                    <input type="text"
+                                           id="remit_remainder"
+                                           name="remainder"
+                                           class="form-control"
+                                           dir="ltr"
+                                           inputmode="numeric"
+                                           placeholder="۰">
+                                </div>
+                            </div>
+
+                            <!-- ذینفع -->
+                            <div class="col-md-6">
+                                <label for="remit_beneficiary" class="form-label fw-medium text-secondary">ذینفع</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-person text-muted"></i></span>
+                                    <input type="text"
+                                           id="remit_beneficiary"
+                                           name="beneficiary"
+                                           class="form-control"
+                                           placeholder="نام شخص یا شرکت دریافت‌کننده">
+                                </div>
+                            </div>
+
+                            <!-- شبا / کارت -->
+                            <div class="col-md-6">
+                                <label for="remit_sheba_cart" class="form-label fw-medium text-secondary">شبا / کارت</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-credit-card-2-front text-muted"></i></span>
+                                    <input type="text"
+                                           id="remit_sheba_cart"
+                                           name="sheba/cart"
+                                           class="form-control text-start font-monospace"
+                                           dir="ltr"
+                                           placeholder="IR... یا ۱۶ رقمی">
+                                </div>
+                            </div>
+
+                            <!-- بابت -->
+                            <div class="col-md-6">
+                                <label for="remit_behalf" class="form-label fw-medium text-secondary">بابت</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-chat-left-dots text-muted"></i></span>
+                                    <input type="text"
+                                           id="remit_behalf"
+                                           name="behalf"
+                                           class="form-control"
+                                           placeholder="مثال: پیش‌پرداخت، تسویه فاکتور">
+                                </div>
+                            </div>
+
+                            <!-- سرفصل -->
+                            <div class="col-md-6">
+                                <label for="remit_transaction" class="form-label fw-medium text-secondary">سرفصل</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-bookmark text-muted"></i></span>
+                                    <input type="text"
+                                           id="remit_transaction"
+                                           name="transaction"
+                                           class="form-control"
+                                           placeholder="مثال: خرید مصالح، تأسیسات">
+                                </div>
+                            </div>
+
+                            <!-- زیرفصل -->
+                            <div class="col-md-6">
+                                <label for="remit_subchapter" class="form-label fw-medium text-secondary">زیرفصل</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-diagram-3 text-muted"></i></span>
+                                    <input type="text"
+                                           id="remit_subchapter"
+                                           name="subchapter"
+                                           class="form-control"
+                                           placeholder="مثال: میلگرد، بتن">
+                                </div>
+                            </div>
+
+                            <!-- بانک/حساب -->
+                            <div class="col-md-6">
+                                <label for="remit_bank_hesab" class="form-label fw-medium text-secondary">بانک / حساب</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-bank text-muted"></i></span>
+                                    <input type="text"
+                                           id="remit_bank_hesab"
+                                           name="bank/hesab"
+                                           class="form-control"
+                                           placeholder="مثال: حساب جاری بانک ملت">
+                                </div>
+                            </div>
+
+                            <!-- ورودی/خروجی -->
+                            <div class="col-md-6">
+                                <label for="remit_voroodi_khoroujy" class="form-label fw-medium text-secondary">ورودی / خروجی</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-arrow-left-right text-muted"></i></span>
+                                    <input type="text"
+                                           id="remit_voroodi_khoroujy"
+                                           name="voroodi/khoroujy"
+                                           class="form-control"
+                                           placeholder="مثال: خروجی">
+                                </div>
+                            </div>
+
+                            <!-- توضیحات -->
+                            <div class="col-12">
+                                <label for="remit_description" class="form-label fw-medium text-secondary">توضیحات</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-card-text text-muted"></i></span>
+                                    <textarea id="remit_description"
+                                              name="description"
+                                              class="form-control"
+                                              rows="2"
+                                              placeholder="توضیحات تکمیلی حواله..."></textarea>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- پاورقی و دکمه‌ها -->
+                    <div class="modal-footer bg-light border-top py-2 px-3 d-flex justify-content-between">
+                        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">انصراف</button>
+                        <button type="submit" class="btn btn-danger px-4 d-flex align-items-center gap-2">
+                            <i class="bi bi-check2-circle"></i>
+                            <span>ثبت و ذخیره حواله</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // تابع نرمال‌سازی ارقام فارسی و عربی به انگلیسی
+            function normalizeDigits(str) {
+                return (str || '').toString()
+                    .replace(/[۰-۹]/g, function(d) { return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d); })
+                    .replace(/[٠-٩]/g, function(d) { return '٠١٢٣٤٥٦٧٨٩'.indexOf(d); });
+            }
+
+            // فرمت‌بندی ۳ رقمی
+            function formatNumber(val) {
+                var clean = normalizeDigits(val).replace(/\D/g, '');
+                return clean ? clean.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '';
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                var modalEl = document.getElementById('addRemitanceOutModal');
+                var form = document.getElementById('addRemitanceOutForm');
+                var harvestInput = document.getElementById('remit_harvest');
+
+                // ماسک‌گذاری هم‌زمان روی مبالغ (برداشت، واریز، مانده)
+                var currencyFields = ['remit_harvest', 'remit_diposit', 'remit_remainder'];
+                currencyFields.forEach(function(fieldId) {
+                    var el = document.getElementById(fieldId);
+                    if (!el) return;
+                    el.addEventListener('input', function() {
+                        var cursor = this.selectionStart;
+                        this.value = formatNumber(this.value);
+                    });
+                });
+
+                // تمیزکردن کاماها و نرمال‌سازی ارقام قبل از ارسال فرم
+                if (form) {
+                    form.addEventListener('submit', function() {
+                        currencyFields.forEach(function(fieldId) {
+                            var el = document.getElementById(fieldId);
+                            if (el) {
+                                el.value = normalizeDigits(el.value).replace(/,/g, '');
+                            }
+                        });
+                    });
+                }
+
+                // رفع هشدار aria-hidden و ریست فرم پس از بسته شدن مودال
+                if (modalEl) {
+                    modalEl.addEventListener('hide.bs.modal', function() {
+                        if (document.activeElement && modalEl.contains(document.activeElement)) {
+                            document.activeElement.blur();
+                        }
+                    });
+
+                    modalEl.addEventListener('hidden.bs.modal', function() {
+                        if (form) form.reset();
+                    });
+                }
+            });
+        })();
+    </script>
+    <!-- مودال ویرایش حواله خروجی -->
+    <div class="modal fade" id="editRemitanceOutModal" tabindex="-1" aria-labelledby="editRemitanceOutModalLabel" aria-hidden="true" dir="rtl">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content shadow-lg border-0 rounded-3">
+
+                <!-- هدر مودال -->
+                <div class="modal-header bg-light py-2 px-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h6 class="modal-title fw-bold text-dark d-flex align-items-center gap-2 mb-0" id="editRemitanceOutModalLabel">
+                        <i class="bi bi-pencil-square text-primary fs-5"></i>
+                        <span>ویرایش اطلاعات حواله</span>
+                    </h6>
+                    <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="بستن"></button>
+                </div>
+
+                <!-- بدنه مودال (محتوا از طریق AJAX لود می‌شود) -->
+                <div class="modal-body p-4" id="editRemitanceOutModalBody">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">در حال دریافت...</span>
+                        </div>
+                        <div class="mt-2 text-muted small">در حال بارگذاری اطلاعات حواله...</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="deleteRemitanceOutModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <!-- توجه: اکشن به delete_remitance_out.php تغییر یافت -->
+                <form id="deleteRemitanceOutForm" action="delete_remitance_out.php" method="POST">
+                    <input type="hidden" name="remitance_out_id" id="delete_remitance_out_id" value="">
+                    <input type="hidden" name="project_id" id="delete_project_id" value="<?= htmlspecialchars((string)($selectedProjectId ?? $_GET['project_id'] ?? '')) ?>">
+                    <input type="hidden" name="tab" value="remitance_out">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title text-danger">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> تأیید حذف حواله
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center py-4">
+                        <div class="text-danger mb-3">
+                            <i class="bi bi-trash3-fill" style="font-size: 3rem;"></i>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-2">آیا از حذف این رکورد حواله اطمینان دارید؟</h6>
+                        <div class="alert alert-light border py-2 px-3 my-3 text-secondary d-inline-block">
+                            <i class="bi bi-receipt me-1 text-primary"></i>
+                            مشخصات: <strong id="delete_remitance_out_info_text" class="text-dark">---</strong>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                        <button type="submit" id="btnConfirmDelete" class="btn btn-danger">
+                            <i class="bi bi-trash3 me-1"></i> حذف نهایی
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="viewRemitanceOutModal" tabindex="-1" aria-labelledby="viewRemitanceOutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fs-6 fw-bold" id="viewRemitanceOutModalLabel">
+                        <i class="bi bi-receipt me-1 text-primary"></i> جزئیات حواله
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
+                </div>
+
+                <div class="modal-body p-4" id="viewRemitanceOutModalBody">
+                    <!-- اسپینر پیش‌فرض در زمان لودینگ -->
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">در حال بارگذاری...</span>
+                        </div>
+                        <p class="text-muted mt-2 small">در حال دریافت اطلاعات حواله...</p>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal">بستن</button>
+                </div>
+            </div>
+        </div>
+    </div>
 <?php elseif ($activeTab === 'check_out'): ?>
+    <?php if (!empty($_SESSION['flash_success'])): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <?= htmlspecialchars($_SESSION['flash_success']) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <?php unset($_SESSION['flash_success']); ?>
+    <?php endif; ?>
+
     <h1 class="h1 mb-3">
         لیست چک ها
     </h1>
@@ -2889,22 +3726,30 @@ ob_start();
                 <i class="bi bi-funnel me-1"></i>
                 جست‌وجوی پیشرفته
             </button>
-
         </div>
         <div class="d-flex align-items-center gap-2">
             <div class="badge bg-danger-subtle text-danger border border-danger-subtle fs-6 py-2 px-3 fw-medium">
                 <i class="bi bi-wallet2 me-1"></i>
                 مجموع مبلغ چک ها:
-                <strong><?= number_format($totalWithdrawalAmount ?? 0) ?></strong>
+                <strong><?= number_format((float)($totalWithdrawalAmount ?? 0)) ?></strong>
                 <small class="fw-normal">ریال</small>
             </div>
         </div>
-
-
+        <div class="d-flex align-items-center gap-2">
+            <button type="button"
+                    class="badge bg-primary-subtle text-primary border border-primary-subtle fs-6 py-2 px-3 fw-medium text-decoration-none border-0 d-inline-flex align-items-center gap-2"
+                    style="cursor: pointer; transition: all 0.2s ease-in-out;"
+                    onmouseover="this.classList.add('shadow-sm', 'opacity-75')"
+                    onmouseout="this.classList.remove('shadow-sm', 'opacity-75')"
+                    data-bs-toggle="modal"
+                    data-bs-target="#addCheckModal">
+                <i class="bi bi-plus-circle-fill"></i>
+                <span>درج چک جدید</span>
+            </button>
+        </div>
 
         <!-- فرم کوچک برای تغییر آنی تعداد ردیف در بالای جدول -->
         <form method="GET" action="" class="d-flex align-items-center gap-2 m-0">
-            <!-- حفظ تمام فیلترهای فعال فعلی هنگام تغییر تعداد ردیف -->
             <?php foreach ($_GET as $key => $val): ?>
                 <?php if (!in_array($key, ['per_page', 'page'], true) && is_string($val)): ?>
                     <input type="hidden" name="<?= htmlspecialchars($key, ENT_QUOTES, 'UTF-8') ?>" value="<?= htmlspecialchars($val, ENT_QUOTES, 'UTF-8') ?>">
@@ -2923,74 +3768,27 @@ ob_start();
             </select>
             <label class="text-muted small mb-0">
                 از
-                <strong><?= number_format($totalRecords ?? 0) ?></strong>
+                <strong><?= number_format((float)($totalRecords ?? 0)) ?></strong>
             </label>
         </form>
     </div>
 
+    <!-- جدول نمایش چک‌ها -->
     <div class="table-responsive shadow-sm rounded border">
         <table class="table table-bordered table-hover text-center align-middle mb-0">
             <thead class="table-light">
             <tr>
                 <th>ردیف</th>
-
-
-                <!-- ستون سورت‌شونده زیرفصل -->
-                <th class="text-center align-middle">
-
-                        <span>زیرفصل</span>
-
-
-                </th>
-
-                <th>
-
-                        <span>سرفصل</span>
-
-
-                </th>
-
-                <!-- ستون سورت‌شونده مبلغ برداشت -->
-
-                <th class="text-center align-middle">
-                    هزینه
-                </th>
-
-                <th>بابت</th>
-                <th>دریافت کننده</th>
-                <th>کد ملی دریافت مننده</th>
+                <th class="text-center align-middle">سرفصل</th>
+                <th>زیرفصل</th>
+                <th class="text-center align-middle">شماره چک</th>
                 <?php
-                $orderDirCurrent = strtolower($orderDir ?? ($_GET['order_dir'] ?? 'desc'));
-                $toggleDir = ($orderDirCurrent === 'asc') ? 'desc' : 'asc';
-
-                $queryParams = $_GET ?? [];
-                $queryParams['order_by']  = 'check_amount';
-                $queryParams['order_dir'] = $toggleDir;
-                $sortDateUrl = '?' . http_build_query($queryParams);
-                ?>
-                <th>
-
-                    <a href="<?= htmlspecialchars($sortDateUrl, ENT_QUOTES, 'UTF-8') ?>" class="text-decoration-none text-dark d-inline-flex align-items-center justify-content-center gap-1 w-100">
-                        <span>مبلغ چک</span>
-                        <?php if (($orderBy ?? '') === 'check_amount'): ?>
-                            <i class="bi <?= strtolower($orderDir ?? 'desc') === 'asc' ? 'bi-sort-numeric-down text-primary' : 'bi-sort-numeric-up-alt text-primary' ?> fs-6"></i>
-                        <?php else: ?>
-                            <i class="bi bi-arrow-down-up text-muted opacity-50 fs-6"></i>
-                        <?php endif; ?>
-                    </a>
-
-                </th>
-                <?php
-                $orderDirCurrent = strtolower($orderDir ?? ($_GET['order_dir'] ?? 'desc'));
-                $toggleDir = ($orderDirCurrent === 'asc') ? 'desc' : 'asc';
-
-                $queryParams = $_GET ?? [];
                 $queryParams['order_by']  = 'check_due_date';
                 $queryParams['order_dir'] = $toggleDir;
-                $sortDateUrl = '?' . http_build_query($queryParams);
+                $sortDueDateUrl = '?' . http_build_query($queryParams);
                 ?>
                 <th>
-                    <a href="<?= htmlspecialchars($sortDateUrl, ENT_QUOTES, 'UTF-8') ?>" class="text-decoration-none text-dark d-inline-flex align-items-center justify-content-center gap-1 w-100">
+                    <a href="<?= htmlspecialchars($sortDueDateUrl, ENT_QUOTES, 'UTF-8') ?>" class="text-decoration-none text-dark d-inline-flex align-items-center justify-content-center gap-1 w-100">
                         <span>موعد چک</span>
                         <?php if (($orderBy ?? '') === 'check_due_date'): ?>
                             <i class="bi <?= strtolower($orderDir ?? 'desc') === 'asc' ? 'bi-sort-numeric-down text-primary' : 'bi-sort-numeric-up-alt text-primary' ?> fs-6"></i>
@@ -2998,13 +3796,31 @@ ob_start();
                             <i class="bi bi-arrow-down-up text-muted opacity-50 fs-6"></i>
                         <?php endif; ?>
                     </a>
-                    </th>
-                <th>شماره چک</th>
-                <th>بانک</th>
-                <th>نام پروژه</th>
-                <th>پاس شده/نشده</th>
-                <th>از کجا پاس شده</th>
+                </th>
+                <?php
+                $orderDirCurrent = strtolower($orderDir ?? ($_GET['order_dir'] ?? 'desc'));
+                $toggleDir = ($orderDirCurrent === 'asc') ? 'desc' : 'asc';
 
+                $queryParams = $_GET ?? [];
+                $queryParams['order_by']  = 'check_amount';
+                $queryParams['order_dir'] = $toggleDir;
+                $sortAmountUrl = '?' . http_build_query($queryParams);
+                ?>
+                <th>
+                    <a href="<?= htmlspecialchars($sortAmountUrl, ENT_QUOTES, 'UTF-8') ?>" class="text-decoration-none text-dark d-inline-flex align-items-center justify-content-center gap-1 w-100">
+                        <span>مبلغ چک</span>
+                        <?php if (($orderBy ?? '') === 'check_amount'): ?>
+                            <i class="bi <?= strtolower($orderDir ?? 'desc') === 'asc' ? 'bi-sort-numeric-down text-primary' : 'bi-sort-numeric-up-alt text-primary' ?> fs-6"></i>
+                        <?php else: ?>
+                            <i class="bi bi-arrow-down-up text-muted opacity-50 fs-6"></i>
+                        <?php endif; ?>
+                    </a>
+                </th>
+                <th>بابت</th>
+
+
+                <th>دریافت کننده</th>
+                <th>پاس شده/نشده</th>
             </tr>
             </thead>
             <tbody>
@@ -3012,29 +3828,70 @@ ob_start();
                 <?php foreach ($checks as $index => $row): ?>
                     <tr>
                         <td><?= $index + 1 ?></td>
-                        <td><?= htmlspecialchars($row['subchapter'] ?? '') ?></td>
                         <td><?= htmlspecialchars($row['transaction'] ?? '') ?></td>
-                        <td><?= htmlspecialchars($row['cost'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($row['subchapter'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($row["check_number"] ?? '') ?></td>
+                        <td><?= htmlspecialchars($row["check_due_date"] ?? '') ?></td>
+                        <td><?= htmlspecialchars(number_format((float)($row["check_amount"] ?? 0))) ?></td>
                         <td><?= htmlspecialchars($row['behalf'] ?? '') ?></td>
                         <td><?= htmlspecialchars($row['recipient'] ?? '') ?></td>
-                        <td><?= htmlspecialchars($row["recipient's_national_iD"] ?? '') ?></td>
-
-                        <td><?= htmlspecialchars(number_format((float)$row["check_amount"] ?? '')) ?></td>
-                        <td><?= htmlspecialchars($row["check_due_date"] ?? '') ?></td>
-                        <td><?= htmlspecialchars($row["check_number"] ?? '') ?></td>
-                        <td><?= htmlspecialchars($row["bank"] ?? '') ?></td>
-                        <td><?= htmlspecialchars($row["project"] ?? '') ?></td>
                         <td><?= htmlspecialchars($row["passed/failed"] ?? '') ?></td>
-                        <td><?= htmlspecialchars($row["Where_did_it_get_approved?"] ?? '') ?></td>
-                        <!-- سایر ستون‌های جدول -->
+                        <td class="text-center">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-light border-0 rounded-circle p-1"
+                                        type="button"
+                                        data-bs-toggle="dropdown"
+                                        data-bs-boundary="window"
+                                        aria-expanded="false"
+                                        style="width: 32px; height: 32px;">
+                                    <i class="bi bi-three-dots-vertical text-secondary"></i>
+                                </button>
+
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 small">
+                                    <button type="button"
+                                            class="dropdown-item py-2 btn-open-check"
+                                            data-check-id="<?= (int)($row['id'] ?? 0) ?>"
+                                            data-project-id="<?= (int)($row['project_id'] ?? $project_id ?? 0) ?>">
+                                        <i class="bi bi-receipt text-primary me-2"></i> مشاهده چک (کد: <?= $row['id'] ?? 'خالی' ?>)
+                                    </button>
+
+                                    <li><hr class="dropdown-divider my-1"></li>
+
+                                    <!-- ویرایش -->
+                                    <li>
+                                        <a class="dropdown-item py-2 btn-edit-check"
+                                           href="javascript:void(0)"
+                                           data-check-id="<?= (int)$row['id'] ?>"
+                                           data-project-id="<?= (int)($row['project_id'] ?? ($project_id ?? 0)) ?>">
+                                            <i class="bi bi-pencil-square text-warning me-2"></i> ویرایش
+                                        </a>
+
+                                    </li>
+
+                                    <li><hr class="dropdown-divider my-1"></li>
+
+                                    <!-- باز کردن مودال حذف -->
+                                    <li>
+                                        <button type="button"
+                                                class="dropdown-item py-2 text-danger"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#deleteCheckModal"
+                                                data-check-id="<?= (int)($row['id'] ?? 0) ?>"
+                                                data-project-id="<?= (int)($row['project_id'] ?? 0) ?>"
+                                                data-check-info="شماره <?= htmlspecialchars((string)($row['check_number'] ?? '')) ?> (<?= htmlspecialchars((string)(!empty($row['recipient']) ? $row['recipient'] : '---')) ?>)">
+                                            <i class="bi bi-trash3 text-danger me-2"></i> حذف چک
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
             <?php else: ?>
                 <tr>
-                    <td colspan="6" class="text-center text-muted py-3">داده‌ای برای این پروژه یافت نشد.</td>
+                    <td colspan="14" class="text-center text-muted py-3">داده‌ای برای این پروژه یافت نشد.</td>
                 </tr>
             <?php endif; ?>
-
             </tbody>
         </table>
 
@@ -3042,28 +3899,22 @@ ob_start();
         <?php if (!empty($totalPages) && $totalPages > 1): ?>
             <div class="d-flex justify-content-between align-items-center p-3 flex-wrap gap-2 border-top bg-light">
                 <div class="text-muted small">
-                    نمایش <?= count($check_output_rows ?? []) ?> از <?= number_format($totalRecords ?? 0) ?> ردیف (صفحه <?= $page ?? 1 ?> از <?= $totalPages ?>)
+                    نمایش <?= count($checks ?? []) ?> از <?= number_format((float)($totalRecords ?? 0)) ?> ردیف (صفحه <?= $page ?? 1 ?> از <?= $totalPages ?>)
                 </div>
 
                 <nav aria-label="صفحه‌بندی">
                     <ul class="pagination pagination-sm mb-0">
                         <?php $pageParams = $_GET; ?>
-
-                        <!-- دکمه قبلی -->
                         <li class="page-item <?= (($page ?? 1) <= 1) ? 'disabled' : '' ?>">
                             <?php $pageParams['page'] = max(1, ($page ?? 1) - 1); ?>
                             <a class="page-link" href="?<?= htmlspecialchars(http_build_query($pageParams), ENT_QUOTES, 'UTF-8') ?>">قبلی</a>
                         </li>
-
-                        <!-- شماره صفحات -->
                         <?php for ($p = max(1, ($page ?? 1) - 2); $p <= min($totalPages, ($page ?? 1) + 2); $p++): ?>
                             <?php $pageParams['page'] = $p; ?>
                             <li class="page-item <?= ($p === ($page ?? 1)) ? 'active' : '' ?>">
                                 <a class="page-link" href="?<?= htmlspecialchars(http_build_query($pageParams), ENT_QUOTES, 'UTF-8') ?>"><?= $p ?></a>
                             </li>
                         <?php endfor; ?>
-
-                        <!-- دکمه بعدی -->
                         <li class="page-item <?= (($page ?? 1) >= $totalPages) ? 'disabled' : '' ?>">
                             <?php $pageParams['page'] = min($totalPages, ($page ?? 1) + 1); ?>
                             <a class="page-link" href="?<?= htmlspecialchars(http_build_query($pageParams), ENT_QUOTES, 'UTF-8') ?>">بعدی</a>
@@ -3074,18 +3925,17 @@ ob_start();
         <?php endif; ?>
     </div>
 
-    <!-- مودال جست‌وجوی پیشرفته -->
-    <!-- Modal جست‌وجوی پیشرفته چک‌ها -->
+    <!-- ========================================== -->
+    <!-- مودال ۱: جست‌وجوی پیشرفته (فرم مستقل GET) -->
+    <!-- ========================================== -->
     <div class="modal fade"
          id="advancedSearchModal"
          tabindex="-1"
          aria-labelledby="advancedSearchModalLabel"
          aria-hidden="true"
          dir="rtl">
-
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
-
                 <div class="modal-header d-flex justify-content-between align-items-center">
                     <h5 class="modal-title m-0" id="advancedSearchModalLabel">
                         <i class="bi bi-funnel-fill text-primary ms-2"></i>
@@ -3096,7 +3946,6 @@ ob_start();
 
                 <form method="GET" action="">
                     <div class="modal-body">
-                        <!-- فیلدهای مخفی -->
                         <input type="hidden" name="tab" value="check_out">
                         <input type="hidden" name="page" value="1">
                         <input type="hidden" name="order_by" value="<?= htmlspecialchars($orderBy ?? 'history', ENT_QUOTES, 'UTF-8') ?>">
@@ -3108,9 +3957,7 @@ ob_start();
                             <div class="alert alert-danger p-2 mb-3">پروژه مورد نظر را انتخاب کنید</div>
                         <?php endif; ?>
 
-                        <!-- شروع گرید اصلی -->
                         <div class="row g-3">
-
                             <!-- دریافت کننده -->
                             <div class="col-md-6">
                                 <label class="form-label">دریافت کننده</label>
@@ -3155,21 +4002,19 @@ ob_start();
                                        value="<?= htmlspecialchars($_GET['max_amount'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="حداکثر مبلغ">
                             </div>
 
-                            <!-- سرفصل و زیرفصل -->
-                            <!-- انتخاب سرفصل -->
+                            <!-- سرفصل -->
                             <div class="col-md-6 position-relative">
                                 <label class="form-label">سرفصل</label>
-
                                 <input type="hidden" name="transaction" id="selectedTransactionInput"
-                                       value="<?= htmlspecialchars($currentTransaction, ENT_QUOTES, 'UTF-8') ?>">
+                                       value="<?= htmlspecialchars($currentTransaction ?? '', ENT_QUOTES, 'UTF-8') ?>">
 
                                 <div class="dropdown">
                                     <button class="btn btn-outline-secondary dropdown-toggle w-100 text-end d-flex justify-content-between align-items-center bg-white"
                                             type="button" id="transactionDropdownBtn"
                                             data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-            <span id="transactionBtnText" class="text-truncate">
-                <?= $currentTransaction !== '' ? htmlspecialchars($currentTransaction, ENT_QUOTES, 'UTF-8') : '-- همه سرفصل‌ها --' ?>
-            </span>
+                                        <span id="transactionBtnText" class="text-truncate">
+                                            <?= !empty($currentTransaction) ? htmlspecialchars($currentTransaction, ENT_QUOTES, 'UTF-8') : '-- همه سرفصل‌ها --' ?>
+                                        </span>
                                     </button>
 
                                     <div class="dropdown-menu w-100 p-2 shadow" aria-labelledby="transactionDropdownBtn" style="max-height: 280px;">
@@ -3178,19 +4023,21 @@ ob_start();
 
                                         <div class="overflow-auto" style="max-height: 200px;" id="transactionItemsList">
                                             <a class="dropdown-item py-2 rounded text-muted" href="javascript:void(0)" data-val="">-- همه سرفصل‌ها --</a>
-                                            <?php foreach (array_keys($transactionSubMap) as $tr): ?>
-                                                <a class="dropdown-item py-2 rounded <?= ($currentTransaction === $tr) ? 'active bg-primary text-white' : '' ?>"
-                                                   href="javascript:void(0)"
-                                                   data-val="<?= htmlspecialchars($tr, ENT_QUOTES, 'UTF-8') ?>">
-                                                    <?= htmlspecialchars($tr, ENT_QUOTES, 'UTF-8') ?>
-                                                </a>
-                                            <?php endforeach; ?>
+                                            <?php if (!empty($transactionSubMap)): ?>
+                                                <?php foreach (array_keys($transactionSubMap) as $tr): ?>
+                                                    <a class="dropdown-item py-2 rounded <?= (($currentTransaction ?? '') === $tr) ? 'active bg-primary text-white' : '' ?>"
+                                                       href="javascript:void(0)"
+                                                       data-val="<?= htmlspecialchars($tr, ENT_QUOTES, 'UTF-8') ?>">
+                                                        <?= htmlspecialchars($tr, ENT_QUOTES, 'UTF-8') ?>
+                                                    </a>
+                                                <?php endforeach; ?>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- انتخاب زیرفصل -->
+                            <!-- زیرفصل -->
                             <div class="col-md-6">
                                 <label class="form-label" for="filterSubchapter">زیرفصل</label>
                                 <select name="subchapter" id="filterSubchapter" class="form-select" <?= empty($currentTransaction) ? 'disabled' : '' ?>>
@@ -3198,14 +4045,13 @@ ob_start();
                                     <?php if (!empty($currentTransaction) && !empty($transactionSubMap[$currentTransaction])): ?>
                                         <?php foreach ($transactionSubMap[$currentTransaction] as $sub): ?>
                                             <option value="<?= htmlspecialchars($sub, ENT_QUOTES, 'UTF-8') ?>"
-                                                    <?= ($currentSubchapter === $sub) ? 'selected' : '' ?>>
+                                                    <?= (($currentSubchapter ?? '') === $sub) ? 'selected' : '' ?>>
                                                 <?= htmlspecialchars($sub, ENT_QUOTES, 'UTF-8') ?>
                                             </option>
                                         <?php endforeach; ?>
                                     <?php endif; ?>
                                 </select>
                             </div>
-
 
                             <!-- تاریخ‌ها -->
                             <div class="col-md-6">
@@ -3218,12 +4064,12 @@ ob_start();
                                 <input type="text" id="modalDateTo" name="date_to" class="form-control persian-date"
                                        autocomplete="off" value="<?= htmlspecialchars($_GET['date_to'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="مثال: ۱۴۰۳/۱۲/۲۹">
                             </div>
+
                             <!-- وضعیت -->
                             <div class="col-md-6">
                                 <label class="form-label" for="modalPassedFailed">وضعیت</label>
                                 <select id="modalPassedFailed" name="passed/failed" class="form-select">
                                     <option value="">-- همه وضعیت --</option>
-
                                     <?php if (!empty($passedFailedList)): ?>
                                         <?php foreach ($passedFailedList as $st): ?>
                                             <?php $st = trim((string)$st); if ($st === '') continue; ?>
@@ -3235,8 +4081,7 @@ ob_start();
                                     <?php endif; ?>
                                 </select>
                             </div>
-
-                        </div> <!-- پایان row -->
+                        </div>
                     </div>
 
                     <div class="modal-footer">
@@ -3256,6 +4101,380 @@ ob_start();
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- مودال ۲: درج چک جدید (فرم مستقل POST)      -->
+    <!-- ========================================== -->
+    <div class="modal fade" id="addCheckModal" tabindex="-1" aria-labelledby="addCheckModalLabel" aria-hidden="true" dir="rtl">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content shadow-lg border-0 rounded-3">
+
+                <!-- هدر مودال -->
+                <div class="modal-header bg-light border-bottom py-3">
+                    <h5 class="modal-title fs-5 fw-bold text-dark d-flex align-items-center gap-2" id="addCheckModalLabel">
+                        <i class="bi bi-card-checklist text-danger fs-4"></i>
+                        <span>ثبت و درج چک جدید</span>
+                    </h5>
+                    <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="بستن"></button>
+                </div>
+
+                <form action="add_check.php" method="POST" id="addCheckForm">
+                    <!-- فیلدهای سیستمی ضروری -->
+                    <input type="hidden" name="action" value="add_check_output">
+                    <input type="hidden" name="project_id" value="<?= htmlspecialchars((string)($selectedProjectId ?? $_GET['project_id'] ?? '')) ?>">
+
+                    <div class="modal-body p-4" id="addCheckModalBody">
+                        <div class="row g-3">
+
+                            <!-- زیر فصل -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium text-secondary">
+                                    زیر فصل <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-folder2-open text-muted"></i></span>
+                                    <input type="text"
+                                           name="subchapter"
+                                           class="form-control"
+                                           placeholder="مثال: خرید مصالح، دستمزد، تأسیسات"
+                                           required>
+                                </div>
+                            </div>
+
+                            <!-- سرفصل -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium text-secondary">سرفصل <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-tag text-muted"></i></span>
+                                    <input type="text"
+                                           name="transaction"
+                                           id="transaction"
+                                           class="form-control"
+                                           placeholder="مثال: چک پرداختنی، هزینه‌های جاری"
+                                           required>
+                                </div>
+                            </div>
+
+                            <!-- بابت -->
+                            <div class="col-12">
+                                <label class="form-label fw-medium text-secondary">بابت</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-card-text text-muted"></i></span>
+                                    <input type="text"
+                                           name="behalf"
+                                           class="form-control"
+                                           placeholder="مثال: خرید میلگرد، پیش‌پرداخت قرارداد، تسویه فاکتور...">
+                                </div>
+                            </div>
+
+                            <!-- دریافت‌کننده -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium text-secondary">دریافت‌کننده (در وجه) <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-person text-muted"></i></span>
+                                    <input type="text"
+                                           name="recipient"
+                                           class="form-control"
+                                           placeholder="نام شخص یا شرکت"
+                                           required>
+                                </div>
+                            </div>
+
+                            <!-- کد ملی دریافت‌کننده -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium text-secondary">کد ملی دریافت‌کننده</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-person-vcard text-muted"></i></span>
+                                    <input type="text"
+                                           name="recipient's_national_iD"
+                                           class="form-control text-start font-monospace"
+                                           placeholder="۱۰ یا ۱۱ رقمی"
+                                           maxlength="11">
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium text-secondary">مبلغ چک (ریال) <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">ریال</span>
+                                    <input type="text"
+                                           name="check_amount"
+                                           id="check_amount"
+                                           class="form-control text-start fw-bold"
+                                           placeholder="۰"
+                                           required>
+                                </div>
+                            </div>
+
+                            <script>
+                                (function() {
+                                    function applyMask() {
+                                        var el = document.getElementById('check_amount');
+                                        if (!el) return;
+
+                                        el.addEventListener('input', function() {
+                                            // ۱. تبدیل ارقام فارسی و عربی به انگلیسی
+                                            var val = this.value.toString()
+                                                .replace(/[۰-۹]/g, function(d) { return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d); })
+                                                .replace(/[٠-٩]/g, function(d) { return '٠١٢٣٤٥٦٧٨٩'.indexOf(d); });
+
+                                            // ۲. حذف هر کاراکتر غیرعددی
+                                            val = val.replace(/\D/g, '');
+
+                                            // ۳. ۳ رقم ۳ رقم جدا کردن
+                                            this.value = val ? val.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '';
+                                        });
+                                    }
+
+                                    if (document.readyState === 'loading') {
+                                        document.addEventListener('DOMContentLoaded', applyMask);
+                                    } else {
+                                        applyMask();
+                                    }
+                                })();
+                            </script>
+
+
+
+
+                            <!-- شماره چک -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium text-secondary">شماره چک <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-card-text text-muted"></i></span>
+                                    <input type="text"
+                                           name="check_number"
+                                           class="form-control text-start font-monospace"
+                                           placeholder="مثال: ۱۲۳۴۵۶ یا شناسه ۱۶ رقمی"
+                                           required>
+                                </div>
+                            </div>
+
+                            <!-- تاریخ صدور چک -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium text-secondary">تاریخ صدور چک</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-calendar3 text-muted"></i></span>
+                                    <input type="text"
+                                           data-jdp
+                                           name="check_issuance_date"
+                                           class="form-control text-start pwt-datepicker"
+                                           placeholder="۱۴۰۳/۰۸/۰۱">
+                                </div>
+                            </div>
+
+                            <!-- موعد چک -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium text-secondary">موعد چک <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-calendar-check text-danger"></i></span>
+                                    <input type="text"
+                                           name="check_due_date"
+                                           class="form-control text-start pwt-datepicker"
+                                           data-jdp
+                                           placeholder="۱۴۰۳/۰۸/۱۵"
+                                           required>
+                                </div>
+                            </div>
+
+                            <!-- بانک -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-medium text-secondary">بانک</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-bank text-muted"></i></span>
+                                    <input type="text"
+                                           name="bank"
+                                           class="form-control"
+                                           placeholder="مثال: ملی، صادرات، تجارت">
+                                </div>
+                            </div>
+
+                            <!-- پروژه -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-medium text-secondary">پروژه</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-building text-muted"></i></span>
+                                    <input type="text"
+                                           name="project"
+                                           class="form-control"
+                                           placeholder="مثال: نگین / مروارید">
+                                </div>
+                            </div>
+
+                            <!-- وضعیت چک -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-medium text-secondary">وضعیت چک</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-check2-circle text-muted"></i></span>
+                                    <select name="passed/failed" class="form-select">
+                                        <option value="پاس نشده">پاس نشده</option>
+                                        <option value="پاس شده">پاس شده</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- از کجا پاس شد؟ -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium text-secondary">از کجا پاس شد؟</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-bank2 text-muted"></i></span>
+                                    <input type="text"
+                                           name="Where_did_it_get_approved?"
+                                           class="form-control"
+                                           placeholder="مثال: حساب جاری بانک ملی شعبه مرکزی">
+                                </div>
+                            </div>
+
+                            <!-- هزینه -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium text-secondary">هزینه </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-cash-stack text-muted"></i></span>
+                                    <input type="text"
+                                           name="cost"
+                                           class="form-control"
+                                           placeholder=" هزینه">
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- پاورقی و دکمه‌ها -->
+                    <div class="modal-footer bg-light border-top py-2 px-3 d-flex justify-content-between">
+                        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">انصراف</button>
+                        <button type="submit" class="btn btn-danger px-4 d-flex align-items-center gap-2">
+                            <i class="bi bi-check2-circle"></i>
+                            <span>ثبت و ذخیره چک</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="editCheckModal" tabindex="-1" aria-labelledby="editCheckModalLabel" aria-hidden="true">
+        <!-- گیومه اضافه بعد از modal-dialog-scrollable حذف شد -->
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content shadow-lg border-0">
+                <div class="modal-header bg-light py-2">
+                    <h6 class="modal-title fw-bold" id="editCheckModalLabel">
+                        <i class="bi bi-pencil-square text-primary me-2"></i> ویرایش اطلاعات چک
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
+                </div>
+                <div class="modal-body p-4" id="editCheckModalBody">
+                    <!-- محتوای فرم از طریق AJAX بارگذاری می‌شود -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- مودال تأیید حذف چک -->
+    <!-- مودال تأیید حذف چک -->
+    <div class="modal fade" id="deleteCheckModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <!-- توجه: اکشن به delete_check.php تغییر یافت -->
+                <form id="deleteCheckForm" action="delete_check_output.php" method="POST">
+                    <input type="hidden" name="check_id" id="delete_check_id" value="">
+                    <input type="hidden" name="project_id" id="delete_project_id" value="<?= htmlspecialchars((string)($selectedProjectId ?? $_GET['project_id'] ?? '')) ?>">
+                    <input type="hidden" name="tab" value="check_out">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title text-danger">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> تأیید حذف چک
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        آیا از حذف چک <b id="delete_check_info_text" class="text-dark"></b> اطمینان دارید؟
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                        <button type="submit" id="btnConfirmDelete" class="btn btn-danger">
+                            <i class="bi bi-trash3 me-1"></i> حذف نهایی
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="viewCheckModal" tabindex="-1" aria-labelledby="viewCheckModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fs-6 fw-bold" id="viewCheckModalLabel">
+                        <i class="bi bi-receipt me-1 text-primary"></i> جزئیات چک
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
+                </div>
+
+                <div class="modal-body p-4" id="viewCheckModalBody">
+                    <!-- اسپینر پیش‌فرض در زمان لودینگ -->
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">در حال بارگذاری...</span>
+                        </div>
+                        <p class="text-muted mt-2 small">در حال دریافت اطلاعات چک...</p>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal">بستن</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<?php elseif ($activeTab === 'remittance_input'): ?>
+<h1>لیست حواله</h1>
+    <div class="table-responsive shadow-sm rounded border">
+        <table class="table table-bordered table-hover text-center align-middle mb-0">
+            <thead class="table-light">
+            <tr>
+                <th>تاریخ</th>
+
+
+                <!-- ستون سورت‌شونده زیرفصل -->
+                <th class="text-center align-middle">
+
+                    <span>سند</span>
+
+
+                </th>
+
+                <th>
+
+                    <span> برداشت مبلغ(ریال)</span>
+
+
+                </th>
+
+                <!-- ستون سورت‌شونده مبلغ برداشت -->
+
+                <th class="text-center align-middle">
+                    ذینفع
+                </th>
+
+                <th>سرفصل</th>
+                <th>زیرفصل</th>
+                <th>بانک/حساب</th>
+                <th>
+                    ورودی/خروجی
+                </th>
+
+            </tr>
+            </thead>
+            <tbody>
+
+
+            </tbody>
+        </table>
+
+        <!-- نوار صفحه‌بندی -->
+
+    </div>
 <?php endif; ?>
 <script id="php-vars">
     window.PHP_VARS = {
@@ -3292,341 +4511,1085 @@ ob_start();
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
 <!-- ۲. سپس اسکریپت بوت‌استرپ -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <!-- ۳. سپس فایل JS مربوط به Select2 -->
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <!-- Bootstrap -->
 
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const searchInput = document.getElementById('bankSearchInput');
-        const itemsList = document.getElementById('bankItemsList');
-        const hiddenInput = document.getElementById('selectedBankInput');
-        const btnText = document.getElementById('bankBtnText');
+    <script>
+        // ==========================================
+        // ۱. تعریف توابع عمومی و سراسری (Global Scope)
+        // ==========================================
 
-        if (searchInput && itemsList) {
-            // فیلتر آنی هنگام تایپ
-            searchInput.addEventListener('input', function () {
-                const filter = this.value.toLowerCase().trim();
-                const items = itemsList.querySelectorAll('.dropdown-item');
+        // تابع فرمت سه رقم سه رقم مبالغ با پشتیبانی از ارقام فارسی و انگلیسی
+        window.formatCheckAmount = function(input) {
+            if (!input) return;
+            let val = input.value.replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/\D/g, '');
+            input.value = val ? Number(val).toLocaleString('en-US') : '';
+        };
+        window.formatCurrency = window.formatCheckAmount;
 
-                items.forEach(function (item) {
-                    const text = item.textContent.toLowerCase();
-                    item.style.display = text.includes(filter) ? '' : 'none';
-                });
+        // توابع باز و بسته کردن سایدبار و اکاردئون‌ها
+        window.toggleCollapse = function(elementId, toggler) {
+            const element = typeof elementId === 'string' ? document.getElementById(elementId) : elementId;
+            if (!element) return;
+
+            if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
+                const bsCollapse = bootstrap.Collapse.getOrCreateInstance(element);
+                const icon = toggler ? toggler.querySelector('.transition-icon, .toggle-icon, .bi-plus-lg') : null;
+
+                element.addEventListener('shown.bs.collapse', () => {
+                    if (icon) icon.classList.add('rotate-45', 'rotated');
+                }, { once: true });
+
+                element.addEventListener('hidden.bs.collapse', () => {
+                    if (icon) icon.classList.remove('rotate-45', 'rotated');
+                }, { once: true });
+
+                bsCollapse.toggle();
+            } else {
+                element.classList.toggle('open');
+                element.classList.toggle('show');
+                const icon = toggler ? toggler.querySelector('.transition-icon, .toggle-icon') : null;
+                if (icon) icon.classList.toggle('rotated');
+            }
+        };
+        window.toggleCollapse1 = window.toggleCollapse;
+        window.toggleCollapse2 = window.toggleCollapse;
+
+        window.toggleSubmenu = function(submenuId, triggerElement, event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            const submenu = document.getElementById(submenuId);
+            if (!submenu) return;
+
+            const bsCollapse = bootstrap.Collapse.getOrCreateInstance(submenu, { toggle: false });
+            const icon = triggerElement ? triggerElement.querySelector('.transition-icon, .toggle-icon') : null;
+
+            if (submenu.classList.contains('show')) {
+                bsCollapse.hide();
+                if (triggerElement) triggerElement.setAttribute('aria-expanded', 'false');
+                if (icon) icon.classList.remove('rotate-45', 'rotated');
+            } else {
+                bsCollapse.show();
+                if (triggerElement) triggerElement.setAttribute('aria-expanded', 'true');
+                if (icon) icon.classList.add('rotate-45', 'rotated');
+            }
+        };
+        document.addEventListener('DOMContentLoaded', function () {
+            const editModalEl = document.getElementById('editRemitanceOutModal');
+            if (!editModalEl) return;
+
+            const editModal = new bootstrap.Modal(editModalEl);
+            const modalBody = document.getElementById('editRemitanceOutModalBody');
+            let triggerButton = null;
+
+            // تابع تبدیل ارقام فارسی و عربی به انگلیسی
+            function normalizeDigits(str) {
+                if (!str) return '';
+                const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+                const arabicDigits  = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+                return str.toString()
+                    .replace(/[۰-۹]/g, w => persianDigits.indexOf(w))
+                    .replace(/[٠-٩]/g, w => arabicDigits.indexOf(w));
+            }
+
+            // ۱. رفع خطای aria-hidden هنگام بستن مودال
+            editModalEl.addEventListener('hide.bs.modal', function () {
+                if (document.activeElement && editModalEl.contains(document.activeElement)) {
+                    document.activeElement.blur();
+                }
             });
 
-            // کلیک روی یکی از آیتم‌ها
+            editModalEl.addEventListener('hidden.bs.modal', function () {
+                if (triggerButton && typeof triggerButton.focus === 'function') {
+                    triggerButton.focus();
+                } else {
+                    document.body.focus();
+                }
+            });
+
+            // ۲. باز کردن مودال و دریافت فرم ویرایش حواله (GET)
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('.btn-edit-remitance-out');
+                if (!btn) return;
+
+                e.preventDefault();
+                triggerButton = btn;
+
+                const remitanceOutId = btn.getAttribute('data-remitance-out-id') || btn.getAttribute('data-id');
+                const projectId = btn.getAttribute('data-project-id') || 0;
+
+                if (!remitanceOutId) return;
+
+                modalBody.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">در حال دریافت...</span>
+                    </div>
+                    <div class="mt-2 text-muted small">در حال بارگذاری اطلاعات حواله...</div>
+                </div>
+            `;
+
+                editModal.show();
+
+                fetch(`edit_remitance_out.php?id=${encodeURIComponent(remitanceOutId)}&project_id=${encodeURIComponent(projectId)}`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                    .then(response => {
+                        if (!response.ok) throw new Error('خطای سرور: ' + response.status);
+                        return response.text();
+                    })
+                    .then(html => {
+                        modalBody.innerHTML = html;
+                    })
+                    .catch(err => {
+                        modalBody.innerHTML = `
+                        <div class="alert alert-danger mb-0" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            خطا در دریافت اطلاعات حواله. لطفاً مجدداً تلاش کنید.
+                        </div>
+                    `;
+                        console.error('Error fetching remittance edit form:', err);
+                    });
+            });
+
+            // ۳. فرمت ۳ رقمی زنده برای فیلدهای مبالغ (harvest, remainder, diposit)
+            document.addEventListener('input', function (e) {
+                const target = e.target;
+                if (target && (target.id === 'harvest' || target.id === 'remainder' || target.id === 'diposit' || target.classList.contains('money-mask'))) {
+                    let rawVal = normalizeDigits(target.value).replace(/[^0-9]/g, '');
+                    if (rawVal) {
+                        target.value = Number(rawVal).toLocaleString('en-US');
+                    } else {
+                        target.value = '';
+                    }
+                }
+            });
+
+            // ۴. ثبت فرم با AJAX (POST)
+            document.addEventListener('submit', function (e) {
+                const form = e.target.closest('#ajaxEditRemitanceOutForm');
+                if (!form) return;
+
+                e.preventDefault();
+
+                const alertBox = form.querySelector('#editRemitanceAlert') || document.getElementById('editRemitanceAlert');
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+
+                if (alertBox) {
+                    alertBox.classList.add('d-none');
+                    alertBox.classList.remove('alert-danger');
+                    alertBox.innerHTML = '';
+                }
+
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> در حال ذخیره...`;
+                }
+
+                const formData = new FormData(form);
+
+                fetch('edit_remitance_out.php', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then(res => {
+                        if (!res.ok) throw new Error('خطای سرور (' + res.status + ')');
+                        return res.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            window.location.reload();
+                        } else {
+                            throw new Error(data.message || 'خطا در ثبت اطلاعات.');
+                        }
+                    })
+                    .catch(err => {
+                        if (alertBox) {
+                            alertBox.classList.remove('d-none');
+                            alertBox.classList.add('alert-danger');
+                            alertBox.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-1"></i> ${err.message || 'خطای غیرمنتظره رخ داد.'}`;
+                        }
+
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalBtnHtml;
+                        }
+                    });
+            });
+        });
+        document.addEventListener('DOMContentLoaded', function () {
+            const editModalEl = document.getElementById('editCheckModal');
+            if (!editModalEl) return;
+
+            const editModal = new bootstrap.Modal(editModalEl);
+            const modalBody = document.getElementById('editCheckModalBody');
+            let triggerButton = null; // نگهداری دکمه‌ای که مودال را باز کرده است
+
+            // تابع تبدیل ارقام فارسی و عربی به انگلیسی
+            function normalizeDigits(str) {
+                if (!str) return '';
+                const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+                const arabicDigits  = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+                return str.toString()
+                    .replace(/[۰-۹]/g, w => persianDigits.indexOf(w))
+                    .replace(/[٠-٩]/g, w => arabicDigits.indexOf(w));
+            }
+
+            // ۱. رفع خطای Blocked aria-hidden با مدیریت فوکوس هنگام بستن مودال
+            editModalEl.addEventListener('hide.bs.modal', function () {
+                if (document.activeElement && editModalEl.contains(document.activeElement)) {
+                    document.activeElement.blur();
+                }
+            });
+
+            editModalEl.addEventListener('hidden.bs.modal', function () {
+                if (triggerButton && typeof triggerButton.focus === 'function') {
+                    triggerButton.focus();
+                } else {
+                    document.body.focus();
+                }
+            });
+
+            // ۲. باز کردن مودال و واکشی فرم (GET) با Event Delegation
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('.btn-edit-check');
+                if (!btn) return;
+
+                e.preventDefault();
+                triggerButton = btn;
+
+                const checkId = btn.getAttribute('data-check-id');
+                const projectId = btn.getAttribute('data-project-id') || 0;
+
+                if (!checkId) return;
+
+                modalBody.innerHTML = `
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">در حال دریافت...</span>
+                </div>
+                <div class="mt-2 text-muted small">در حال بارگذاری اطلاعات چک...</div>
+            </div>
+        `;
+
+                editModal.show();
+
+                fetch(`edit_check_out.php?id=${encodeURIComponent(checkId)}&project_id=${encodeURIComponent(projectId)}`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                    .then(response => {
+                        if (!response.ok) throw new Error('خطای سرور: ' + response.status);
+                        return response.text();
+                    })
+                    .then(html => {
+                        modalBody.innerHTML = html;
+                    })
+                    .catch(err => {
+                        modalBody.innerHTML = `
+                <div class="alert alert-danger mb-0" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    خطا در دریافت اطلاعات چک. لطفاً مجدداً تلاش کنید.
+                </div>
+            `;
+                        console.error('Error fetching check edit form:', err);
+                    });
+            });
+
+            // ۳. فرمت ۳ رقمی زنده برای فیلد مبلغ
+            document.addEventListener('input', function (e) {
+                if (e.target && e.target.id === 'check_amount') {
+                    let rawVal = normalizeDigits(e.target.value).replace(/[^0-9]/g, '');
+                    if (rawVal) {
+                        e.target.value = Number(rawVal).toLocaleString('en-US');
+                    } else {
+                        e.target.value = '';
+                    }
+                }
+            });
+
+            // ۴. ثبت فرم با AJAX (POST) - بدون وابستگی به متغیرهای خارجی
+            document.addEventListener('submit', function (e) {
+                const form = e.target.closest('#ajaxEditCheckForm');
+                if (!form) return;
+
+                e.preventDefault();
+
+                const alertBox = form.querySelector('#editCheckAlert') || document.getElementById('editCheckAlert');
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+
+                if (alertBox) {
+                    alertBox.classList.add('d-none');
+                    alertBox.classList.remove('alert-danger');
+                    alertBox.innerHTML = '';
+                }
+
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> در حال ذخیره...`;
+                }
+
+                // تمام مقادیر (از جمله id و project_id) به صورت خودکار از طریق فیلدهای هیدن درون فرم در formData قرار می‌گیرند
+                const formData = new FormData(form);
+
+                fetch('edit_check_out.php', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.reload();
+                        } else {
+                            throw new Error(data.message || 'خطا در ثبت اطلاعات.');
+                        }
+                    })
+                    .catch(err => {
+                        if (alertBox) {
+                            alertBox.classList.remove('d-none');
+                            alertBox.classList.add('alert-danger');
+                            alertBox.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-1"></i> ${err.message || 'خطای غیرمنتظره رخ داد.'}`;
+                        }
+
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalBtnHtml;
+                        }
+                    });
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const viewRemitanceOutModalEl = document.getElementById('viewRemitanceOutModal');
+            const viewRemitanceOutModalBody = document.getElementById('viewRemitanceOutModalBody');
+            if (!viewRemitanceOutModalEl || !viewRemitanceOutModalBody) return;
+
+            const remitanceOutModal = bootstrap.Modal.getOrCreateInstance(viewRemitanceOutModalEl);
+            let triggerButton = null;
+
+            const defaultLoaderHtml = `
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">در حال بارگذاری...</span>
+                </div>
+                <p class="text-muted mt-2 small">در حال دریافت جزئیات حواله...</p>
+            </div>
+        `;
+
+            // مدیریت فوکوس برای عدم تداخل aria-hidden
+            viewRemitanceOutModalEl.addEventListener('hide.bs.modal', function () {
+                if (document.activeElement && viewRemitanceOutModalEl.contains(document.activeElement)) {
+                    document.activeElement.blur();
+                }
+            });
+
+            viewRemitanceOutModalEl.addEventListener('hidden.bs.modal', function () {
+                viewRemitanceOutModalBody.innerHTML = defaultLoaderHtml;
+                if (triggerButton && typeof triggerButton.focus === 'function') {
+                    try {
+                        triggerButton.focus();
+                    } catch (e) {}
+                }
+            });
+
+            // شنونده رویداد با Event Delegation روی کل سند
+            document.addEventListener('click', function (e) {
+                // پشتیبانی از هر دو کلاس اختصاصی حواله و کلاس مشترک
+                const btn = e.target.closest('.btn-open-remittance, .btn-view-remittance, .btn-open-check');
+                if (!btn) return;
+
+                // اگر دکمه مربوط به مودال حواله نیست، نادیده بگیر
+                const targetModal = btn.getAttribute('data-bs-target') || btn.getAttribute('data-target');
+                if (targetModal && targetModal !== '#viewRemitanceOutModal') {
+                    return;
+                }
+
+                e.preventDefault();
+                triggerButton = btn;
+
+                // اولویت استخراج شناسه حواله
+                const rawId = btn.dataset.remitanceOutId
+                    || btn.dataset.id
+                    || btn.getAttribute('data-remitance-out-id')
+                    || btn.dataset.checkId
+                    || '';
+
+                const rawProjectId = btn.dataset.projectId
+                    || btn.getAttribute('data-project-id')
+                    || '0';
+
+                const remitanceOutId = parseInt(rawId, 10);
+                const projectId = parseInt(rawProjectId, 10) || 0;
+
+                if (isNaN(remitanceOutId) || remitanceOutId <= 0) {
+                    viewRemitanceOutModalBody.innerHTML = `
+                    <div class="alert alert-warning d-flex align-items-center mb-0" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                        <div>شناسه حواله نامعتبر است (مقدار دریافتی: ${rawId ? String(rawId) : 'خالی'}).</div>
+                    </div>
+                `;
+                    remitanceOutModal.show();
+                    return;
+                }
+
+                // نمایش حالت لودینگ و باز کردن مودال
+                viewRemitanceOutModalBody.innerHTML = defaultLoaderHtml;
+                remitanceOutModal.show();
+
+                const url = `view_remitance_out.php?id=${encodeURIComponent(remitanceOutId)}&project_id=${encodeURIComponent(projectId)}&ajax=1`;
+
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('کد خطای سرور: ' + response.status);
+                        }
+                        return response.text();
+                    })
+                    .then(html => {
+                        viewRemitanceOutModalBody.innerHTML = html;
+                    })
+                    .catch(err => {
+                        viewRemitanceOutModalBody.innerHTML = `
+                    <div class="alert alert-danger d-flex align-items-center mb-0" role="alert">
+                        <i class="bi bi-x-circle-fill me-2 fs-5"></i>
+                        <div>خطا در دریافت اطلاعات حواله: ${err.message}</div>
+                    </div>
+                `;
+                    });
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const checkModalEl = document.getElementById('viewCheckModal');
+            const checkModalBody = document.getElementById('viewCheckModalBody');
+            if (!checkModalEl || !checkModalBody) return;
+
+            const checkModal = bootstrap.Modal.getOrCreateInstance(checkModalEl);
+            let triggerButton = null;
+
+            const defaultLoaderHtml = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">در حال بارگذاری...</span>
+            </div>
+            <p class="text-muted mt-2 small">در حال دریافت اطلاعات چک...</p>
+        </div>
+    `;
+
+            checkModalEl.addEventListener('hide.bs.modal', function () {
+                if (document.activeElement && checkModalEl.contains(document.activeElement)) {
+                    document.activeElement.blur();
+                }
+            });
+
+            checkModalEl.addEventListener('hidden.bs.modal', function () {
+                checkModalBody.innerHTML = defaultLoaderHtml;
+                if (triggerButton && typeof triggerButton.focus === 'function') {
+                    triggerButton.focus();
+                } else {
+                    document.body.focus();
+                }
+            });
+
+            // رویداد کلیک
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('.btn-open-check');
+                if (!btn) return;
+
+                e.preventDefault();
+                triggerButton = btn;
+
+                // خواندن شناسه چک (پشتیبانی هم‌زمان از data-check-id و data-id)
+                const rawId = btn.dataset.checkId || btn.dataset.id || btn.getAttribute('data-check-id') || btn.getAttribute('data-id');
+                const rawProjectId = btn.dataset.projectId || btn.getAttribute('data-project-id') || 0;
+
+                const checkId = parseInt(rawId, 10);
+                const projectId = parseInt(rawProjectId, 10) || 0;
+
+                if (isNaN(checkId) || checkId <= 0) {
+                    checkModalBody.innerHTML = `
+                <div class="alert alert-warning d-flex align-items-center mb-0" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                    <div>شناسه چک نامعتبر است (مقدار دریافتی: ${rawId || 'خالی'}).</div>
+                </div>
+            `;
+                    checkModal.show();
+                    return;
+                }
+
+                checkModalBody.innerHTML = defaultLoaderHtml;
+                checkModal.show();
+
+                const url = `view_check.php?id=${encodeURIComponent(checkId)}&project_id=${encodeURIComponent(projectId)}&ajax=1`;
+
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('کد خطای سرور: ' + response.status);
+                        }
+                        return response.text();
+                    })
+                    .then(html => {
+                        checkModalBody.innerHTML = html;
+                    })
+                    .catch(err => {
+                        checkModalBody.innerHTML = `
+                <div class="alert alert-danger d-flex align-items-center mb-0" role="alert">
+                    <i class="bi bi-x-circle-fill me-2 fs-5"></i>
+                    <div>خطا در دریافت اطلاعات: ${err.message}</div>
+                </div>
+            `;
+                    });
+            });
+        });
+
+
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const deleteRemitanceOutModalEl = document.getElementById('deleteRemitanceOutModal');
+            const deleteRemitanceOutForm    = document.getElementById('deleteRemitanceOutForm');
+            const inputRemitanceOutId       = document.getElementById('delete_remitance_out_id');
+            const inputProjectId            = document.getElementById('delete_project_id');
+            const textRemitanceOutInfo      = document.getElementById('delete_remitance_out_info_text');
+            const btnConfirmDelete          = document.getElementById('btnConfirmDelete');
+
+            if (!deleteRemitanceOutModalEl || !deleteRemitanceOutForm) {
+                return;
+            }
+
+            let isDeleting = false;
+            let lastActiveTrigger = null;
+
+            // پر کردن اطلاعات مودال قبل از نمایش
+            deleteRemitanceOutModalEl.addEventListener('show.bs.modal', function (event) {
+                lastActiveTrigger = event.relatedTarget || document.activeElement;
+                const button = event.relatedTarget;
+                if (!button) return;
+
+                if (inputRemitanceOutId) {
+                    inputRemitanceOutId.value = button.getAttribute('data-remitance-out-id') || '';
+                }
+
+                if (inputProjectId) {
+                    const pId = button.getAttribute('data-project-id');
+                    if (pId) inputProjectId.value = pId;
+                }
+
+                if (textRemitanceOutInfo) {
+                    textRemitanceOutInfo.textContent = button.getAttribute('data-remitance-out-info') || 'حواله انتخاب‌شده';
+                }
+
+                // بازنشانی وضعیت دکمه
+                isDeleting = false;
+                if (btnConfirmDelete) {
+                    btnConfirmDelete.disabled = false;
+                    btnConfirmDelete.innerHTML = '<i class="bi bi-trash3 me-1"></i> حذف نهایی';
+                }
+            });
+
+            // مدیریت فوکوس هنگام بسته شدن مودال جهت جلوگیری از خطای aria-hidden
+            deleteRemitanceOutModalEl.addEventListener('hide.bs.modal', function () {
+                if (document.activeElement && deleteRemitanceOutModalEl.contains(document.activeElement)) {
+                    document.activeElement.blur();
+                }
+            });
+
+            deleteRemitanceOutModalEl.addEventListener('hidden.bs.modal', function () {
+                isDeleting = false;
+                if (lastActiveTrigger && typeof lastActiveTrigger.focus === 'function') {
+                    try {
+                        lastActiveTrigger.focus();
+                    } catch (e) {
+                        // نادیده‌گرفتن خطای فوکوس در صورت حذف عنصر از DOM
+                    }
+                }
+            });
+
+            // ارسال فرم با AJAX
+            deleteRemitanceOutForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                if (isDeleting) return;
+                isDeleting = true;
+
+                if (btnConfirmDelete) {
+                    btnConfirmDelete.disabled = true;
+                    btnConfirmDelete.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> در حال حذف...';
+                }
+
+                const formData = new FormData(deleteRemitanceOutForm);
+                const actionUrl = deleteRemitanceOutForm.getAttribute('action') || 'delete_remitance_out.php';
+
+                fetch(actionUrl, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                    .then(res => {
+                        if (!res.ok) {
+                            throw new Error(`خطای سرور: ${res.status}`);
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        if (data && data.success) {
+                            // رفرش صفحه جهت نمایش Flash Message در سشن
+                            window.location.reload();
+                        } else {
+                            alert((data && data.message) ? data.message : 'خطا در حذف رکورد حواله');
+                            resetButtonState();
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Delete Remittance Error:', err);
+                        // فال‌بک (Fallback): در صورت خطای شبکه یا ساختار پاسخ، فرم به صورت سنتی سابمیت می‌شود
+                        deleteRemitanceOutForm.submit();
+                    });
+            });
+
+            function resetButtonState() {
+                isDeleting = false;
+                if (btnConfirmDelete) {
+                    btnConfirmDelete.disabled = false;
+                    btnConfirmDelete.innerHTML = '<i class="bi bi-trash3 me-1"></i> حذف نهایی';
+                }
+            }
+        });
+        document.addEventListener('DOMContentLoaded', function () {
+            const deleteCheckModal = document.getElementById('deleteCheckModal');
+            const deleteCheckForm = document.getElementById('deleteCheckForm');
+            const inputCheckId = document.getElementById('delete_check_id');
+            const inputProjectId = document.getElementById('delete_project_id');
+            const textCheckInfo = document.getElementById('delete_check_info_text');
+            const btnConfirmDelete = document.getElementById('btnConfirmDelete');
+
+            let isDeleting = false;
+
+            // پر کردن مودال هنگام کلیک روی دکمه سه‌نقطه جدول
+            if (deleteCheckModal) {
+                deleteCheckModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    if (!button) return;
+
+                    inputCheckId.value = button.getAttribute('data-check-id') || '';
+                    const pId = button.getAttribute('data-project-id');
+                    if (pId) inputProjectId.value = pId;
+                    textCheckInfo.textContent = button.getAttribute('data-check-info') || 'چک انتخاب‌شده';
+
+                    isDeleting = false;
+                    btnConfirmDelete.disabled = false;
+                    btnConfirmDelete.innerHTML = '<i class="bi bi-trash3 me-1"></i> حذف نهایی';
+                });
+            }
+
+            // ارسال فرم
+            if (deleteCheckForm) {
+                // هنگام ارسال فرم با AJAX:
+                deleteRemitanceOutForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+
+                    // بررسی اینکه آیا ID مقدار گرفته است یا خیر
+                    const remitId = inputRemitanceOutId ? inputRemitanceOutId.value.trim() : '';
+                    if (!remitId || remitId === '0') {
+                        alert('خطا: شناسه حواله یافت نشد! لطفاً صفحه را رفرش کنید.');
+                        return;
+                    }
+
+                    if (isDeleting) return;
+                    isDeleting = true;
+
+                    if (btnConfirmDelete) {
+                        btnConfirmDelete.disabled = true;
+                        btnConfirmDelete.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> در حال حذف...';
+                    }
+
+                    const formData = new FormData(deleteRemitanceOutForm);
+                    const actionUrl = deleteRemitanceOutForm.getAttribute('action') || 'delete_remitance_out.php';
+
+                    fetch(actionUrl, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                        .then(res => {
+                            if (!res.ok) {
+                                throw new Error(`خطای سرور: ${res.status}`);
+                            }
+                            return res.json();
+                        })
+                        .then(data => {
+                            if (data && data.success) {
+                                window.location.reload();
+                            } else {
+                                alert((data && data.message) ? data.message : 'خطا در حذف رکورد حواله');
+                                resetButtonState();
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Delete Remittance Error:', err);
+                            // اگر خطای JSON یا شبکه داد، فرم را عادی ارسال کن
+                            deleteRemitanceOutForm.submit();
+                        });
+                });
+            }
+        });
+
+
+
+
+
+
+        // ==========================================
+        // ۲. رویداد لود شدن DOM (مقداردهی اولیه)
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // انتقال مودال‌ها به انتهای body جهت پیشگیری از خطاهای z-index
+            document.querySelectorAll('.modal').forEach(function (modalEl) {
+                if (modalEl.parentNode !== document.body) {
+                    document.body.appendChild(modalEl);
+                }
+            });
+
+            // الف) راه‌اندازی تقویم جلالی (@majidh1/jalalidatepicker)
+            if (typeof jalaliDatepicker !== 'undefined') {
+                jalaliDatepicker.startWatch({
+                    minDate: "attr",
+                    maxDate: "attr",
+                    zIndex: 100050
+                });
+            }
+
+            // ب) مدیریت کامل مودال افزودن چک و تقویم آن
+            const checkModalEl = document.getElementById('addCheckModal');
+            const checkForm = document.getElementById('addCheckForm');
+
+            if (checkModalEl) {
+                const addCheckModalInstance = bootstrap.Modal.getOrCreateInstance(checkModalEl);
+
+                // وقتی مودال چک کامل باز شد
+                checkModalEl.addEventListener('shown.bs.modal', function () {
+                    if (typeof jalaliDatepicker !== 'undefined') {
+                        jalaliDatepicker.startWatch({ zIndex: 100050 });
+                    } else if (window.jQuery && $.fn.persianDatepicker) {
+                        $(checkModalEl).find('.pwt-datepicker').persianDatepicker({
+                            format: 'YYYY/MM/DD',
+                            autoClose: true
+                        });
+                    }
+                });
+
+                // باز شدن قطعی تقویم با کلیک روی فیلد یا آیکون تقویم
+                const dateInput = checkModalEl.querySelector('input[name="check_issuance_date"]');
+                if (dateInput && typeof jalaliDatepicker !== 'undefined') {
+                    ['click', 'focus'].forEach(function(evt) {
+                        dateInput.addEventListener(evt, function () {
+                            jalaliDatepicker.show(this);
+                        });
+                    });
+
+                    const calendarIcon = dateInput.closest('.input-group')?.querySelector('.input-group-text');
+                    if (calendarIcon) {
+                        calendarIcon.style.cursor = 'pointer';
+                        calendarIcon.addEventListener('click', function () {
+                            dateInput.focus();
+                            jalaliDatepicker.show(dateInput);
+                        });
+                    }
+                }
+
+                // ارسال فرم چک با AJAX
+                if (checkForm) {
+                    checkForm.addEventListener('submit', function (e) {
+                        e.preventDefault();
+
+                        const submitBtn = checkForm.querySelector('button[type="submit"]');
+                        const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+
+                        const oldAlert = checkForm.querySelector('.form-feedback-alert');
+                        if (oldAlert) oldAlert.remove();
+
+                        if (submitBtn) {
+                            submitBtn.disabled = true;
+                            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> در حال ذخیره...';
+                        }
+
+                        const formData = new FormData(checkForm);
+
+                        fetch(checkForm.getAttribute('action') || 'add_check.php', {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                            .then(async response => {
+                                const text = await response.text();
+                                try {
+                                    return JSON.parse(text);
+                                } catch (err) {
+                                    if (response.ok) {
+                                        return { success: true, message: 'چک با موفقیت ثبت شد.' };
+                                    }
+                                    throw new Error(text || 'پاسخ دریافتی از سرور معتبر نیست.');
+                                }
+                            })
+                            .then(data => {
+                                const alertDiv = document.createElement('div');
+                                alertDiv.className = `alert ${data.success ? 'alert-success' : 'alert-danger'} m-3 form-feedback-alert`;
+                                alertDiv.innerHTML = `<i class="bi ${data.success ? 'bi-check-circle' : 'bi-exclamation-triangle'} me-1"></i> ${data.message || (data.success ? 'چک با موفقیت ثبت شد.' : 'خطا در ثبت اطلاعات چک.')}`;
+                                checkForm.querySelector('.modal-body').prepend(alertDiv);
+
+                                if (data.success) {
+                                    checkForm.reset();
+                                    setTimeout(() => {
+                                        addCheckModalInstance.hide();
+                                        location.reload();
+                                    }, 1000);
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                const alertDiv = document.createElement('div');
+                                alertDiv.className = 'alert alert-danger m-3 form-feedback-alert';
+                                alertDiv.innerHTML = `<i class="bi bi-exclamation-triangle me-1"></i> ${error.message || 'خطا در برقراری ارتباط با سرور.'}`;
+                                checkForm.querySelector('.modal-body').prepend(alertDiv);
+                            })
+                            .finally(() => {
+                                if (submitBtn) {
+                                    submitBtn.disabled = false;
+                                    submitBtn.innerHTML = originalBtnHtml;
+                                }
+                            });
+                    });
+                }
+            }
+
+            // ج) دکمه باز و بسته کردن ساب‌منوی هزینه‌ها (expenseToggleBtn)
+            const toggleBtn = document.getElementById('expenseToggleBtn');
+            const submenuContent = document.getElementById('expenseSubmenu') || document.getElementById('expenseSubmenuContent');
+            if (toggleBtn && submenuContent) {
+                const icon = toggleBtn.querySelector('.transition-icon, .toggle-icon');
+                toggleBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    submenuContent.classList.toggle('open');
+                    if (icon) {
+                        icon.classList.toggle('rotated');
+                        icon.classList.toggle('rotate-45');
+                    }
+                });
+            }
+        });
+
+        // ==========================================
+        // ۳. لاجیک فیلترهای حساب، ذینفع و سرفصل‌ها
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', function () {
+            // مپ داده‌های حساب بانکی و ذی‌نفع
+            const bankMap = <?= json_encode($bank_hesabMap ?? [], JSON_UNESCAPED_UNICODE) ?>;
+            const savedBank = "<?= htmlspecialchars($current_bank_hesab ?? '', ENT_QUOTES, 'UTF-8') ?>";
+            const savedBen  = "<?= htmlspecialchars($current_beneficiary ?? '', ENT_QUOTES, 'UTF-8') ?>";
+
+            const $bankList   = $('#bankItemsList');
+            const $benList    = $('#beneficiaryItemsList');
+            const $bankHidden = $('#selectedBankInput');
+            const $benHidden  = $('#selectedbeneficiaryInput');
+
+            function bindSearch(searchId, listId) {
+                $(document).on('input', '#' + searchId, function () {
+                    const q = $(this).val().trim().toLowerCase();
+                    $('#' + listId + ' .dropdown-item').each(function () {
+                        const text = $(this).text().trim().toLowerCase();
+                        $(this).toggle(text.includes(q));
+                    });
+                });
+            }
+            bindSearch('bankSearchInput', 'bankItemsList');
+            bindSearch('beneficiarySearchInput', 'beneficiaryItemsList');
+
+            function populateBeneficiaries(bank, selectedBen) {
+                $benList.empty();
+                $benList.append('<a class="dropdown-item py-2 rounded ' + (!selectedBen ? 'active' : '') + '" href="javascript:void(0)" data-val="">-- همه ذی‌نفع‌ها --</a>');
+
+                const items = (bank && bankMap[bank]) ? bankMap[bank] : [];
+
+                if (items.length > 0) {
+                    items.forEach(function (b) {
+                        const isSelected = (String(b).trim() === String(selectedBen).trim());
+                        const cls = isSelected ? ' active' : '';
+                        $benList.append(
+                            $('<a/>', {
+                                class: 'dropdown-item py-2 rounded' + cls,
+                                href: 'javascript:void(0)',
+                                'data-val': b,
+                                text: b
+                            })
+                        );
+                    });
+                } else {
+                    $benList.append('<span class="dropdown-item-text text-muted small">موردی یافت نشد</span>');
+                }
+
+                if (selectedBen && !items.includes(selectedBen)) {
+                    $benHidden.val('');
+                    $('#beneficiaryBtnText').text('انتخاب یا جست‌وجوی ذینفع...');
+                } else if (selectedBen) {
+                    $('#beneficiaryBtnText').text(selectedBen);
+                    $benHidden.val(selectedBen);
+                }
+            }
+
+            $(document).on('click', '#bankItemsList .dropdown-item', function (e) {
+                e.preventDefault();
+                const val = $(this).attr('data-val') || '';
+
+                $('#bankItemsList .dropdown-item').removeClass('active');
+                $(this).addClass('active');
+
+                $bankHidden.val(val);
+                $('#bankBtnText').text(val ? val : 'انتخاب یا جست‌وجوی حساب...');
+
+                $benHidden.val('');
+                $('#beneficiaryBtnText').text('انتخاب یا جست‌وجوی ذینفع...');
+                populateBeneficiaries(val, '');
+
+                const bankDropdown = bootstrap.Dropdown.getInstance(document.getElementById('bankDropdownBtn'));
+                if (bankDropdown) bankDropdown.hide();
+            });
+
+            $(document).on('click', '#beneficiaryItemsList .dropdown-item', function (e) {
+                e.preventDefault();
+                const val = $(this).attr('data-val') || '';
+
+                $('#beneficiaryItemsList .dropdown-item').removeClass('active');
+                $(this).addClass('active');
+
+                $benHidden.val(val);
+                $('#beneficiaryBtnText').text(val ? val : 'انتخاب یا جست‌وجوی ذینفع...');
+
+                const benDropdown = bootstrap.Dropdown.getInstance(document.getElementById('beneficiaryDropdownBtn'));
+                if (benDropdown) benDropdown.hide();
+            });
+
+            if (savedBank) {
+                populateBeneficiaries(savedBank, savedBen);
+            }
+        });
+
+        // مدیریت سرفصل و زیرفصل‌ها
+        document.addEventListener('DOMContentLoaded', function () {
+            const transactionSubMap = <?= json_encode($transactionSubMap ?? [], JSON_UNESCAPED_UNICODE) ?> || {};
+            const hiddenInput      = document.getElementById('selectedTransactionInput');
+            const btnText          = document.getElementById('transactionBtnText');
+            const searchInput      = document.getElementById('transactionSearchInput');
+            const itemsList        = document.getElementById('transactionItemsList');
+            const subchapterSelect = document.getElementById('filterSubchapter');
+
+            if (!itemsList || !subchapterSelect) return;
+
+            function updateSubchapters(selectedTr, preselectedSub = '') {
+                subchapterSelect.innerHTML = '<option value="">-- همه زیرفصل‌ها --</option>';
+
+                if (!selectedTr || !transactionSubMap[selectedTr] || transactionSubMap[selectedTr].length === 0) {
+                    subchapterSelect.disabled = true;
+                    return;
+                }
+
+                subchapterSelect.disabled = false;
+                transactionSubMap[selectedTr].forEach(function (sub) {
+                    const opt = document.createElement('option');
+                    opt.value = sub;
+                    opt.textContent = sub;
+                    if (preselectedSub && sub === preselectedSub) {
+                        opt.selected = true;
+                    }
+                    subchapterSelect.appendChild(opt);
+                });
+
+                if (typeof jQuery !== 'undefined' && jQuery(subchapterSelect).hasClass('select2-hidden-accessible')) {
+                    jQuery(subchapterSelect).trigger('change');
+                }
+            }
+
             itemsList.addEventListener('click', function (e) {
-                const target = e.target.closest('.dropdown-item');
+                const target = e.target.closest('a[data-val]');
                 if (!target) return;
                 e.preventDefault();
 
                 const val = target.getAttribute('data-val');
-                hiddenInput.value = val;
-                btnText.textContent = val ? target.textContent.trim() : 'انتخاب یا جست‌وجوی حساب...';
+                if (hiddenInput) hiddenInput.value = val;
+                if (btnText) btnText.textContent = val !== '' ? val : '-- همه سرفصل‌ها --';
 
-                itemsList.querySelectorAll('.dropdown-item').forEach(el => el.classList.remove('active'));
-                target.classList.add('active');
-
-                // بستن خودکار دراپ‌داون پس از انتخاب
-                const dropdownEl = bootstrap.Dropdown.getInstance(document.getElementById('bankDropdownBtn'));
-                if (dropdownEl) dropdownEl.hide();
-            });
-        }
-    });
-    document.addEventListener('DOMContentLoaded', function () {
-        // دریافت امن مپ داده‌ها
-        const bankMap = <?= json_encode($bank_hesabMap ?? [], JSON_UNESCAPED_UNICODE) ?>;
-
-        const savedBank = "<?= htmlspecialchars($current_bank_hesab ?? '', ENT_QUOTES, 'UTF-8') ?>";
-        const savedBen  = "<?= htmlspecialchars($current_beneficiary ?? '', ENT_QUOTES, 'UTF-8') ?>";
-
-        const $bankList   = $('#bankItemsList');
-        const $benList    = $('#beneficiaryItemsList');
-        const $bankHidden = $('#selectedBankInput');
-        const $benHidden  = $('#selectedbeneficiaryInput');
-
-        // ---------- ۱. فیلتر جست‌وجوی آنی متنی ----------
-        function bindSearch(searchId, listId) {
-            $(document).on('input', '#' + searchId, function () {
-                const q = $(this).val().trim().toLowerCase();
-                $('#' + listId + ' .dropdown-item').each(function () {
-                    const text = $(this).text().trim().toLowerCase();
-                    $(this).toggle(text.includes(q));
-                });
-            });
-        }
-        bindSearch('bankSearchInput', 'bankItemsList');
-        bindSearch('beneficiarySearchInput', 'beneficiaryItemsList');
-
-        // ---------- ۲. پر کردن لیست ذی‌نفع‌ها ----------
-        function populateBeneficiaries(bank, selectedBen) {
-            $benList.empty();
-            $benList.append('<a class="dropdown-item py-2 rounded ' + (!selectedBen ? 'active' : '') + '" href="javascript:void(0)" data-val="">-- همه ذی‌نفع‌ها --</a>');
-
-            const items = (bank && bankMap[bank]) ? bankMap[bank] : [];
-
-            if (items.length > 0) {
-                items.forEach(function (b) {
-                    const isSelected = (String(b).trim() === String(selectedBen).trim());
-                    const cls = isSelected ? ' active' : '';
-                    $benList.append(
-                        $('<a/>', {
-                            class: 'dropdown-item py-2 rounded' + cls,
-                            href: 'javascript:void(0)',
-                            'data-val': b,
-                            text: b
-                        })
-                    );
-                });
-            } else {
-                $benList.append('<span class="dropdown-item-text text-muted small">موردی یافت نشد</span>');
-            }
-
-            // اگر ذی‌نفع انتخاب شده در لیست جدید نبود، ریست شود
-            if (selectedBen && !items.includes(selectedBen)) {
-                $benHidden.val('');
-                $('#beneficiaryBtnText').text('انتخاب یا جست‌وجوی ذینفع...');
-            } else if (selectedBen) {
-                $('#beneficiaryBtnText').text(selectedBen);
-                $benHidden.val(selectedBen);
-            }
-        }
-
-        // ---------- ۳. کلیک روی آیتم‌های بانک (سراسری با Document Delegation) ----------
-        $(document).on('click', '#bankItemsList .dropdown-item', function (e) {
-            e.preventDefault();
-            const val = $(this).attr('data-val') || '';
-
-            $('#bankItemsList .dropdown-item').removeClass('active');
-            $(this).addClass('active');
-
-            $bankHidden.val(val);
-            $('#bankBtnText').text(val ? val : 'انتخاب یا جست‌وجوی حساب...');
-
-            // ریست و پر کردن لیست ذی‌نفع‌ها
-            $benHidden.val('');
-            $('#beneficiaryBtnText').text('انتخاب یا جست‌وجوی ذینفع...');
-            populateBeneficiaries(val, '');
-
-            // بستن دراپ‌داون بانک بعد از انتخاب
-            const bankDropdown = bootstrap.Dropdown.getInstance(document.getElementById('bankDropdownBtn'));
-            if (bankDropdown) bankDropdown.hide();
-        });
-
-        // ---------- ۴. کلیک روی آیتم‌های ذی‌نفع (سراسری با Document Delegation) ----------
-        $(document).on('click', '#beneficiaryItemsList .dropdown-item', function (e) {
-            e.preventDefault();
-            const val = $(this).attr('data-val') || '';
-
-            $('#beneficiaryItemsList .dropdown-item').removeClass('active');
-            $(this).addClass('active');
-
-            $benHidden.val(val);
-            $('#beneficiaryBtnText').text(val ? val : 'انتخاب یا جست‌وجوی ذینفع...');
-
-            // بستن دراپ‌داون ذی‌نفع بعد از انتخاب
-            const benDropdown = bootstrap.Dropdown.getInstance(document.getElementById('beneficiaryDropdownBtn'));
-            if (benDropdown) benDropdown.hide();
-        });
-
-        // ---------- ۵. مقداردهی اولیه پس از لود صفحه ----------
-        if (savedBank) {
-            populateBeneficiaries(savedBank, savedBen);
-        }
-    });
-
-    document.addEventListener('DOMContentLoaded', function () {
-        // مپ سرفصل به زیرفصل که مستقیماً از PHP به JSON تبدیل شده
-        const subMap = <?= json_encode($transactionSubMap ?? [], JSON_UNESCAPED_UNICODE) ?> || {};
-
-        const $t = $('#filterTransaction');
-        const $s = $('#filterSubchapter');
-
-        const savedTransaction = <?= json_encode($currentTransaction ?? '', JSON_UNESCAPED_UNICODE) ?>;
-        const savedSubchapter  = <?= json_encode($currentSubchapter ?? '', JSON_UNESCAPED_UNICODE) ?>;
-
-        // تابع اصلی پر کردن گزینه‌های زیرفصل
-        function populateSubchapters(selectedTrans, selectedSub) {
-            $s.empty();
-            $s.append('<option value="">-- همه زیرفصل‌ها --</option>');
-
-            if (!selectedTrans || !subMap[selectedTrans] || subMap[selectedTrans].length === 0) {
-                $s.prop('disabled', true);
-            } else {
-                $s.prop('disabled', false);
-                subMap[selectedTrans].forEach(function (item) {
-                    const isSelected = (item === selectedSub) ? 'selected' : '';
-                    $s.append(`<option value="${item}" ${isSelected}>${item}</option>`);
-                });
-            }
-
-            // اگر Select2 فعال است، بروزرسانی شود
-            if ($s.hasClass('select2-hidden-accessible')) {
-                $s.trigger('change.select2');
-            }
-        }
-
-        // رویداد تغییر سرفصل توسط کاربر
-        $t.on('change', function () {
-            const transVal = $(this).val();
-            populateSubchapters(transVal, '');
-        });
-
-        // ۱. لود اولیه در زمان باز شدن صفحه با فیلتر قبلی
-        if (savedTransaction) {
-            populateSubchapters(savedTransaction, savedSubchapter);
-        }
-
-        // ۲. حل مشکل باز شدن مجدد مودال (اگر فرم داخل مودال بوت‌استرپ است)
-        $('.modal').on('shown.bs.modal', function () {
-            const currentT = $t.val();
-            if (currentT) {
-                populateSubchapters(currentT, $s.val() || savedSubchapter);
-            }
-        });
-
-        // اعمال Select2 در صورت لود بودن کتابخانه
-        if (typeof $.fn.select2 !== 'undefined') {
-            $('.select2-searchable').each(function() {
-                $(this).select2({
-                    theme: 'bootstrap-5',
-                    dir: 'rtl',
-                    width: '100%',
-                    dropdownParent: $(this).closest('.modal').length ? $(this).closest('.modal') : null
-                });
-            });
-        }
-    });
-
-    document.addEventListener('DOMContentLoaded', function () {
-        // استفاده از json_encode روی متغیر با پیش‌فرض آرایه خالی
-        const transactionSubMap = <?= json_encode($transactionSubMap ?? [], JSON_UNESCAPED_UNICODE) ?>;
-        const currentSubchapter = <?= json_encode($currentSubchapter ?? '', JSON_UNESCAPED_UNICODE) ?>;
-
-        const hiddenInput      = document.getElementById('selectedTransactionInput');
-        const btnText          = document.getElementById('transactionBtnText');
-        const searchInput      = document.getElementById('transactionSearchInput');
-        const itemsList        = document.getElementById('transactionItemsList');
-        const subchapterSelect = document.getElementById('filterSubchapter');
-
-        if (!itemsList || !subchapterSelect) {
-            return; // اگر این عناصر در تب فعلی نبودند اسکریپت اجرا نشود
-        }
-
-        function updateSubchapters(selectedTr, preselectedSub = '') {
-            subchapterSelect.innerHTML = '<option value="">-- همه زیرفصل‌ها --</option>';
-
-            if (!selectedTr || !transactionSubMap[selectedTr] || transactionSubMap[selectedTr].length === 0) {
-                subchapterSelect.disabled = true;
-                return;
-            }
-
-            subchapterSelect.disabled = false;
-            transactionSubMap[selectedTr].forEach(function (sub) {
-                const opt = document.createElement('option');
-                opt.value = sub;
-                opt.textContent = sub;
-                if (preselectedSub && sub === preselectedSub) {
-                    opt.selected = true;
+                itemsList.querySelectorAll('a').forEach(a => a.classList.remove('active', 'bg-primary', 'text-white'));
+                if (val !== '') {
+                    target.classList.add('active', 'bg-primary', 'text-white');
                 }
-                subchapterSelect.appendChild(opt);
-            });
 
-            if (typeof jQuery !== 'undefined' && jQuery(subchapterSelect).hasClass('select2-hidden-accessible')) {
-                jQuery(subchapterSelect).trigger('change');
-            }
-        }
-
-        itemsList.addEventListener('click', function (e) {
-            const target = e.target.closest('a[data-val]');
-            if (!target) return;
-            e.preventDefault();
-
-            const val = target.getAttribute('data-val');
-            if (hiddenInput) hiddenInput.value = val;
-            if (btnText) btnText.textContent = val !== '' ? val : '-- همه سرفصل‌ها --';
-
-            itemsList.querySelectorAll('a').forEach(a => a.classList.remove('active', 'bg-primary', 'text-white'));
-            if (val !== '') {
-                target.classList.add('active', 'bg-primary', 'text-white');
-            }
-
-            const dropdownBtn = document.getElementById('transactionDropdownBtn');
-            if (dropdownBtn && typeof bootstrap !== 'undefined') {
-                const dropdownInstance = bootstrap.Dropdown.getInstance(dropdownBtn);
-                if (dropdownInstance) {
-                    dropdownInstance.hide();
+                const dropdownBtn = document.getElementById('transactionDropdownBtn');
+                if (dropdownBtn && typeof bootstrap !== 'undefined') {
+                    const dropdownInstance = bootstrap.Dropdown.getInstance(dropdownBtn);
+                    if (dropdownInstance) dropdownInstance.hide();
                 }
-            }
+
+                if (searchInput) {
+                    searchInput.value = '';
+                    itemsList.querySelectorAll('a[data-val]').forEach(el => el.style.display = '');
+                }
+
+                updateSubchapters(val);
+            });
 
             if (searchInput) {
-                searchInput.value = '';
-                filterDropdownItems('');
-            }
-
-            updateSubchapters(val);
-        });
-
-        function filterDropdownItems(query) {
-            const q = query.trim().toLowerCase();
-            itemsList.querySelectorAll('a[data-val]').forEach(function (item) {
-                const text = item.textContent.toLowerCase();
-                if (item.getAttribute('data-val') === '' || text.includes(q)) {
-                    item.style.display = '';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-        }
-
-        if (searchInput) {
-            searchInput.addEventListener('input', function () {
-                filterDropdownItems(this.value);
-            });
-        }
-    });
-
-    document.addEventListener('DOMContentLoaded', function () {
-        // انتقال تمام مودال‌ها به انتهای body جهت جلوگیری از مشکل Stacking Context
-        document.querySelectorAll('.modal').forEach(function (modalEl) {
-            if (modalEl.parentNode !== document.body) {
-                document.body.appendChild(modalEl);
+                searchInput.addEventListener('input', function () {
+                    const q = this.value.trim().toLowerCase();
+                    itemsList.querySelectorAll('a[data-val]').forEach(function (item) {
+                        const text = item.textContent.toLowerCase();
+                        item.style.display = (item.getAttribute('data-val') === '' || text.includes(q)) ? '' : 'none';
+                    });
+                });
             }
         });
-    });
 
-
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const toggleBtn = document.getElementById('expenseToggleBtn');
-        const submenu = document.getElementById('expenseSubmenuContent');
-        const icon = toggleBtn.querySelector('.toggle-icon');
-
-        if (toggleBtn && submenu) {
-        toggleBtn.addEventListener('click', function (e) {
-        e.preventDefault();
-        submenu.classList.toggle('open');
-        if (icon) {
-        icon.classList.toggle('rotated');
-    }
-    });
-    }
-  })
-        // تابع باز کردن مودال با اطلاعات سطر مربوطه
+        // ==========================================
+        // ۴. سایر توابع داشبورد (سندها، اسناد و انتقال)
+        // ==========================================
         function showDocumentDetails(button) {
             const modalEl = document.getElementById('documentDetailModal');
             if (!modalEl) return;
 
-            // اگر مودال درون لایه‌های تودرتو است، آن را مستقیم به انتهای body منتقل کن
             if (modalEl.parentElement !== document.body) {
                 document.body.appendChild(modalEl);
             }
 
-            // استخراج اطلاعات
             const doc = button.getAttribute('data-doc') || '-';
             const history = button.getAttribute('data-history') || '-';
             const amount = button.getAttribute('data-amount') || '-';
@@ -3635,7 +5598,6 @@ ob_start();
             const subchapter = button.getAttribute('data-subchapter') || '-';
             const desc = button.getAttribute('data-description') || '';
 
-            // ست کردن مقادیر
             document.getElementById('modalDocTitle').textContent = doc;
             document.getElementById('modalDocDate').textContent = history;
             document.getElementById('modalDocAmount').textContent = amount;
@@ -3652,502 +5614,245 @@ ob_start();
                 descBox.classList.add('text-muted');
             }
 
-            // نمایش قطعی مودال با Bootstrap
             const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
             modalInstance.show();
         }
 
-    function toggleCollapse(elementId, toggler) {
-        // 1. بررسی لود بودن Bootstrap و وجود المان
-        if (typeof bootstrap === 'undefined' || !elementId) return;
-        const myCollapse = document.getElementById(elementId);
-        if (!myCollapse) return;
+        const docState = {
+            page: 1,
+            perPage: 10,
+            sortField: 'upload_date',
+            sortOrder: 'desc',
+            search: '',
+            status: '',
+            loading: false
+        };
 
-        // 2. یافتن یا ایجاد نمونه Collapse بدون ساخت مجدد
-        const bsCollapse = bootstrap.Collapse.getOrCreateInstance(myCollapse, {
-            toggle: false
-        });
+        function loadDocuments() {
+            if (docState.loading) return;
+            docState.loading = true;
 
-        // 3. ثبت Listener فقط برای یک‌بار (جلوگیری از تکثیر رویدادها)
-        if (!myCollapse.dataset.hasCollapseListener) {
-            myCollapse.dataset.hasCollapseListener = 'true';
-
-            myCollapse.addEventListener('shown.bs.collapse', function () {
-                const currentToggler = document.querySelector(`[onclick*="${elementId}"]`) || toggler;
-                const icon = currentToggler?.querySelector('.bi-plus-lg');
-                if (icon) icon.classList.add('rotate-45');
+            const params = new URLSearchParams({
+                ajax: 1,
+                user_id: typeof userId !== "undefined" ? userId : 0,
+                page: docState.page,
+                per_page: docState.perPage,
+                doc_sort: docState.sortField,
+                doc_order: docState.sortOrder,
+                search: docState.search
             });
 
-            myCollapse.addEventListener('hidden.bs.collapse', function () {
-                const currentToggler = document.querySelector(`[onclick*="${elementId}"]`) || toggler;
-                const icon = currentToggler?.querySelector('.bi-plus-lg');
-                if (icon) icon.classList.remove('rotate-45');
-            });
-        }
-
-        // 4. تغییر وضعیت (Toggle)
-        bsCollapse.toggle();
-    }
-
-    // جهت سازگاری با کدهای قبلی که ممکن است toggleCollapse1 را صدا زده باشند:
-    const toggleCollapse1 = toggleCollapse;
-
-    $(document).ready(function () {
-
-        console.log('jQuery:', typeof $);
-        console.log('DataTable:', typeof $.fn.DataTable);
-
-        // اگر خواستید بعداً فعال کنید
-        /*
-        $('#membersTable').DataTable({
-            paging: true,
-            searching: true,
-            ordering: true,
-            info: true,
-            pageLength: 10,
-            lengthMenu: [10, 25, 50, 100],
-            order: [[0, 'asc']],
-            columnDefs: [
-                { orderable: false, targets: [3] }
-            ],
-            language: {
-                search: "جستجو:",
-                lengthMenu: "نمایش _MENU_ عضو",
-                info: "نمایش _START_ تا _END_ از _TOTAL_ عضو",
-                infoEmpty: "عضوی برای نمایش وجود ندارد",
-                zeroRecords: "نتیجه‌ای یافت نشد",
-                paginate: {
-                    first: "اول",
-                    last: "آخر",
-                    next: "بعدی",
-                    previous: "قبلی"
-                }
-            }
-        });
-        */
-
-    });
-
-
-    /* ===============================
-       STATE
-    ================================ */
-    const docState = {
-        page: 1,
-        perPage: 10,
-        sortField: 'upload_date',
-        sortOrder: 'desc',
-        search: '',
-        status: '',
-        loading: false
-    };
-
-
-    /* ===============================
-       LOAD DOCUMENTS (AJAX)
-    ================================ */
-    function loadDocuments() {
-
-        if (docState.loading) return;
-        docState.loading = true;
-
-        const params = new URLSearchParams({
-            ajax: 1,
-            user_id: typeof userId !== "undefined" ? userId : 0,
-            page: docState.page,
-            per_page: docState.perPage,
-            doc_sort: docState.sortField,
-            doc_order: docState.sortOrder,
-            search: docState.search
-        });
-
-        if (docState.status) {
-            params.append('status', docState.status);
-        }
-
-        fetch('/admin/loadDocuments.php?' + params.toString())
-            .then(res => res.text())
-            .then(html => {
-
-                const tbody = document.getElementById('documentsBody');
-                const pagination = document.getElementById('documentsPagination');
-
-                if (!tbody) return;
-
-                const parts = html.split('<!--PAGINATION-->');
-                tbody.innerHTML = parts[0];
-
-                if (pagination && parts[1]) {
-                    pagination.innerHTML = parts[1];
-                }
-
-                updateSortIcons();
-            })
-            .catch(err => console.error(err))
-            .finally(() => docState.loading = false);
-    }
-
-
-    /* ===============================
-       SORT
-    ================================ */
-    document.querySelectorAll('.table-documents th.sortable').forEach(th => {
-
-        th.addEventListener('click', function (e) {
-
-            e.preventDefault();
-            e.stopPropagation();
-
-            const field = this.dataset.field;
-
-            if (docState.sortField === field) {
-                docState.sortOrder = docState.sortOrder === 'asc' ? 'desc' : 'asc';
-            } else {
-                docState.sortField = field;
-                docState.sortOrder = 'asc';
+            if (docState.status) {
+                params.append('status', docState.status);
             }
 
-            docState.page = 1;
+            fetch('/admin/loadDocuments.php?' + params.toString())
+                .then(res => res.text())
+                .then(html => {
+                    const tbody = document.getElementById('documentsBody');
+                    const pagination = document.getElementById('documentsPagination');
+                    if (!tbody) return;
 
-            updateSortIcons();
-            loadDocuments();
-        });
+                    const parts = html.split('<!--PAGINATION-->');
+                    tbody.innerHTML = parts[0];
 
-    });
-
-
-    function updateSortIcons() {
-
-        document.querySelectorAll('.sortable i').forEach(icon => {
-
-            icon.className = 'bi bi-arrow-down-up';
-            icon.style.opacity = '0.4';
-
-        });
-
-        const active = document.querySelector(
-            `.sortable[data-field="${docState.sortField}"] i`
-        );
-
-        if (active) {
-
-            active.className =
-                docState.sortOrder === 'asc'
-                    ? 'bi bi-arrow-up'
-                    : 'bi bi-arrow-down';
-
-            active.style.opacity = '1';
+                    if (pagination && parts[1]) {
+                        pagination.innerHTML = parts[1];
+                    }
+                    updateSortIcons();
+                })
+                .catch(err => console.error(err))
+                .finally(() => docState.loading = false);
         }
 
-    }
-
-
-    /* ===============================
-       SEARCH
-    ================================ */
-    let searchTimer = null;
-
-    function debouncedSearch() {
-
-        clearTimeout(searchTimer);
-
-        searchTimer = setTimeout(() => {
-
-            const input = document.getElementById('searchInput');
-
-            docState.search = input ? input.value.trim() : '';
-
-            docState.page = 1;
-
-            loadDocuments();
-
-        }, 400);
-
-    }
-
-    function searchDocuments() {
-        debouncedSearch();
-    }
-
-
-    /* ===============================
-       FILTER STATUS
-    ================================ */
-    function filterDocuments(status) {
-
-        docState.page = 1;
-        docState.status = status || '';
-
-        loadDocuments();
-
-    }
-
-
-    /* ===============================
-       PAGINATION
-    ================================ */
-    function goToPage(page) {
-
-        docState.page = page;
-
-        loadDocuments();
-
-    }
-
-
-    /* ===============================
-       DOCUMENT STATUS UPDATE
-    ================================ */
-    function updateDocumentStatus(documentId, status) {
-
-        if (!documentId || !status) return;
-
-        if (!confirm('آیا از این عملیات اطمینان دارید؟')) return;
-
-        fetch('/maskansazan/admin/change_document_status.php', {
-
-            method: 'POST',
-
-            headers: {
-                'Content-Type': 'application/json'
-            },
-
-            body: JSON.stringify({
-                document_id: documentId,
-                status: status
-            })
-
-        })
-            .then(res => res.json())
-            .then(data => {
-
-                alert(data.message || 'وضعیت مدرک بروزرسانی شد');
-
-                if (data.success) {
-                    loadDocuments();
-                }
-
-            })
-            .catch(() => alert('خطا در ارتباط با سرور'));
-
-    }
-
-
-    /* ===============================
-       UPLOAD DOCUMENT
-    ================================ */
-    function uploadDocument() {
-
-        const form = document.getElementById('uploadDocumentForm');
-        const type = document.getElementById('documentType');
-        const file = document.getElementById('documentFile');
-
-        if (!type.value) {
-            showToast('نوع مدرک را انتخاب کنید', 'danger');
-            return;
-        }
-
-        if (!file.files.length) {
-            showToast('فایل مدرک را انتخاب کنید', 'danger');
-            return;
-        }
-
-        fetch('upload_document.php', {
-            method: 'POST',
-            body: new FormData(form)
-        })
-            .then(r => r.json())
-            .then(d => {
-
-                showToast(d.message, d.status ? 'success' : 'danger');
-
-                if (d.status) {
-
-                    bootstrap.Modal.getInstance(
-                        document.getElementById('uploadDocumentModal')
-                    ).hide();
-
-                    form.reset();
-
-                    loadDocuments();
-                }
-
-            });
-
-    }
-
-
-    /* ===============================
-       DELETE DOCUMENT
-    ================================ */
-    function deleteDocument(documentId) {
-
-        if (!confirm('آیا از حذف این مدرک اطمینان دارید؟')) return;
-
-        const formData = new FormData();
-
-        formData.append('document_id', documentId);
-
-        fetch('/admin/delete_document.php', {
-            method: 'POST',
-            body: formData
-        })
-            .then(res => res.json())
-            .then(data => {
-
-                alert(data.message);
-
-                if (data.success) {
-                    loadDocuments();
-                }
-
-            })
-            .catch(() => alert('خطا در ارتباط با سرور'));
-
-    }
-
-
-    /* ===============================
-       TRANSFER
-    ================================ */
-    function updateTransferStatus(id, status) {
-
-        if (!confirm('آیا مطمئن هستید؟')) return;
-
-        fetch('transfer_update_status.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, status })
-        })
-            .then(r => r.json())
-            .then(d => {
-
-                alert(d.message);
-
-                if (d.status) location.reload();
-
-            });
-
-    }
-
-
-    function deleteTransfer(id) {
-
-        if (!confirm('آیا از حذف این حواله مطمئن هستید؟')) return;
-
-        fetch('/admin/transfer_delete.php', {
-
-            method: 'POST',
-
-            headers: { 'Content-Type': 'application/json' },
-
-            body: JSON.stringify({ id })
-
-        })
-            .then(res => res.json())
-            .then(data => {
-
-                showToast(data.message, data.status ? 'success' : 'danger');
-
-                location.reload();
-
-            })
-            .catch(() => showToast('خطا در ارتباط با سرور', 'danger'));
-
-    }
-
-
-    /* ===============================
-       UI
-    ================================ */
-    function toggleSidebar() {
-
-        const sidebar = document.querySelector('.sidebar');
-
-        if (sidebar) sidebar.classList.toggle('active');
-
-    }
-
-
-    function openReceiptModal(imageSrc) {
-
-        const modalImage = document.getElementById('receiptImage');
-
-        modalImage.src = imageSrc;
-
-        const myModal = new bootstrap.Modal(
-            document.getElementById('receiptModal')
-        );
-
-        myModal.show();
-
-    }
-
-
-    function showToast(message, type = 'success') {
-
-        const positionClass = window.innerWidth < 768
-            ? 'top-0 start-50 translate-middle-x'
-            : 'top-0 end-0';
-
-        const toastHTML = `
-    <div class="toast-container position-fixed ${positionClass} p-3" style="z-index:1060">
-        <div class="toast show text-bg-${type}">
-            <div class="toast-body text-center">
-                ${message}
-            </div>
-        </div>
-    </div>`;
-
-        document.body.insertAdjacentHTML('beforeend', toastHTML);
-
-        setTimeout(() => {
-            document.querySelector('.toast-container')?.remove();
-        }, 4000);
-
-    }
-
-
-    /* ===============================
-       PROJECT SELECTOR
-    ================================ */
-    document.addEventListener('DOMContentLoaded', function () {
-
-        const projectSelect = document.getElementById('project_id_selector');
-        const menuLinks = document.querySelectorAll('.menu-link');
-
-        if (!projectSelect) return;
-
-        function updateMenuLinks() {
-
-            const projectId = projectSelect.value;
-
-            menuLinks.forEach(link => {
-
-                const tab = link.getAttribute('data-tab');
-
-                if (projectId && tab) {
-
-                    link.href =
-                        `?tab=${encodeURIComponent(tab)}&project_id=${encodeURIComponent(projectId)}`;
-
+        document.querySelectorAll('.table-documents th.sortable').forEach(th => {
+            th.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const field = this.dataset.field;
+                if (docState.sortField === field) {
+                    docState.sortOrder = docState.sortOrder === 'asc' ? 'desc' : 'asc';
                 } else {
-
-                    link.href = '#';
-
+                    docState.sortField = field;
+                    docState.sortOrder = 'asc';
                 }
+                docState.page = 1;
+                updateSortIcons();
+                loadDocuments();
+            });
+        });
 
+        function updateSortIcons() {
+            document.querySelectorAll('.sortable i').forEach(icon => {
+                icon.className = 'bi bi-arrow-down-up';
+                icon.style.opacity = '0.4';
             });
 
+            const active = document.querySelector(`.sortable[data-field="${docState.sortField}"] i`);
+            if (active) {
+                active.className = docState.sortOrder === 'asc' ? 'bi bi-arrow-up' : 'bi bi-arrow-down';
+                active.style.opacity = '1';
+            }
         }
 
-        projectSelect.addEventListener('change', updateMenuLinks);
+        let searchTimer = null;
+        function debouncedSearch() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => {
+                const input = document.getElementById('searchInput');
+                docState.search = input ? input.value.trim() : '';
+                docState.page = 1;
+                loadDocuments();
+            }, 400);
+        }
+        function searchDocuments() { debouncedSearch(); }
+        function filterDocuments(status) { docState.page = 1; docState.status = status || ''; loadDocuments(); }
+        function goToPage(page) { docState.page = page; loadDocuments(); }
 
-        updateMenuLinks();
+        function updateDocumentStatus(documentId, status) {
+            if (!documentId || !status) return;
+            if (!confirm('آیا از این عملیات اطمینان دارید؟')) return;
 
-    });
+            fetch('/maskansazan/admin/change_document_status.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ document_id: documentId, status: status })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message || 'وضعیت مدرک بروزرسانی شد');
+                    if (data.success) loadDocuments();
+                })
+                .catch(() => alert('خطا در ارتباط با سرور'));
+        }
 
-</script>
+        function uploadDocument() {
+            const form = document.getElementById('uploadDocumentForm');
+            const type = document.getElementById('documentType');
+            const file = document.getElementById('documentFile');
+
+            if (!type.value) {
+                showToast('نوع مدرک را انتخاب کنید', 'danger');
+                return;
+            }
+            if (!file.files.length) {
+                showToast('فایل مدرک را انتخاب کنید', 'danger');
+                return;
+            }
+
+            fetch('upload_document.php', {
+                method: 'POST',
+                body: new FormData(form)
+            })
+                .then(r => r.json())
+                .then(d => {
+                    showToast(d.message, d.status ? 'success' : 'danger');
+                    if (d.status) {
+                        bootstrap.Modal.getInstance(document.getElementById('uploadDocumentModal')).hide();
+                        form.reset();
+                        loadDocuments();
+                    }
+                });
+        }
+
+        function deleteDocument(documentId) {
+            if (!confirm('آیا از حذف این مدرک اطمینان دارید؟')) return;
+            const formData = new FormData();
+            formData.append('document_id', documentId);
+
+            fetch('/admin/delete_document.php', { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message);
+                    if (data.success) loadDocuments();
+                })
+                .catch(() => alert('خطا در ارتباط با سرور'));
+        }
+
+        function updateTransferStatus(id, status) {
+            if (!confirm('آیا مطمئن هستید؟')) return;
+            fetch('transfer_update_status.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, status })
+            })
+                .then(r => r.json())
+                .then(d => {
+                    alert(d.message);
+                    if (d.status) location.reload();
+                });
+        }
+
+        function deleteTransfer(id) {
+            if (!confirm('آیا از حذف این حواله مطمئن هستید؟')) return;
+            fetch('/admin/transfer_delete.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    showToast(data.message, data.status ? 'success' : 'danger');
+                    location.reload();
+                })
+                .catch(() => showToast('خطا در ارتباط با سرور', 'danger'));
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) sidebar.classList.toggle('active');
+        }
+
+        function openReceiptModal(imageSrc) {
+            const modalImage = document.getElementById('receiptImage');
+            if (modalImage) modalImage.src = imageSrc;
+            const myModal = new bootstrap.Modal(document.getElementById('receiptModal'));
+            myModal.show();
+        }
+
+        function showToast(message, type = 'success') {
+            const positionClass = window.innerWidth < 768
+                ? 'top-0 start-50 translate-middle-x'
+                : 'top-0 end-0';
+
+            const toastHTML = `
+        <div class="toast-container position-fixed ${positionClass} p-3" style="z-index:1060">
+            <div class="toast show text-bg-${type}">
+                <div class="toast-body text-center">
+                    ${message}
+                </div>
+            </div>
+        </div>`;
+
+            document.body.insertAdjacentHTML('beforeend', toastHTML);
+            setTimeout(() => {
+                document.querySelector('.toast-container')?.remove();
+            }, 4000);
+        }
+
+        // انتخاب پروژه
+        document.addEventListener('DOMContentLoaded', function () {
+            const projectSelect = document.getElementById('project_id_selector');
+            const menuLinks = document.querySelectorAll('.menu-link');
+            if (!projectSelect) return;
+
+            function updateMenuLinks() {
+                const projectId = projectSelect.value;
+                menuLinks.forEach(link => {
+                    const tab = link.getAttribute('data-tab');
+                    if (projectId && tab) {
+                        link.href = `?tab=${encodeURIComponent(tab)}&project_id=${encodeURIComponent(projectId)}`;
+                    } else {
+                        link.href = '#';
+                    }
+                });
+            }
+            projectSelect.addEventListener('change', updateMenuLinks);
+            updateMenuLinks();
+        });
+    </script>
+
 
 <?php
 // بستن اتصال دیتابیس
